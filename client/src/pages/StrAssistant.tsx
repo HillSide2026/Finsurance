@@ -41,6 +41,7 @@ import {
   triggerTypeValues,
   type StrCustomerData,
   type StrIntake,
+  type StrReadinessStatus,
   type StrScenarioPreset,
   type SuspicionLevel,
 } from "@shared/str";
@@ -91,6 +92,31 @@ const levelCopy: Record<SuspicionLevel, { label: string; className: string }> = 
   high: {
     label: "High suspicion strength",
     className: "border-rose-300 bg-rose-100 text-rose-950",
+  },
+};
+
+const readinessCopy: Record<
+  StrReadinessStatus,
+  {
+    label: string;
+    className: string;
+    reviewButtonLabel: string;
+  }
+> = {
+  insufficient_information: {
+    label: "Need more structured intake",
+    className: "border-rose-300 bg-rose-100 text-rose-950",
+    reviewButtonLabel: "Add More Intake Detail",
+  },
+  guidance_only: {
+    label: "Preliminary guidance only",
+    className: "border-amber-300 bg-amber-100 text-amber-950",
+    reviewButtonLabel: "Review Preliminary Risk Signals",
+  },
+  ready_to_draft: {
+    label: "Ready to draft",
+    className: "border-emerald-300 bg-emerald-100 text-emerald-950",
+    reviewButtonLabel: "Review Risk Signals",
   },
 };
 
@@ -281,38 +307,6 @@ function PresetCard({
   );
 }
 
-function CustomerSnapshot({
-  customerData,
-}: {
-  customerData: StrCustomerData;
-}) {
-  const items = [
-    customerData.name.trim().length > 0
-      ? `Name or legal name: ${customerData.name.trim()}`
-      : "",
-    customerData.referenceId.trim().length > 0
-      ? `Internal reference: ${customerData.referenceId.trim()}`
-      : "",
-    customerData.dateOfBirthOrIncorporation.trim().length > 0
-      ? `DOB or incorporation: ${customerData.dateOfBirthOrIncorporation.trim()}`
-      : "",
-    customerData.occupationOrBusiness.trim().length > 0
-      ? `Occupation or business: ${customerData.occupationOrBusiness.trim()}`
-      : "",
-    customerData.expectedActivity.trim().length > 0
-      ? `Expected activity: ${customerData.expectedActivity.trim()}`
-      : "",
-  ].filter((item) => item.length > 0);
-
-  return (
-    <SummaryList
-      title="Customer Data"
-      items={items}
-      emptyCopy="No customer data has been captured yet."
-    />
-  );
-}
-
 export default function StrAssistant() {
   const { toast } = useToast();
   const [view, setView] = useState<View>("landing");
@@ -325,6 +319,7 @@ export default function StrAssistant() {
     ? strScenarioPresets.find((preset) => preset.id === intake.scenarioPresetId) ?? null
     : null;
   const levelMeta = levelCopy[draft.suspicionLevel];
+  const readinessMeta = readinessCopy[draft.readiness.status];
 
   const updateIntake = <K extends keyof StrIntake>(key: K, value: StrIntake[K]) => {
     setIntake((current) => ({ ...current, [key]: value }));
@@ -369,14 +364,22 @@ export default function StrAssistant() {
   };
 
   const reviewRiskSignals = () => {
-    if (!draft.readiness.canGenerate) {
+    if (!draft.readiness.canReviewRiskSignals) {
       toast({
-        title: "Complete the intake first",
+        title: "More intake detail is needed",
         description:
-          "Finish the required structured fields before reviewing the risk signals.",
+          "Capture the trigger, transaction pattern, and basis for suspicion before reviewing risk signals.",
         variant: "destructive",
       });
       return;
+    }
+
+    if (draft.readiness.status === "guidance_only") {
+      toast({
+        title: "Preliminary guidance only",
+        description:
+          "You can review early risk signals now, but the required intake gaps still need to be completed before drafting.",
+      });
     }
 
     setView("review");
@@ -402,6 +405,15 @@ export default function StrAssistant() {
   };
 
   const copyNarrative = async () => {
+    if (narrativeText.trim().length === 0) {
+      toast({
+        title: "No draft to copy",
+        description: "Build the narrative first, then copy the finished draft.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       await navigator.clipboard.writeText(narrativeText);
       toast({
@@ -418,11 +430,20 @@ export default function StrAssistant() {
   };
 
   const downloadNarrative = () => {
+    if (narrativeText.trim().length === 0) {
+      toast({
+        title: "No draft to download",
+        description: "Build the narrative first, then download the finished draft.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const blob = new Blob([narrativeText], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "fintrac-str-draft.txt";
+    link.download = `${session.id.toLowerCase()}-str-draft.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1037,14 +1058,11 @@ export default function StrAssistant() {
                   <div
                     className={cn(
                       "rounded-2xl border px-4 py-3 text-sm",
-                      draft.readiness.canGenerate
-                        ? "border-emerald-300 bg-emerald-100 text-emerald-950"
-                        : "border-amber-300 bg-amber-100 text-amber-950",
+                      readinessMeta.className,
                     )}
                   >
-                    {draft.readiness.canGenerate
-                      ? "The intake is complete enough to review the risk signals."
-                      : "The intake still has required gaps before the draft can be generated."}
+                    <p className="font-semibold">{readinessMeta.label}</p>
+                    <p className="mt-1 leading-6">{draft.readiness.summary}</p>
                   </div>
 
                   <div className="space-y-3">
@@ -1067,14 +1085,34 @@ export default function StrAssistant() {
                     )}
                   </div>
 
+                  <div className="space-y-3">
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-300">
+                      To strengthen the draft
+                    </p>
+                    {draft.qualityWarnings.length === 0 ? (
+                      <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                        No input quality warnings detected.
+                      </div>
+                    ) : (
+                      draft.qualityWarnings.map((warning) => (
+                        <div
+                          key={warning}
+                          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100"
+                        >
+                          {warning}
+                        </div>
+                      ))
+                    )}
+                  </div>
+
                   <div className="space-y-3 pt-2">
                     <Button
                       className="w-full rounded-2xl"
                       size="lg"
                       onClick={reviewRiskSignals}
-                      disabled={!draft.readiness.canGenerate}
+                      disabled={!draft.readiness.canReviewRiskSignals}
                     >
-                      Review Risk Signals
+                      {readinessMeta.reviewButtonLabel}
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                     <Button
@@ -1139,6 +1177,17 @@ export default function StrAssistant() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {draft.readiness.status !== "ready_to_draft" ? (
+                    <div
+                      className={cn(
+                        "rounded-2xl border px-4 py-4 text-sm leading-6",
+                        readinessMeta.className,
+                      )}
+                    >
+                      {draft.readiness.summary}
+                    </div>
+                  ) : null}
+
                   {draft.redFlags.length === 0 ? (
                     <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-950">
                       No rules fired from the current selections. Review the intake before
@@ -1183,7 +1232,18 @@ export default function StrAssistant() {
             </div>
 
             <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-              <CustomerSnapshot customerData={intake.customerData} />
+              <SummaryList
+                title="Facts Provided"
+                items={draft.factsProvided}
+                emptyCopy="No fact summary is available yet."
+              />
+
+              <SummaryList
+                title="Input Quality Notes"
+                items={draft.qualityWarnings}
+                emptyCopy="No input quality warnings were generated from the current intake."
+                tone="alert"
+              />
 
               <SummaryList
                 title="Missing Info Prompts"
@@ -1200,8 +1260,24 @@ export default function StrAssistant() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5">
+                  <div
+                    className={cn(
+                      "rounded-2xl border px-4 py-3 text-sm leading-6",
+                      readinessMeta.className,
+                    )}
+                  >
+                    {draft.readiness.canGenerate
+                      ? "The intake is complete enough to assemble the STR draft."
+                      : "Review the signals now, then return to intake to complete the required gaps before drafting."}
+                  </div>
+
                   <div className="flex flex-col gap-3">
-                    <Button size="lg" className="rounded-2xl" onClick={buildNarrativeDraft}>
+                    <Button
+                      size="lg"
+                      className="rounded-2xl"
+                      onClick={buildNarrativeDraft}
+                      disabled={!draft.readiness.canGenerate}
+                    >
                       Build Narrative Draft
                       <ArrowRight className="h-4 w-4" />
                     </Button>
@@ -1284,12 +1360,23 @@ export default function StrAssistant() {
             </div>
 
             <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-              <CustomerSnapshot customerData={intake.customerData} />
+              <SummaryList
+                title="Facts Provided"
+                items={draft.factsProvided}
+                emptyCopy="No fact summary is available yet."
+              />
 
               <SummaryList
                 title="Detected Red Flags"
                 items={draft.redFlags.map((flag) => flag.label)}
                 emptyCopy="No deterministic flags fired from the current selections."
+              />
+
+              <SummaryList
+                title="Input Quality Notes"
+                items={draft.qualityWarnings}
+                emptyCopy="No input quality warnings were generated from the current intake."
+                tone="alert"
               />
 
               <Card className="border-border/70 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
@@ -1375,12 +1462,23 @@ export default function StrAssistant() {
             </Card>
 
             <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-              <CustomerSnapshot customerData={intake.customerData} />
+              <SummaryList
+                title="Facts Provided"
+                items={draft.factsProvided}
+                emptyCopy="No fact summary is available yet."
+              />
 
               <SummaryList
                 title="Flags Summary"
                 items={draft.redFlags.map((flag) => flag.label)}
                 emptyCopy="No deterministic flags fired from the current selections."
+              />
+
+              <SummaryList
+                title="Input Quality Notes"
+                items={draft.qualityWarnings}
+                emptyCopy="No input quality warnings were generated from the current intake."
+                tone="alert"
               />
 
               <SummaryList

@@ -76,6 +76,10 @@ export type CustomerType = (typeof customerTypeValues)[number];
 export type Jurisdiction = (typeof jurisdictionValues)[number];
 export type SuspicionIndicator = (typeof suspicionIndicatorValues)[number];
 export type SuspicionLevel = "low" | "medium" | "high";
+export type StrReadinessStatus =
+  | "insufficient_information"
+  | "guidance_only"
+  | "ready_to_draft";
 
 export type StrCustomerData = {
   name: string;
@@ -113,7 +117,10 @@ export type RedFlag = {
 };
 
 export type StrReadiness = {
+  status: StrReadinessStatus;
+  summary: string;
   canGenerate: boolean;
+  canReviewRiskSignals: boolean;
   totalRequiredFields: number;
   completedFieldCount: number;
   progressPercent: number;
@@ -132,6 +139,8 @@ export type StrDraftOutput = {
   redFlags: RedFlag[];
   suspicionLevel: SuspicionLevel;
   checklist: string[];
+  factsProvided: string[];
+  qualityWarnings: string[];
   missingFields: string[];
   missingInfoPrompts: string[];
   narrativeText: string;
@@ -186,6 +195,14 @@ export const timeframeLabels: Record<Timeframe, string> = {
   over_3_months: "more than 3 months",
 };
 
+const timeframeNarrativeLabels: Record<Timeframe, string> = {
+  same_day: "Over the same day",
+  "2_to_7_days": "Over 2 to 7 days",
+  "1_to_4_weeks": "Over 1 to 4 weeks",
+  "1_to_3_months": "Over 1 to 3 months",
+  over_3_months: "Over more than 3 months",
+};
+
 export const transactionChannelLabels: Record<TransactionChannel, string> = {
   cash: "Cash",
   wire_transfer: "Wire transfer",
@@ -235,54 +252,55 @@ export const suspicionIndicatorLabels: Record<SuspicionIndicator, string> = {
   other: "Other",
 };
 
-const requiredFieldChecks = [
+type RequiredFieldCheck = {
+  label: string;
+  isComplete: (input: StrIntake) => boolean;
+};
+
+const requiredFieldChecks: RequiredFieldCheck[] = [
   {
     label: "Select at least one triggering concern.",
-    isComplete: (input: StrIntake) => input.triggerTypes.length > 0,
+    isComplete: (input) => input.triggerTypes.length > 0,
   },
   {
     label: "Choose the approximate total amount range.",
-    isComplete: (input: StrIntake) => input.amountBand !== null,
+    isComplete: (input) => input.amountBand !== null,
   },
   {
     label: "Choose the transaction currency.",
-    isComplete: (input: StrIntake) => input.currency !== null,
+    isComplete: (input) => input.currency !== null,
   },
   {
     label: "Choose the number of transactions.",
-    isComplete: (input: StrIntake) => input.transactionCount !== null,
+    isComplete: (input) => input.transactionCount !== null,
   },
   {
     label: "Choose the timeframe for the activity.",
-    isComplete: (input: StrIntake) => input.timeframe !== null,
+    isComplete: (input) => input.timeframe !== null,
   },
   {
     label: "Select at least one transaction channel.",
-    isComplete: (input: StrIntake) => input.transactionChannels.length > 0,
+    isComplete: (input) => input.transactionChannels.length > 0,
   },
   {
     label: "Choose whether the client is new or existing.",
-    isComplete: (input: StrIntake) => input.clientRelationship !== null,
+    isComplete: (input) => input.clientRelationship !== null,
   },
   {
     label: "Choose whether the subject is an individual or entity.",
-    isComplete: (input: StrIntake) => input.customerType !== null,
+    isComplete: (input) => input.customerType !== null,
   },
   {
     label: "Select at least one jurisdiction.",
-    isComplete: (input: StrIntake) => input.jurisdictions.length > 0,
+    isComplete: (input) => input.jurisdictions.length > 0,
   },
   {
     label: "Select at least one basis for suspicion.",
-    isComplete: (input: StrIntake) => input.suspicionIndicators.length > 0,
+    isComplete: (input) => input.suspicionIndicators.length > 0,
   },
 ] as const;
 
-type Rule = {
-  id: string;
-  label: string;
-  sentence: string;
-  weight: number;
+type Rule = RedFlag & {
   matches: (input: StrIntake) => boolean;
 };
 
@@ -291,7 +309,7 @@ const rules: Rule[] = [
     id: "structuring-pattern",
     label: "Possible structuring to avoid reporting thresholds",
     sentence:
-      "The pattern of transactions was consistent with possible structuring intended to avoid reporting thresholds.",
+      "The transaction pattern was consistent with possible structuring intended to avoid reporting thresholds.",
     weight: 3,
     matches: (input) => input.triggerTypes.includes("structuring"),
   },
@@ -363,9 +381,9 @@ const rules: Rule[] = [
   },
   {
     id: "multi-jurisdiction-movement",
-    label: "Movement across multiple jurisdictions reduced transparency",
+    label: "Cross-border movement reduced transparency",
     sentence:
-      "The movement of value across multiple jurisdictions reduced transparency regarding the purpose and destination of the transactions.",
+      "Movement of value across jurisdictions reduced transparency regarding the purpose, destination, or counterparties involved.",
     weight: 2,
     matches: (input) =>
       input.jurisdictions.includes("multiple_jurisdictions") ||
@@ -403,7 +421,7 @@ const rules: Rule[] = [
     weight: 2,
     matches: (input) =>
       input.suspicionIndicators.includes("inconsistent_behaviour") &&
-      input.customerData.occupationOrBusiness.trim().length > 0,
+      input.customerData.occupationOrBusiness.length > 0,
   },
   {
     id: "electronic-layering",
@@ -424,9 +442,86 @@ const rules: Rule[] = [
       "Additional unusual facts documented by staff contributed to the overall suspicion.",
     weight: 1,
     matches: (input) =>
-      input.triggerTypes.includes("other") && input.triggerOtherText.trim().length > 0,
+      input.triggerTypes.includes("other") && input.triggerOtherText.length > 0,
   },
-];
+] as const;
+
+function isOneOf<T extends string>(value: string, values: readonly T[]): value is T {
+  return (values as readonly string[]).includes(value);
+}
+
+function normalizeWhitespace(value: unknown): string {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function normalizeNullableSelection<T extends string>(
+  value: unknown,
+  values: readonly T[],
+): T | null {
+  return typeof value === "string" && isOneOf(value, values) ? value : null;
+}
+
+function normalizeOptionList<T extends string>(
+  values: unknown,
+  allowedValues: readonly T[],
+): T[] {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  const seen = new Set<T>();
+
+  for (const value of values) {
+    if (typeof value === "string" && isOneOf(value, allowedValues)) {
+      seen.add(value);
+    }
+  }
+
+  return Array.from(seen);
+}
+
+function capitalizeFirst(value: string): string {
+  return value.length > 0 ? `${value[0].toUpperCase()}${value.slice(1)}` : value;
+}
+
+function normalizeSentence(text: string): string {
+  const trimmed = normalizeWhitespace(text);
+  if (trimmed.length === 0) {
+    return "";
+  }
+
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
+function formatList(values: string[]): string {
+  if (values.length === 0) {
+    return "";
+  }
+
+  if (values.length === 1) {
+    return values[0];
+  }
+
+  if (values.length === 2) {
+    return `${values[0]} and ${values[1]}`;
+  }
+
+  return `${values.slice(0, -1).join(", ")}, and ${values[values.length - 1]}`;
+}
+
+function createEmptyNarrativeSections(): StrNarrativeSections {
+  return {
+    subjectDescription: "",
+    transactionSummary: "",
+    suspiciousIndicators: [],
+    basisForSuspicion: "",
+    conclusion: "",
+  };
+}
 
 export function createEmptyCustomerData(): StrCustomerData {
   return {
@@ -460,6 +555,73 @@ export function createEmptyStrIntake(): StrIntake {
   };
 }
 
+function normalizeCustomerData(value: unknown): StrCustomerData {
+  const customerData = value && typeof value === "object" ? value : {};
+
+  return {
+    name: normalizeWhitespace((customerData as Partial<StrCustomerData>).name),
+    referenceId: normalizeWhitespace(
+      (customerData as Partial<StrCustomerData>).referenceId,
+    ),
+    dateOfBirthOrIncorporation: normalizeWhitespace(
+      (customerData as Partial<StrCustomerData>).dateOfBirthOrIncorporation,
+    ),
+    occupationOrBusiness: normalizeWhitespace(
+      (customerData as Partial<StrCustomerData>).occupationOrBusiness,
+    ),
+    expectedActivity: normalizeWhitespace(
+      (customerData as Partial<StrCustomerData>).expectedActivity,
+    ),
+  };
+}
+
+export function normalizeStrIntake(input: Partial<StrIntake> | null | undefined): StrIntake {
+  const empty = createEmptyStrIntake();
+  const raw = input ?? empty;
+  const triggerTypes = normalizeOptionList(raw.triggerTypes, triggerTypeValues);
+  const transactionChannels = normalizeOptionList(
+    raw.transactionChannels,
+    transactionChannelValues,
+  );
+  const suspicionIndicators = normalizeOptionList(
+    raw.suspicionIndicators,
+    suspicionIndicatorValues,
+  );
+
+  return {
+    scenarioPresetId: normalizeWhitespace(raw.scenarioPresetId) || null,
+    triggerTypes,
+    triggerOtherText: triggerTypes.includes("other")
+      ? normalizeWhitespace(raw.triggerOtherText)
+      : "",
+    amountBand: normalizeNullableSelection(raw.amountBand, amountBandValues),
+    currency: normalizeNullableSelection(raw.currency, currencyValues),
+    currencyOtherText:
+      raw.currency === "other" ? normalizeWhitespace(raw.currencyOtherText).toUpperCase() : "",
+    transactionCount: normalizeNullableSelection(
+      raw.transactionCount,
+      transactionCountValues,
+    ),
+    timeframe: normalizeNullableSelection(raw.timeframe, timeframeValues),
+    transactionChannels,
+    transactionChannelOtherText: transactionChannels.includes("other")
+      ? normalizeWhitespace(raw.transactionChannelOtherText)
+      : "",
+    clientRelationship: normalizeNullableSelection(
+      raw.clientRelationship,
+      clientRelationshipValues,
+    ),
+    customerType: normalizeNullableSelection(raw.customerType, customerTypeValues),
+    jurisdictions: normalizeOptionList(raw.jurisdictions, jurisdictionValues),
+    suspicionIndicators,
+    suspicionOtherText: suspicionIndicators.includes("other")
+      ? normalizeWhitespace(raw.suspicionOtherText)
+      : "",
+    customerData: normalizeCustomerData(raw.customerData),
+    freeTextNotes: normalizeWhitespace(raw.freeTextNotes),
+  };
+}
+
 function createPresetIntake(
   overrides: Omit<Partial<StrIntake>, "customerData"> & {
     customerData?: Partial<StrCustomerData>;
@@ -467,14 +629,14 @@ function createPresetIntake(
 ): StrIntake {
   const empty = createEmptyStrIntake();
 
-  return {
+  return normalizeStrIntake({
     ...empty,
     ...overrides,
     customerData: {
       ...empty.customerData,
       ...overrides.customerData,
     },
-  };
+  });
 }
 
 export const strScenarioPresets: StrScenarioPreset[] = [
@@ -483,7 +645,7 @@ export const strScenarioPresets: StrScenarioPreset[] = [
     name: "Cash Structuring",
     description:
       "Repeated cash deposits just below expected reporting thresholds by a newly onboarded client.",
-    highlights: ["Structuring", "Cash", "Same-day repetition"],
+    highlights: ["High suspicion", "Structuring", "Cash", "Same-day repetition"],
     intake: createPresetIntake({
       scenarioPresetId: "cash-structuring",
       triggerTypes: ["structuring", "unusual_transaction"],
@@ -511,7 +673,7 @@ export const strScenarioPresets: StrScenarioPreset[] = [
     name: "Third-Party Wire Layering",
     description:
       "Funds arrive from and depart to unrelated third parties through a newly established business relationship.",
-    highlights: ["Third party", "Wire transfer", "Multiple jurisdictions"],
+    highlights: ["High suspicion", "Third party", "Wire transfer", "Multiple jurisdictions"],
     intake: createPresetIntake({
       scenarioPresetId: "third-party-wire-layering",
       triggerTypes: ["third_party_involvement", "rapid_movement"],
@@ -540,7 +702,7 @@ export const strScenarioPresets: StrScenarioPreset[] = [
     name: "Dormant Business Spike",
     description:
       "An existing entity account moves from low routine activity to a concentrated burst of higher-value transfers.",
-    highlights: ["Existing client", "Activity spike", "Cross-border movement"],
+    highlights: ["High suspicion", "Existing client", "Activity spike", "Cross-border movement"],
     intake: createPresetIntake({
       scenarioPresetId: "dormant-business-activity-spike",
       triggerTypes: ["unusual_transaction", "rapid_movement"],
@@ -568,7 +730,7 @@ export const strScenarioPresets: StrScenarioPreset[] = [
     name: "High-Risk Cross-Border Movement",
     description:
       "Rapid movement of value involving high-risk jurisdictions and limited explanation of the funding source.",
-    highlights: ["High-risk geography", "Rapid movement", "Source unclear"],
+    highlights: ["High suspicion", "High-risk geography", "Rapid movement", "Source unclear"],
     intake: createPresetIntake({
       scenarioPresetId: "high-risk-cross-border",
       triggerTypes: ["rapid_movement", "third_party_involvement"],
@@ -595,7 +757,7 @@ export const strScenarioPresets: StrScenarioPreset[] = [
     name: "New Client Large Transfer",
     description:
       "A new client initiates large-value movement inconsistent with the stated profile and expected account use.",
-    highlights: ["New relationship", "Large value", "Profile mismatch"],
+    highlights: ["Medium suspicion", "New relationship", "Large value", "Profile mismatch"],
     intake: createPresetIntake({
       scenarioPresetId: "new-client-large-transfer",
       triggerTypes: ["unusual_transaction"],
@@ -618,19 +780,81 @@ export const strScenarioPresets: StrScenarioPreset[] = [
         "The subject could not provide documentation that connected the size of the transaction to the stated line of business.",
     }),
   },
+  {
+    id: "medium-risk-purpose-gap",
+    name: "Medium-Risk Purpose Gap",
+    description:
+      "An existing client moves funds cross-border with an unclear transaction purpose but without the strongest structuring indicators.",
+    highlights: ["Medium suspicion", "Cross-border", "Purpose gap", "Existing client"],
+    intake: createPresetIntake({
+      scenarioPresetId: "medium-risk-purpose-gap",
+      triggerTypes: ["unusual_transaction", "rapid_movement"],
+      amountBand: "50k_to_100k",
+      currency: "USD",
+      transactionCount: "2_to_3",
+      timeframe: "2_to_7_days",
+      transactionChannels: ["eft"],
+      clientRelationship: "existing",
+      customerType: "individual",
+      jurisdictions: ["canada", "united_states"],
+      suspicionIndicators: ["source_of_funds_unclear"],
+      customerData: {
+        name: "Elm Street Holdings",
+        referenceId: "MID-2274",
+        occupationOrBusiness: "Property management",
+        expectedActivity: "Domestic rent collection and ordinary property expenses",
+      },
+      freeTextNotes:
+        "Staff could not obtain a clear explanation for the business purpose of the outbound transfer instructions.",
+    }),
+  },
+  {
+    id: "low-information-walk-in",
+    name: "Low-Information Walk-In",
+    description:
+      "A walk-in cash scenario with enough signal for preliminary guidance but not enough detail to assemble a draft.",
+    highlights: ["Guidance only", "Insufficient detail", "Source unclear"],
+    intake: createPresetIntake({
+      scenarioPresetId: "low-information-walk-in",
+      triggerTypes: ["unusual_transaction"],
+      amountBand: "10k_to_50k",
+      currency: "CAD",
+      transactionChannels: ["cash"],
+      suspicionIndicators: ["source_of_funds_unclear"],
+      freeTextNotes:
+        "The customer could not satisfactorily explain the source of the funds at the counter.",
+    }),
+  },
+  {
+    id: "conflicting-structuring-intake",
+    name: "Conflicting Structuring Intake",
+    description:
+      "A complete intake that contains weak or conflicting facts so the operator can see the quality warnings before drafting.",
+    highlights: ["Conflict check", "Quality warning", "QA preset"],
+    intake: createPresetIntake({
+      scenarioPresetId: "conflicting-structuring-intake",
+      triggerTypes: ["structuring"],
+      amountBand: "under_10k",
+      currency: "CAD",
+      transactionCount: "1",
+      timeframe: "over_3_months",
+      transactionChannels: ["bank_draft"],
+      clientRelationship: "existing",
+      customerType: "business",
+      jurisdictions: ["multiple_jurisdictions"],
+      suspicionIndicators: ["source_of_funds_unclear"],
+      customerData: {
+        name: "North Harbour Services Ltd.",
+        referenceId: "QA-1190",
+      },
+      freeTextNotes:
+        "The intake described the activity as structuring, but only a single transaction was entered and the jurisdictions were not named.",
+    }),
+  },
 ];
 
 export function cloneStrIntake(intake: StrIntake): StrIntake {
-  return {
-    ...intake,
-    triggerTypes: [...intake.triggerTypes],
-    jurisdictions: [...intake.jurisdictions],
-    suspicionIndicators: [...intake.suspicionIndicators],
-    transactionChannels: [...intake.transactionChannels],
-    customerData: {
-      ...intake.customerData,
-    },
-  };
+  return normalizeStrIntake(intake);
 }
 
 export function createIntakeFromPreset(presetId: string): StrIntake {
@@ -644,94 +868,142 @@ export function toggleValue<T extends OptionValue>(values: T[], value: T): T[] {
     : [...values, value];
 }
 
-export function buildStrReadiness(input: StrIntake): StrReadiness {
-  const missingFields: string[] = requiredFieldChecks
-    .filter((field) => !field.isComplete(input))
-    .map((field) => field.label);
+function buildConditionalFieldChecks(input: StrIntake): RequiredFieldCheck[] {
+  const checks: RequiredFieldCheck[] = [];
 
-  if (input.triggerTypes.includes("other") && input.triggerOtherText.trim().length === 0) {
-    missingFields.push('Add a short note for the "other" triggering concern.');
+  if (input.triggerTypes.includes("other")) {
+    checks.push({
+      label: 'Add a short note for the "other" triggering concern.',
+      isComplete: (draftInput) => draftInput.triggerOtherText.length > 0,
+    });
   }
 
-  if (input.currency === "other" && input.currencyOtherText.trim().length === 0) {
-    missingFields.push('Specify the currency when "other" is selected.');
+  if (input.currency === "other") {
+    checks.push({
+      label: 'Specify the currency when "other" is selected.',
+      isComplete: (draftInput) => draftInput.currencyOtherText.length > 0,
+    });
   }
 
-  if (
-    input.transactionChannels.includes("other") &&
-    input.transactionChannelOtherText.trim().length === 0
-  ) {
-    missingFields.push('Specify the transaction channel when "other" is selected.');
+  if (input.transactionChannels.includes("other")) {
+    checks.push({
+      label: 'Specify the transaction channel when "other" is selected.',
+      isComplete: (draftInput) => draftInput.transactionChannelOtherText.length > 0,
+    });
   }
 
-  if (
-    input.suspicionIndicators.includes("other") &&
-    input.suspicionOtherText.trim().length === 0
-  ) {
-    missingFields.push('Add a short note for the "other" suspicion basis.');
+  if (input.suspicionIndicators.includes("other")) {
+    checks.push({
+      label: 'Add a short note for the "other" suspicion basis.',
+      isComplete: (draftInput) => draftInput.suspicionOtherText.length > 0,
+    });
   }
 
-  const completedFieldCount =
-    requiredFieldChecks.length -
-    requiredFieldChecks.filter((field) => !field.isComplete(input)).length;
+  return checks;
+}
+
+function deriveReadinessStatus(
+  input: StrIntake,
+  missingFields: string[],
+): Pick<StrReadiness, "status" | "summary" | "canGenerate" | "canReviewRiskSignals"> {
+  if (missingFields.length === 0) {
+    return {
+      status: "ready_to_draft",
+      summary: "The intake is complete enough to generate a draft narrative.",
+      canGenerate: true,
+      canReviewRiskSignals: true,
+    };
+  }
+
+  const hasTransactionContext =
+    input.transactionChannels.length > 0 ||
+    [input.amountBand, input.currency, input.transactionCount, input.timeframe].filter(
+      Boolean,
+    ).length >= 2;
+  const hasCustomerContext =
+    input.clientRelationship !== null ||
+    input.customerType !== null ||
+    input.jurisdictions.length > 0 ||
+    input.customerData.name.length > 0 ||
+    input.customerData.referenceId.length > 0;
+  const signalCount = [
+    input.triggerTypes.length > 0,
+    hasTransactionContext,
+    hasCustomerContext,
+    input.suspicionIndicators.length > 0,
+  ].filter(Boolean).length;
+
+  if (input.triggerTypes.length > 0 && input.suspicionIndicators.length > 0 && signalCount >= 3) {
+    return {
+      status: "guidance_only",
+      summary:
+        "There is enough information to surface preliminary risk signals, but key intake fields still need to be completed before drafting.",
+      canGenerate: false,
+      canReviewRiskSignals: true,
+    };
+  }
 
   return {
-    canGenerate: missingFields.length === 0,
-    totalRequiredFields: requiredFieldChecks.length,
+    status: "insufficient_information",
+    summary:
+      "There is not yet enough structured information to assess the scenario reliably. Start by capturing the trigger, transaction pattern, and basis for suspicion.",
+    canGenerate: false,
+    canReviewRiskSignals: false,
+  };
+}
+
+export function buildStrReadiness(input: StrIntake): StrReadiness {
+  const normalizedInput = normalizeStrIntake(input);
+  const allChecks = [
+    ...requiredFieldChecks,
+    ...buildConditionalFieldChecks(normalizedInput),
+  ];
+  const missingFields = allChecks
+    .filter((field) => !field.isComplete(normalizedInput))
+    .map((field) => field.label);
+  const completedFieldCount = allChecks.filter((field) =>
+    field.isComplete(normalizedInput),
+  ).length;
+  const totalRequiredFields = allChecks.length;
+  const readinessState = deriveReadinessStatus(normalizedInput, missingFields);
+
+  return {
+    ...readinessState,
+    totalRequiredFields,
     completedFieldCount,
-    progressPercent: Math.round(
-      (completedFieldCount / requiredFieldChecks.length) * 100,
-    ),
+    progressPercent:
+      totalRequiredFields === 0
+        ? 0
+        : Math.round((completedFieldCount / totalRequiredFields) * 100),
     missingFields,
   };
 }
 
 export function detectRedFlags(input: StrIntake): RedFlag[] {
-  return rules.filter((rule) => rule.matches(input));
+  const normalizedInput = normalizeStrIntake(input);
+
+  return rules
+    .filter((rule) => rule.matches(normalizedInput))
+    .map(({ matches: _matches, ...flag }) => flag);
 }
 
 export function deriveSuspicionLevel(flags: RedFlag[]): SuspicionLevel {
   const score = flags.reduce((total, flag) => total + flag.weight, 0);
 
-  if (score >= 10 || flags.length >= 5) {
+  if (score >= 12 || flags.length >= 6) {
     return "high";
   }
 
-  if (score >= 5 || flags.length >= 3) {
+  if (score >= 6 || flags.length >= 3) {
     return "medium";
   }
 
   return "low";
 }
 
-function formatList(values: string[]): string {
-  if (values.length === 0) {
-    return "";
-  }
-
-  if (values.length === 1) {
-    return values[0];
-  }
-
-  if (values.length === 2) {
-    return `${values[0]} and ${values[1]}`;
-  }
-
-  return `${values.slice(0, -1).join(", ")}, and ${values[values.length - 1]}`;
-}
-
-function normalizeSentence(text: string): string {
-  const trimmed = text.trim();
-  if (trimmed.length === 0) {
-    return "";
-  }
-
-  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
-}
-
 function getCurrencyLabel(input: StrIntake): string {
-  if (input.currency === "other" && input.currencyOtherText.trim().length > 0) {
-    return input.currencyOtherText.trim().toUpperCase();
+  if (input.currency === "other" && input.currencyOtherText.length > 0) {
+    return input.currencyOtherText;
   }
 
   if (!input.currency) {
@@ -744,8 +1016,8 @@ function getCurrencyLabel(input: StrIntake): string {
 function getChannelNarrative(input: StrIntake): string {
   const channels = input.transactionChannels
     .map((channel) => {
-      if (channel === "other" && input.transactionChannelOtherText.trim().length > 0) {
-        return input.transactionChannelOtherText.trim();
+      if (channel === "other" && input.transactionChannelOtherText.length > 0) {
+        return input.transactionChannelOtherText;
       }
 
       return transactionChannelNarrativeLabels[channel];
@@ -755,33 +1027,45 @@ function getChannelNarrative(input: StrIntake): string {
   return channels.length > 0 ? formatList(channels) : "the available channels";
 }
 
+function getJurisdictionNarrative(input: StrIntake): string {
+  const jurisdictionCopy = input.jurisdictions
+    .map((jurisdiction) => jurisdictionLabels[jurisdiction])
+    .filter((value) => value.length > 0);
+
+  return jurisdictionCopy.length > 0
+    ? formatList(jurisdictionCopy)
+    : "the relevant jurisdictions";
+}
+
 function buildSubjectDescription(input: StrIntake): string {
-  const relationship = input.clientRelationship ? `${input.clientRelationship} ` : "";
+  const relationship =
+    input.clientRelationship !== null
+      ? clientRelationshipLabels[input.clientRelationship].toLowerCase()
+      : "client";
   const typeLabel = input.customerType === "business" ? "entity client" : "individual client";
-  const jurisdictions = input.jurisdictions.map(
-    (jurisdiction) => jurisdictionLabels[jurisdiction],
-  );
   const jurisdictionPhrase =
-    jurisdictions.length > 0
-      ? ` associated with ${formatList(jurisdictions)}`
+    input.jurisdictions.length > 0
+      ? ` associated with ${getJurisdictionNarrative(input)}`
       : "";
   const identifiers: string[] = [];
 
-  if (input.customerData.referenceId.trim().length > 0) {
-    identifiers.push(`client reference ${input.customerData.referenceId.trim()}`);
+  if (input.customerData.referenceId.length > 0) {
+    identifiers.push(`client reference ${input.customerData.referenceId}`);
   }
 
-  if (input.customerData.dateOfBirthOrIncorporation.trim().length > 0) {
+  if (input.customerData.dateOfBirthOrIncorporation.length > 0) {
     identifiers.push(
-      `DOB/incorporation ${input.customerData.dateOfBirthOrIncorporation.trim()}`,
+      `DOB/incorporation ${input.customerData.dateOfBirthOrIncorporation}`,
     );
   }
 
-  if (input.customerData.name.trim().length > 0) {
-    return `${input.customerData.name.trim()}${identifiers.length > 0 ? ` (${identifiers.join("; ")})` : ""}, a ${relationship}${typeLabel}${jurisdictionPhrase}`;
+  const identitySuffix = identifiers.length > 0 ? ` (${identifiers.join("; ")})` : "";
+
+  if (input.customerData.name.length > 0) {
+    return `${input.customerData.name}${identitySuffix}, a ${relationship} ${typeLabel}${jurisdictionPhrase}`;
   }
 
-  return `a ${relationship}${typeLabel}${jurisdictionPhrase}${identifiers.length > 0 ? ` (${identifiers.join("; ")})` : ""}`;
+  return `a ${relationship} ${typeLabel}${jurisdictionPhrase}${identitySuffix}`;
 }
 
 function buildTriggerSummary(input: StrIntake): string {
@@ -789,33 +1073,25 @@ function buildTriggerSummary(input: StrIntake): string {
     .map((trigger) => triggerTypeLabels[trigger])
     .filter((label) => label !== "Other");
 
-  if (input.triggerTypes.includes("other") && input.triggerOtherText.trim().length > 0) {
-    triggers.push(input.triggerOtherText.trim());
+  if (input.triggerTypes.includes("other") && input.triggerOtherText.length > 0) {
+    triggers.push(input.triggerOtherText);
   }
 
-  return triggers.length > 0
-    ? formatList(triggers).toLowerCase()
-    : "unusual activity";
+  return triggers.length > 0 ? formatList(triggers).toLowerCase() : "unusual activity";
 }
 
 function buildTransactionSummary(input: StrIntake): string {
+  const timeframeLead = input.timeframe
+    ? timeframeNarrativeLabels[input.timeframe]
+    : "Over an unspecified period";
   const countLabel = input.transactionCount
     ? transactionCountLabels[input.transactionCount]
     : "an unspecified number of transactions";
   const amountLabel = input.amountBand
     ? amountBandLabels[input.amountBand]
     : "an unspecified amount";
-  const timeframeLabel = input.timeframe
-    ? timeframeLabels[input.timeframe]
-    : "an unspecified period";
-  const jurisdictions =
-    input.jurisdictions.length > 0
-      ? formatList(
-          input.jurisdictions.map((jurisdiction) => jurisdictionLabels[jurisdiction]),
-        )
-      : "the relevant jurisdictions";
 
-  return `Between ${timeframeLabel}, the subject conducted approximately ${countLabel} totaling ${getCurrencyLabel(input)} ${amountLabel} through ${getChannelNarrative(input)}, involving ${jurisdictions}.`;
+  return `${timeframeLead}, the subject conducted approximately ${countLabel} totaling ${getCurrencyLabel(input)} ${amountLabel} through ${getChannelNarrative(input)}, involving ${getJurisdictionNarrative(input)}.`;
 }
 
 function buildRiskInterpretation(input: StrIntake, flags: RedFlag[]): string {
@@ -851,76 +1127,211 @@ function buildRiskInterpretation(input: StrIntake, flags: RedFlag[]): string {
   return "conduct transactions in a manner inconsistent with legitimate personal or business activity";
 }
 
-function buildSuspiciousIndicatorList(
-  input: StrIntake,
-  flags: RedFlag[],
-): string[] {
+function buildSuspiciousIndicatorList(input: StrIntake, flags: RedFlag[]): string[] {
   const items = flags.map((flag) => `- ${flag.label}`);
 
-  if (
-    input.suspicionIndicators.includes("other") &&
-    input.suspicionOtherText.trim().length > 0
-  ) {
+  if (items.length === 0) {
+    const fallbackItems = input.suspicionIndicators
+      .map((indicator) => suspicionIndicatorLabels[indicator])
+      .filter((label) => label !== "Other")
+      .map((label) => `- ${label}`);
+    items.push(...fallbackItems);
+  }
+
+  if (input.suspicionIndicators.includes("other") && input.suspicionOtherText.length > 0) {
     items.push(`- ${normalizeSentence(input.suspicionOtherText).replace(/[.]$/, "")}`);
   }
 
   return items.length > 0 ? items : ["- The available facts support further review."];
 }
 
-function buildProfileContext(input: StrIntake): string[] {
-  const sentences: string[] = [];
+function buildFactsProvided(input: StrIntake): string[] {
+  const facts: string[] = [];
+  const subjectIdentifiers: string[] = [];
 
-  if (input.customerData.occupationOrBusiness.trim().length > 0) {
-    sentences.push(
-      normalizeSentence(
-        `The subject was described as ${input.customerData.occupationOrBusiness.trim()}`,
-      ),
+  if (input.triggerTypes.length > 0) {
+    facts.push(`Triggering concerns: ${capitalizeFirst(buildTriggerSummary(input))}.`);
+  }
+
+  if (
+    input.amountBand !== null ||
+    input.currency !== null ||
+    input.transactionCount !== null ||
+    input.timeframe !== null ||
+    input.transactionChannels.length > 0
+  ) {
+    facts.push(`Transaction pattern: ${buildTransactionSummary(input)}`);
+  }
+
+  if (input.customerData.name.length > 0) {
+    subjectIdentifiers.push(`name ${input.customerData.name}`);
+  }
+
+  if (input.customerData.referenceId.length > 0) {
+    subjectIdentifiers.push(`internal reference ${input.customerData.referenceId}`);
+  }
+
+  if (input.customerData.dateOfBirthOrIncorporation.length > 0) {
+    subjectIdentifiers.push(
+      `DOB/incorporation ${input.customerData.dateOfBirthOrIncorporation}`,
     );
   }
 
-  if (input.customerData.expectedActivity.trim().length > 0) {
-    sentences.push(
-      normalizeSentence(
-        `Expected activity on the relationship was described as ${input.customerData.expectedActivity.trim()}`,
-      ),
+  if (subjectIdentifiers.length > 0) {
+    facts.push(`Subject identifiers: ${capitalizeFirst(formatList(subjectIdentifiers))}.`);
+  }
+
+  const contextParts: string[] = [];
+
+  if (input.clientRelationship !== null) {
+    contextParts.push(clientRelationshipLabels[input.clientRelationship].toLowerCase());
+  }
+
+  if (input.customerType !== null) {
+    contextParts.push(customerTypeLabels[input.customerType].toLowerCase());
+  }
+
+  if (input.jurisdictions.length > 0) {
+    contextParts.push(`associated with ${getJurisdictionNarrative(input)}`);
+  }
+
+  if (contextParts.length > 0) {
+    facts.push(`Customer context: ${capitalizeFirst(contextParts.join(" "))}.`);
+  }
+
+  if (input.customerData.occupationOrBusiness.length > 0) {
+    facts.push(
+      `Stated occupation or business: ${normalizeSentence(
+        input.customerData.occupationOrBusiness,
+      )}`,
+    );
+  }
+
+  if (input.customerData.expectedActivity.length > 0) {
+    facts.push(
+      `Expected activity: ${normalizeSentence(input.customerData.expectedActivity)}`,
+    );
+  }
+
+  if (input.freeTextNotes.length > 0) {
+    facts.push(`Staff observations: ${normalizeSentence(input.freeTextNotes)}`);
+  }
+
+  return facts;
+}
+
+function buildQualityWarnings(input: StrIntake): string[] {
+  const warnings: string[] = [];
+
+  if (
+    input.triggerTypes.includes("structuring") &&
+    (input.transactionCount === "1" || input.transactionCount === null)
+  ) {
+    warnings.push(
+      "Structuring usually involves multiple transactions. Confirm the transaction count or reconsider the structuring trigger.",
     );
   }
 
   if (
-    input.suspicionIndicators.includes("inconsistent_behaviour") &&
-    (input.customerData.occupationOrBusiness.trim().length > 0 ||
-      input.customerData.expectedActivity.trim().length > 0)
+    input.triggerTypes.includes("rapid_movement") &&
+    (input.timeframe === "1_to_3_months" || input.timeframe === "over_3_months")
   ) {
-    sentences.push(
-      "The observed transactions did not align with the stated customer profile or expected activity.",
+    warnings.push(
+      "Rapid movement is usually concentrated over a shorter period. Confirm the timeframe or the trigger selection.",
     );
   }
 
-  return sentences.filter((sentence) => sentence.length > 0);
+  if (input.suspicionIndicators.includes("inconsistent_behaviour")) {
+    if (input.customerData.expectedActivity.length === 0) {
+      warnings.push(
+        "Add the customer's expected activity so the draft can explain why the transactions were inconsistent with the profile.",
+      );
+    }
+
+    if (input.customerData.occupationOrBusiness.length === 0) {
+      warnings.push(
+        "Add the stated occupation or business activity so the profile mismatch can be explained concretely.",
+      );
+    }
+  }
+
+  if (
+    input.suspicionIndicators.includes("source_of_funds_unclear") &&
+    input.freeTextNotes.length === 0
+  ) {
+    warnings.push(
+      "Add a short factual note describing what source-of-funds explanation or documents were requested and why they were not satisfactory.",
+    );
+  }
+
+  if (
+    input.triggerTypes.includes("third_party_involvement") &&
+    input.freeTextNotes.length === 0
+  ) {
+    warnings.push(
+      "Add a short note describing the third party's role or why the third-party involvement reduced transparency.",
+    );
+  }
+
+  if (
+    input.jurisdictions.includes("multiple_jurisdictions") &&
+    input.jurisdictions.length === 1
+  ) {
+    warnings.push(
+      "Name the jurisdictions involved rather than relying only on the generic multiple-jurisdictions selection.",
+    );
+  }
+
+  if (input.customerType === "business" && input.customerData.occupationOrBusiness.length === 0) {
+    warnings.push(
+      "Add the entity's line of business so the activity can be compared against the stated customer profile.",
+    );
+  }
+
+  if (input.freeTextNotes.length === 0 && input.triggerTypes.length > 0) {
+    warnings.push(
+      "Add a concise staff note describing what was observed, said, or requested. It will materially improve the draft narrative.",
+    );
+  }
+
+  return Array.from(new Set(warnings));
 }
 
 function buildMissingInfoPrompts(input: StrIntake): string[] {
   const prompts: string[] = [];
 
-  if (input.customerData.name.trim().length === 0) {
+  if (input.customerData.name.length === 0) {
     prompts.push("Add the subject's full name or legal name if it is available.");
   }
 
-  if (input.customerData.referenceId.trim().length === 0) {
-    prompts.push("Add the internal client, account, or case reference used by the reporting entity.");
+  if (input.customerData.referenceId.length === 0) {
+    prompts.push(
+      "Add the internal client, account, or case reference used by the reporting entity.",
+    );
   }
 
-  if (input.customerData.occupationOrBusiness.trim().length === 0) {
+  if (input.customerData.occupationOrBusiness.length === 0) {
     prompts.push("Add the customer's stated occupation or business activity.");
   }
 
-  if (input.customerData.expectedActivity.trim().length === 0) {
-    prompts.push("Add the expected account activity or business profile used for comparison.");
+  if (input.customerData.expectedActivity.length === 0) {
+    prompts.push(
+      "Add the expected account activity or business profile used for comparison, if known.",
+    );
   }
 
   if (input.suspicionIndicators.includes("source_of_funds_unclear")) {
     prompts.push(
       "Document what source-of-funds information was requested and why the explanation was not satisfactory.",
+    );
+  }
+
+  if (
+    input.triggerTypes.includes("unusual_transaction") ||
+    input.suspicionIndicators.includes("inconsistent_behaviour")
+  ) {
+    prompts.push(
+      "Capture the stated purpose of the transaction(s) and why that explanation did not fit the observed activity.",
     );
   }
 
@@ -930,9 +1341,24 @@ function buildMissingInfoPrompts(input: StrIntake): string[] {
     );
   }
 
-  if (input.triggerTypes.includes("rapid_movement")) {
+  if (
+    input.triggerTypes.includes("rapid_movement") ||
+    input.transactionChannels.includes("wire_transfer") ||
+    input.transactionChannels.includes("eft") ||
+    input.transactionChannels.includes("crypto")
+  ) {
     prompts.push(
       "Identify the origin and destination accounts, wallets, or counterparties if that information is available.",
+    );
+  }
+
+  if (
+    input.jurisdictions.includes("high_risk_or_sanctioned") ||
+    input.jurisdictions.includes("multiple_jurisdictions") ||
+    input.jurisdictions.length > 1
+  ) {
+    prompts.push(
+      "Record the specific jurisdictions involved and the role each jurisdiction played in the movement of value.",
     );
   }
 
@@ -971,7 +1397,12 @@ function buildChecklist(input: StrIntake): string[] {
     );
   }
 
-  if (input.triggerTypes.includes("rapid_movement")) {
+  if (
+    input.triggerTypes.includes("rapid_movement") ||
+    input.transactionChannels.includes("wire_transfer") ||
+    input.transactionChannels.includes("eft") ||
+    input.transactionChannels.includes("crypto")
+  ) {
     checklist.push(
       "Retain origin and destination account details, instructions, and related counterparty information.",
     );
@@ -980,26 +1411,89 @@ function buildChecklist(input: StrIntake): string[] {
   return Array.from(new Set(checklist));
 }
 
+function buildBasisForSuspicion(input: StrIntake, flags: RedFlag[]): string {
+  const flagIds = new Set(flags.map((flag) => flag.id));
+  const riskDrivers: string[] = [];
+
+  if (
+    flagIds.has("structuring-pattern") ||
+    flagIds.has("cash-structuring") ||
+    flagIds.has("fragmented-activity")
+  ) {
+    riskDrivers.push("a transaction pattern consistent with possible structuring");
+  }
+
+  if (flagIds.has("rapid-fund-movement") || flagIds.has("same-day-pass-through")) {
+    riskDrivers.push("rapid movement of funds with limited apparent economic rationale");
+  }
+
+  if (flagIds.has("third-party-obscurity")) {
+    riskDrivers.push("third-party involvement that reduced transparency");
+  }
+
+  if (
+    flagIds.has("high-risk-jurisdiction") ||
+    flagIds.has("multi-jurisdiction-movement")
+  ) {
+    riskDrivers.push("cross-border movement that reduced transparency");
+  }
+
+  if (flagIds.has("source-of-funds")) {
+    riskDrivers.push("an unsatisfactory explanation for the source of funds");
+  }
+
+  if (flagIds.has("avoidance-of-controls")) {
+    riskDrivers.push("behaviour that suggested avoidance of normal compliance questioning");
+  }
+
+  if (flagIds.has("profile-mismatch") || flagIds.has("stated-business-mismatch")) {
+    riskDrivers.push("activity that did not align with the stated customer profile");
+  }
+
+  const basisParts = [
+    riskDrivers.length > 0
+      ? `Taken together, the available facts indicated ${formatList(
+          riskDrivers,
+        )} and were consistent with possible attempts to ${buildRiskInterpretation(
+          input,
+          flags,
+        )}.`
+      : `Taken together, the available facts were consistent with possible attempts to ${buildRiskInterpretation(
+          input,
+          flags,
+        )}.`,
+  ];
+
+  if (
+    input.suspicionIndicators.includes("inconsistent_behaviour") &&
+    (input.customerData.occupationOrBusiness.length > 0 ||
+      input.customerData.expectedActivity.length > 0)
+  ) {
+    basisParts.push(
+      "The observed activity did not align with the stated customer profile or expected activity.",
+    );
+  }
+
+  if (input.freeTextNotes.length > 0) {
+    basisParts.push(normalizeSentence(input.freeTextNotes));
+  }
+
+  return basisParts.join(" ");
+}
+
 export function buildNarrativeSections(
   input: StrIntake,
   flags: RedFlag[],
 ): StrNarrativeSections {
-  const suspiciousIndicators = buildSuspiciousIndicatorList(input, flags);
-  const profileContext = buildProfileContext(input);
-  const suspicionBasis = [
-    ...flags.map((flag) => flag.sentence),
-    ...profileContext,
-    normalizeSentence(input.freeTextNotes),
-  ]
-    .filter((sentence) => sentence.length > 0)
-    .join(" ");
-  const riskInterpretation = buildRiskInterpretation(input, flags);
+  const normalizedInput = normalizeStrIntake(input);
 
   return {
-    subjectDescription: `The reporting entity identified activity involving ${buildSubjectDescription(input)}, who engaged in ${buildTriggerSummary(input)}.`,
-    transactionSummary: buildTransactionSummary(input),
-    suspiciousIndicators,
-    basisForSuspicion: `These factors were inconsistent with the expected profile of the client and suggested possible attempts to ${riskInterpretation}.${suspicionBasis ? ` ${suspicionBasis}` : ""}`,
+    subjectDescription: `The reporting entity identified activity involving ${buildSubjectDescription(
+      normalizedInput,
+    )}, who engaged in ${buildTriggerSummary(normalizedInput)}.`,
+    transactionSummary: buildTransactionSummary(normalizedInput),
+    suspiciousIndicators: buildSuspiciousIndicatorList(normalizedInput, flags),
+    basisForSuspicion: buildBasisForSuspicion(normalizedInput, flags),
     conclusion:
       "Based on the available information, the reporting entity has reasonable grounds to suspect that the transactions are related to the commission or attempted commission of a money laundering or terrorist activity financing offence.",
   };
@@ -1028,18 +1522,25 @@ export function buildNarrative(input: StrIntake, flags: RedFlag[]): string {
 }
 
 export function buildStrDraft(input: StrIntake): StrDraftOutput {
-  const readiness = buildStrReadiness(input);
-  const redFlags = detectRedFlags(input);
+  const normalizedInput = normalizeStrIntake(input);
+  const readiness = buildStrReadiness(normalizedInput);
+  const redFlags = detectRedFlags(normalizedInput);
   const suspicionLevel = deriveSuspicionLevel(redFlags);
-  const narrativeSections = buildNarrativeSections(input, redFlags);
+  const narrativeSections = readiness.canGenerate
+    ? buildNarrativeSections(normalizedInput, redFlags)
+    : createEmptyNarrativeSections();
 
   return {
     redFlags,
     suspicionLevel,
-    checklist: buildChecklist(input),
+    checklist: buildChecklist(normalizedInput),
+    factsProvided: buildFactsProvided(normalizedInput),
+    qualityWarnings: buildQualityWarnings(normalizedInput),
     missingFields: readiness.missingFields,
-    missingInfoPrompts: buildMissingInfoPrompts(input),
-    narrativeText: buildNarrative(input, redFlags),
+    missingInfoPrompts: buildMissingInfoPrompts(normalizedInput),
+    narrativeText: readiness.canGenerate
+      ? buildNarrative(normalizedInput, redFlags)
+      : "",
     readiness,
     narrativeSections,
   };

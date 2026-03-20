@@ -4,21 +4,26 @@ import {
   buildStrDraft,
   createEmptyStrIntake,
   createIntakeFromPreset,
+  normalizeStrIntake,
   strScenarioPresets,
 } from "./str";
 
-test("scenario presets provide complete starting points", () => {
-  const preset = strScenarioPresets[0];
+test("scenario presets provide representative starting points", () => {
+  const highRiskPreset = strScenarioPresets.find((preset) => preset.id === "cash-structuring");
+  const guidancePreset = strScenarioPresets.find(
+    (preset) => preset.id === "low-information-walk-in",
+  );
 
-  assert.ok(preset, "expected at least one scenario preset");
+  assert.ok(highRiskPreset, "expected a high-risk preset");
+  assert.ok(guidancePreset, "expected a guidance-only preset");
 
-  const intake = createIntakeFromPreset(preset.id);
-  const draft = buildStrDraft(intake);
+  const readyDraft = buildStrDraft(createIntakeFromPreset(highRiskPreset.id));
+  const guidanceDraft = buildStrDraft(createIntakeFromPreset(guidancePreset.id));
 
-  assert.equal(draft.readiness.canGenerate, true);
-  assert.equal(intake.scenarioPresetId, preset.id);
-  assert.ok(intake.transactionChannels.length > 0);
-  assert.ok(intake.customerData.referenceId.length > 0);
+  assert.equal(readyDraft.readiness.status, "ready_to_draft");
+  assert.equal(readyDraft.readiness.canGenerate, true);
+  assert.equal(guidanceDraft.readiness.status, "guidance_only");
+  assert.equal(guidanceDraft.readiness.canGenerate, false);
 });
 
 test("buildStrDraft identifies high-risk structuring scenarios with stronger narrative language", () => {
@@ -72,40 +77,100 @@ test("buildStrDraft identifies high-risk structuring scenarios with stronger nar
   );
 });
 
-test("buildStrDraft reports conditional missing fields and customer-data prompts", () => {
+test("buildStrDraft returns preliminary guidance when the intake is incomplete", () => {
   const input = {
     ...createEmptyStrIntake(),
-    triggerTypes: ["other"] as const,
-    currency: "other" as const,
-    transactionChannels: ["other"] as const,
-    suspicionIndicators: ["other", "source_of_funds_unclear"] as const,
+    triggerTypes: ["unusual_transaction"] as const,
+    amountBand: "10k_to_50k" as const,
+    currency: "CAD" as const,
+    transactionChannels: ["cash"] as const,
+    suspicionIndicators: ["source_of_funds_unclear"] as const,
+    freeTextNotes:
+      "The customer could not satisfactorily explain the source of the funds at the counter.",
   };
 
   const draft = buildStrDraft(input);
 
+  assert.equal(draft.readiness.status, "guidance_only");
+  assert.equal(draft.readiness.canReviewRiskSignals, true);
   assert.equal(draft.readiness.canGenerate, false);
+  assert.equal(draft.narrativeText, "");
+  assert.equal(draft.narrativeSections.subjectDescription, "");
   assert.ok(
-    draft.missingFields.includes('Add a short note for the "other" triggering concern.'),
+    draft.missingFields.includes("Choose the number of transactions."),
+    "expected missing required transaction detail",
   );
   assert.ok(
-    draft.missingFields.includes('Specify the currency when "other" is selected.'),
+    draft.redFlags.some((flag) => flag.id === "source-of-funds"),
+    "expected preliminary red flags to still be available",
   );
+});
+
+test("empty intake stays blocked and does not produce a draft", () => {
+  const draft = buildStrDraft(createEmptyStrIntake());
+
+  assert.equal(draft.readiness.status, "insufficient_information");
+  assert.equal(draft.readiness.canReviewRiskSignals, false);
+  assert.equal(draft.readiness.canGenerate, false);
+  assert.equal(draft.narrativeText, "");
+  assert.ok(draft.missingFields.length > 0);
+});
+
+test("normalizeStrIntake trims whitespace, filters unknown values, and normalizes other fields", () => {
+  const normalized = normalizeStrIntake({
+    scenarioPresetId: "  demo-preset  ",
+    triggerTypes: ["structuring", "structuring", "invalid"],
+    triggerOtherText: "  should clear because other not selected  ",
+    amountBand: "10k_to_50k",
+    currency: "other",
+    currencyOtherText: "  aed  ",
+    transactionCount: "4_to_10",
+    timeframe: "same_day",
+    transactionChannels: ["cash", "cash", "other", "invalid"],
+    transactionChannelOtherText: "  stored-value card loads ",
+    clientRelationship: "new",
+    customerType: "business",
+    jurisdictions: ["canada", "canada", "multiple_jurisdictions", "bad"],
+    suspicionIndicators: ["source_of_funds_unclear", "other", "bad"],
+    suspicionOtherText: "  changed explanation when questioned ",
+    customerData: {
+      name: "  Example Corp.  ",
+      referenceId: "  AML-12  ",
+      occupationOrBusiness: "  Trading company ",
+      expectedActivity: "  Domestic supplier payments  ",
+    },
+    freeTextNotes: "  first line \n\n second line  ",
+  });
+
+  assert.deepEqual(normalized.triggerTypes, ["structuring"]);
+  assert.equal(normalized.triggerOtherText, "");
+  assert.equal(normalized.currencyOtherText, "AED");
+  assert.deepEqual(normalized.transactionChannels, ["cash", "other"]);
+  assert.equal(normalized.transactionChannelOtherText, "stored-value card loads");
+  assert.deepEqual(normalized.jurisdictions, ["canada", "multiple_jurisdictions"]);
+  assert.deepEqual(normalized.suspicionIndicators, ["source_of_funds_unclear", "other"]);
+  assert.equal(normalized.suspicionOtherText, "changed explanation when questioned");
+  assert.equal(normalized.customerData.name, "Example Corp.");
+  assert.equal(normalized.freeTextNotes, "first line second line");
+});
+
+test("conflicting presets surface input quality warnings and medium-risk presets stay out of high suspicion", () => {
+  const conflictingDraft = buildStrDraft(createIntakeFromPreset("conflicting-structuring-intake"));
+  const mediumDraft = buildStrDraft(createIntakeFromPreset("medium-risk-purpose-gap"));
+
+  assert.equal(conflictingDraft.readiness.status, "ready_to_draft");
   assert.ok(
-    draft.missingFields.includes(
-      'Specify the transaction channel when "other" is selected.',
+    conflictingDraft.qualityWarnings.some((warning) =>
+      warning.includes("Structuring usually involves multiple transactions"),
     ),
+    "expected conflicting structuring inputs to be flagged",
   );
   assert.ok(
-    draft.missingFields.includes('Add a short note for the "other" suspicion basis.'),
-  );
-  assert.ok(
-    draft.missingInfoPrompts.includes(
-      "Add the subject's full name or legal name if it is available.",
+    conflictingDraft.qualityWarnings.some((warning) =>
+      warning.includes("Name the jurisdictions involved"),
     ),
+    "expected generic multiple-jurisdiction selection to be flagged",
   );
-  assert.ok(
-    draft.missingInfoPrompts.includes(
-      "Document what source-of-funds information was requested and why the explanation was not satisfactory.",
-    ),
-  );
+  assert.equal(mediumDraft.suspicionLevel, "medium");
+  assert.equal(mediumDraft.readiness.canGenerate, true);
 });
