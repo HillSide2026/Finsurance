@@ -146,6 +146,72 @@
   .brand-site-highlight {
     color: #00d4d4;
   }
+
+  .brand-workflow-screen {
+    background: linear-gradient(180deg, rgba(9, 44, 52, 0.98), rgba(5, 29, 35, 0.98));
+    border: 1px solid rgba(107, 138, 144, 0.22);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.22);
+  }
+
+  .brand-workflow-line {
+    background: rgba(234, 242, 243, 0.1);
+    border-radius: 999px;
+    height: 8px;
+  }
+
+  .brand-workflow-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .brand-workflow-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .brand-workflow-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(234, 242, 243, 0.24);
+  }
+
+  .brand-workflow-label {
+    color: rgba(234, 242, 243, 0.74);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .brand-workflow-field {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(107, 138, 144, 0.18);
+    border-radius: 14px;
+    min-height: 42px;
+  }
+
+  .brand-workflow-chip {
+    background: rgba(0, 166, 166, 0.14);
+    border: 1px solid rgba(0, 212, 212, 0.18);
+    border-radius: 999px;
+    color: #eaf2f3;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 8px 10px;
+  }
+
+  .brand-workflow-button {
+    background: #00a6a6;
+    border-radius: 14px;
+    color: #062b33;
+    font-size: 12px;
+    font-weight: 700;
+    min-height: 42px;
+  }
 }
 
 ::-webkit-scrollbar {
