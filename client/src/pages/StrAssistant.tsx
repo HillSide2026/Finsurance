@@ -18,6 +18,7 @@ import { siteConfig } from "@shared/site";
 import {
   amountBandLabels,
   amountBandValues,
+  buildDraftPackageText,
   buildStrDraft,
   clientRelationshipLabels,
   clientRelationshipValues,
@@ -213,6 +214,18 @@ function buildEarlyAccessMailto(form: LeadFormState): string {
   return `mailto:${siteConfig.supportEmail}?subject=${subject}&body=${body}`;
 }
 
+function downloadTextFile(fileName: string, content: string) {
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 function Stepper({ currentView }: { currentView: Exclude<View, "landing"> }) {
   const activeIndex = steps.findIndex((step) => step.view === currentView);
 
@@ -405,6 +418,12 @@ export default function StrAssistant() {
     : null;
   const levelMeta = levelCopy[draft.suspicionLevel];
   const readinessMeta = readinessCopy[draft.readiness.status];
+  const fullDraftPackageText = buildDraftPackageText(draft, {
+    productName: siteConfig.productName,
+    sessionId: session.id,
+    sessionTimestamp: session.timestamp,
+    narrativeText,
+  });
 
   const updateIntake = <K extends keyof StrIntake>(key: K, value: StrIntake[K]) => {
     setIntake((current) => ({ ...current, [key]: value }));
@@ -566,15 +585,45 @@ export default function StrAssistant() {
       return;
     }
 
-    const blob = new Blob([narrativeText], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${session.id.toLowerCase()}-str-draft.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    downloadTextFile(`${session.id.toLowerCase()}-str-narrative.txt`, narrativeText);
+  };
+
+  const copyDraftPackage = async () => {
+    if (fullDraftPackageText.trim().length === 0) {
+      toast({
+        title: "No package to copy",
+        description: "Build the draft package before copying it.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(fullDraftPackageText);
+      toast({
+        title: "Draft package copied",
+        description: "The full STR package is on your clipboard.",
+      });
+    } catch {
+      toast({
+        title: "Copy failed",
+        description: "Clipboard access was not available in this browser context.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadDraftPackage = () => {
+    if (fullDraftPackageText.trim().length === 0) {
+      toast({
+        title: "No package to download",
+        description: "Build the draft package before downloading it.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    downloadTextFile(`${session.id.toLowerCase()}-str-package.txt`, fullDraftPackageText);
   };
 
   if (view === "landing") {
@@ -1762,37 +1811,77 @@ export default function StrAssistant() {
               <CardHeader className="border-b border-border/70 pb-5">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <CardTitle>Editable STR Narrative</CardTitle>
+                    <CardTitle>STR Draft Package</CardTitle>
                     <CardDescription>
-                      Make final edits, then copy or download the draft.
+                      Review the package context, then export the full work product or the
+                      narrative only.
                     </CardDescription>
                   </div>
-                  <Badge className={cn("w-fit px-4 py-2", levelMeta.className)}>
-                    {levelMeta.label}
-                  </Badge>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge className={cn("w-fit px-4 py-2", readinessMeta.className)}>
+                      {readinessMeta.label}
+                    </Badge>
+                    <Badge className={cn("w-fit px-4 py-2", levelMeta.className)}>
+                      {levelMeta.label}
+                    </Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-5 pt-6">
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div className="rounded-2xl border border-border/70 bg-secondary/30 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                      Session
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-foreground">{session.id}</p>
+                  </div>
+                  <div className="rounded-2xl border border-border/70 bg-secondary/30 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                      Opened
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-foreground">
+                      {formatTimestamp(session.timestamp)}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-border/70 bg-secondary/30 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                      Package contents
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-foreground">
+                      Facts, red flags, narrative, follow-up, checklist
+                    </p>
+                  </div>
+                </div>
+
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
                   This narrative is a drafting aid. Final regulatory judgment and report
                   submission remain with the reporting entity.
                 </div>
 
-                <Textarea
-                  value={narrativeText}
-                  onChange={(event) => setNarrativeText(event.target.value)}
-                  rows={24}
-                  className="min-h-[560px] rounded-[24px] border-border/70 bg-[#fffdf8] p-5 font-mono text-sm leading-7"
-                />
-
                 <div className="flex flex-wrap gap-3">
-                  <Button className="rounded-2xl" onClick={copyNarrative}>
+                  <Button className="rounded-2xl" onClick={copyDraftPackage}>
                     <Copy className="h-4 w-4" />
-                    Copy
+                    Copy Full Package
                   </Button>
-                  <Button variant="outline" className="rounded-2xl" onClick={downloadNarrative}>
+                  <Button
+                    variant="outline"
+                    className="rounded-2xl"
+                    onClick={downloadDraftPackage}
+                  >
                     <Download className="h-4 w-4" />
-                    Download
+                    Download Full Package
+                  </Button>
+                  <Button variant="outline" className="rounded-2xl" onClick={copyNarrative}>
+                    <Copy className="h-4 w-4" />
+                    Copy Narrative Only
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-2xl"
+                    onClick={downloadNarrative}
+                  >
+                    <Download className="h-4 w-4" />
+                    Download Narrative Only
                   </Button>
                   <Button
                     variant="outline"
@@ -1802,6 +1891,22 @@ export default function StrAssistant() {
                     <ArrowLeft className="h-4 w-4" />
                     Back to Narrative
                   </Button>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Editable narrative</p>
+                    <p className="text-sm text-muted-foreground">
+                      Any edits made here are included in the full draft package export.
+                    </p>
+                  </div>
+
+                <Textarea
+                  value={narrativeText}
+                  onChange={(event) => setNarrativeText(event.target.value)}
+                  rows={24}
+                  className="min-h-[560px] rounded-[24px] border-border/70 bg-[#fffdf8] p-5 font-mono text-sm leading-7"
+                />
                 </div>
               </CardContent>
             </Card>
@@ -1814,7 +1919,7 @@ export default function StrAssistant() {
               />
 
               <SummaryList
-                title="Flags Summary"
+                title="Detected Red Flags"
                 items={draft.redFlags.map((flag) => flag.label)}
                 emptyCopy="No deterministic flags fired from the current selections."
               />

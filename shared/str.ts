@@ -148,6 +148,13 @@ export type StrDraftOutput = {
   narrativeSections: StrNarrativeSections;
 };
 
+export type StrDraftPackageOptions = {
+  productName?: string;
+  sessionId?: string;
+  sessionTimestamp?: string;
+  narrativeText?: string;
+};
+
 export type StrScenarioPreset = {
   id: string;
   name: string;
@@ -304,6 +311,12 @@ type Rule = RedFlag & {
   matches: (input: StrIntake) => boolean;
 };
 
+const electronicTransactionChannels: readonly TransactionChannel[] = [
+  "wire_transfer",
+  "eft",
+  "crypto",
+] as const;
+
 const rules: Rule[] = [
   {
     id: "structuring-pattern",
@@ -354,6 +367,17 @@ const rules: Rule[] = [
       (input.transactionCount === "4_to_10" || input.transactionCount === "11_plus"),
   },
   {
+    id: "new-client-pass-through",
+    label: "New relationship showed rapid onward movement of funds",
+    sentence:
+      "Rapid movement of funds through a newly established relationship increased concern that the account was being used as a pass-through vehicle.",
+    weight: 2,
+    matches: (input) =>
+      input.clientRelationship === "new" &&
+      input.triggerTypes.includes("rapid_movement") &&
+      (usesElectronicChannels(input) || hasElevatedTransactionVolume(input)),
+  },
+  {
     id: "third-party-obscurity",
     label: "Third-party involvement may obscure beneficial ownership",
     sentence:
@@ -367,9 +391,7 @@ const rules: Rule[] = [
     sentence:
       "A significant value of activity occurred at an early stage in the client relationship without a clear rationale.",
     weight: 2,
-    matches: (input) =>
-      input.clientRelationship === "new" &&
-      (input.amountBand === "100k_to_500k" || input.amountBand === "over_500k"),
+    matches: (input) => input.clientRelationship === "new" && hasHighValueActivity(input),
   },
   {
     id: "high-risk-jurisdiction",
@@ -424,6 +446,18 @@ const rules: Rule[] = [
       input.customerData.occupationOrBusiness.length > 0,
   },
   {
+    id: "high-value-profile-mismatch",
+    label: "Transaction size materially exceeded the stated customer profile",
+    sentence:
+      "The size of the activity materially exceeded what would ordinarily be expected from the stated customer profile or anticipated account use.",
+    weight: 2,
+    matches: (input) =>
+      input.suspicionIndicators.includes("inconsistent_behaviour") &&
+      hasHighValueActivity(input) &&
+      (input.customerData.occupationOrBusiness.length > 0 ||
+        input.customerData.expectedActivity.length > 0),
+  },
+  {
     id: "electronic-layering",
     label: "Electronic transfer activity increased layering concerns",
     sentence:
@@ -431,9 +465,19 @@ const rules: Rule[] = [
     weight: 2,
     matches: (input) =>
       input.triggerTypes.includes("rapid_movement") &&
-      (input.transactionChannels.includes("wire_transfer") ||
-        input.transactionChannels.includes("eft") ||
-        input.transactionChannels.includes("crypto")),
+      usesElectronicChannels(input),
+  },
+  {
+    id: "cash-to-electronic-conversion",
+    label: "Cash activity was followed by electronic movement of value",
+    sentence:
+      "The combination of cash activity and electronic movement of value reduced transparency and increased layering concerns.",
+    weight: 2,
+    matches: (input) =>
+      input.transactionChannels.includes("cash") &&
+      usesElectronicChannels(input) &&
+      (input.triggerTypes.includes("rapid_movement") ||
+        input.triggerTypes.includes("structuring")),
   },
   {
     id: "other-trigger",
@@ -511,6 +555,33 @@ function formatList(values: string[]): string {
   }
 
   return `${values.slice(0, -1).join(", ")}, and ${values[values.length - 1]}`;
+}
+
+function hasHighValueActivity(input: StrIntake): boolean {
+  return input.amountBand === "100k_to_500k" || input.amountBand === "over_500k";
+}
+
+function hasElevatedTransactionVolume(input: StrIntake): boolean {
+  return input.transactionCount === "4_to_10" || input.transactionCount === "11_plus";
+}
+
+function usesElectronicChannels(input: StrIntake): boolean {
+  return electronicTransactionChannels.some((channel) =>
+    input.transactionChannels.includes(channel),
+  );
+}
+
+function hasCrossBorderExposure(input: StrIntake): boolean {
+  return (
+    input.jurisdictions.includes("high_risk_or_sanctioned") ||
+    input.jurisdictions.includes("multiple_jurisdictions") ||
+    input.jurisdictions.length > 1
+  );
+}
+
+function notesContainAny(input: StrIntake, terms: string[]): boolean {
+  const note = input.freeTextNotes.toLowerCase();
+  return terms.some((term) => note.includes(term));
 }
 
 function createEmptyNarrativeSections(): StrNarrativeSections {
@@ -1097,6 +1168,10 @@ function buildTransactionSummary(input: StrIntake): string {
 function buildRiskInterpretation(input: StrIntake, flags: RedFlag[]): string {
   const flagIds = new Set(flags.map((flag) => flag.id));
 
+  if (flagIds.has("cash-to-electronic-conversion")) {
+    return "layer or obscure the movement of value across cash and electronic channels";
+  }
+
   if (
     flagIds.has("structuring-pattern") ||
     flagIds.has("cash-structuring") ||
@@ -1113,6 +1188,10 @@ function buildRiskInterpretation(input: StrIntake, flags: RedFlag[]): string {
     return "move funds rapidly through the relationship in a pass-through manner";
   }
 
+  if (flagIds.has("new-client-pass-through")) {
+    return "move value rapidly through a newly established relationship before the activity can be properly understood";
+  }
+
   if (
     flagIds.has("high-risk-jurisdiction") ||
     flagIds.has("multi-jurisdiction-movement")
@@ -1122,6 +1201,10 @@ function buildRiskInterpretation(input: StrIntake, flags: RedFlag[]): string {
 
   if (input.suspicionIndicators.includes("source_of_funds_unclear")) {
     return "introduce funds without a clearly established legitimate origin";
+  }
+
+  if (flagIds.has("high-value-profile-mismatch")) {
+    return "conduct activity materially out of line with the stated customer profile";
   }
 
   return "conduct transactions in a manner inconsistent with legitimate personal or business activity";
@@ -1288,6 +1371,52 @@ function buildQualityWarnings(input: StrIntake): string[] {
     );
   }
 
+  if (
+    input.clientRelationship === "new" &&
+    hasHighValueActivity(input) &&
+    input.customerData.expectedActivity.length === 0
+  ) {
+    warnings.push(
+      "Add the expected activity established at onboarding, or note that none was documented, so the draft can explain why the early high-value activity was unusual.",
+    );
+  }
+
+  if (
+    usesElectronicChannels(input) &&
+    (input.triggerTypes.includes("rapid_movement") || hasCrossBorderExposure(input)) &&
+    !notesContainAny(input, [
+      "origin",
+      "destination",
+      "counterparty",
+      "beneficiary",
+      "sender",
+      "recipient",
+      "wallet",
+      "account",
+    ])
+  ) {
+    warnings.push(
+      "Add the origin and destination account, wallet, or counterparty details if they are known. Those facts materially improve rapid-movement and cross-border drafts.",
+    );
+  }
+
+  if (
+    (input.triggerTypes.includes("unusual_transaction") ||
+      input.suspicionIndicators.includes("inconsistent_behaviour")) &&
+    !notesContainAny(input, [
+      "purpose",
+      "rationale",
+      "invoice",
+      "business reason",
+      "commercial rationale",
+      "reason",
+    ])
+  ) {
+    warnings.push(
+      "Add the stated purpose or commercial rationale that was given for the transaction, even if the explanation was incomplete or not credible.",
+    );
+  }
+
   if (input.freeTextNotes.length === 0 && input.triggerTypes.length > 0) {
     warnings.push(
       "Add a concise staff note describing what was observed, said, or requested. It will materially improve the draft narrative.",
@@ -1343,9 +1472,7 @@ function buildMissingInfoPrompts(input: StrIntake): string[] {
 
   if (
     input.triggerTypes.includes("rapid_movement") ||
-    input.transactionChannels.includes("wire_transfer") ||
-    input.transactionChannels.includes("eft") ||
-    input.transactionChannels.includes("crypto")
+    usesElectronicChannels(input)
   ) {
     prompts.push(
       "Identify the origin and destination accounts, wallets, or counterparties if that information is available.",
@@ -1365,6 +1492,18 @@ function buildMissingInfoPrompts(input: StrIntake): string[] {
   if (input.transactionChannels.includes("cash")) {
     prompts.push(
       "Confirm cash ticket numbers, instrument references, or branch details for the cash activity.",
+    );
+  }
+
+  if (input.clientRelationship === "new" && hasHighValueActivity(input)) {
+    prompts.push(
+      "Record what activity was expected at onboarding and whether the reported transaction matched that expectation.",
+    );
+  }
+
+  if (input.transactionChannels.includes("cash") && usesElectronicChannels(input)) {
+    prompts.push(
+      "Document whether cash activity was followed by outgoing electronic movement, including the timing between those steps and any linked references.",
     );
   }
 
@@ -1427,6 +1566,10 @@ function buildBasisForSuspicion(input: StrIntake, flags: RedFlag[]): string {
     riskDrivers.push("rapid movement of funds with limited apparent economic rationale");
   }
 
+  if (flagIds.has("new-client-pass-through")) {
+    riskDrivers.push("rapid movement through a newly established client relationship");
+  }
+
   if (flagIds.has("third-party-obscurity")) {
     riskDrivers.push("third-party involvement that reduced transparency");
   }
@@ -1448,6 +1591,14 @@ function buildBasisForSuspicion(input: StrIntake, flags: RedFlag[]): string {
 
   if (flagIds.has("profile-mismatch") || flagIds.has("stated-business-mismatch")) {
     riskDrivers.push("activity that did not align with the stated customer profile");
+  }
+
+  if (flagIds.has("high-value-profile-mismatch")) {
+    riskDrivers.push("transaction size that materially exceeded the stated customer profile");
+  }
+
+  if (flagIds.has("cash-to-electronic-conversion")) {
+    riskDrivers.push("cash activity followed by electronic movement that reduced transparency");
   }
 
   const basisParts = [
@@ -1519,6 +1670,108 @@ export function buildNarrative(input: StrIntake, flags: RedFlag[]): string {
     "[Conclusion]",
     sections.conclusion,
   ].join("\n");
+}
+
+const draftPackageReadinessLabels: Record<StrReadinessStatus, string> = {
+  insufficient_information: "Insufficient information",
+  guidance_only: "Preliminary guidance only",
+  ready_to_draft: "Ready to draft",
+};
+
+const draftPackageSuspicionLabels: Record<SuspicionLevel, string> = {
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+};
+
+function buildPackageList(items: string[], emptyCopy: string): string[] {
+  if (items.length === 0) {
+    return [`- ${emptyCopy}`];
+  }
+
+  return items.map((item) => (item.startsWith("- ") ? item : `- ${item}`));
+}
+
+function formatSessionTimestamp(value: string | undefined): string {
+  if (!value) {
+    return "";
+  }
+
+  const timestamp = new Date(value);
+  return Number.isNaN(timestamp.getTime()) ? value : timestamp.toISOString();
+}
+
+export function buildDraftPackageText(
+  draft: StrDraftOutput,
+  options: StrDraftPackageOptions = {},
+): string {
+  const lines: string[] = [];
+  const packageNarrative =
+    typeof options.narrativeText === "string"
+      ? options.narrativeText.trim()
+      : draft.narrativeText.trim();
+
+  if (options.productName) {
+    lines.push(`${options.productName} STR Draft Package`);
+  } else {
+    lines.push("STR Draft Package");
+  }
+
+  if (options.sessionId) {
+    lines.push(`Session: ${options.sessionId}`);
+  }
+
+  const formattedTimestamp = formatSessionTimestamp(options.sessionTimestamp);
+  if (formattedTimestamp) {
+    lines.push(`Session started: ${formattedTimestamp}`);
+  }
+
+  lines.push(`Readiness: ${draftPackageReadinessLabels[draft.readiness.status]}`);
+  lines.push(`Suspicion strength: ${draftPackageSuspicionLabels[draft.suspicionLevel]}`);
+  lines.push("");
+  lines.push("[Facts Provided]");
+  lines.push(...buildPackageList(draft.factsProvided, "No fact summary is available."));
+  lines.push("");
+  lines.push("[Detected Red Flags]");
+  lines.push(
+    ...buildPackageList(
+      draft.redFlags.map((flag) => flag.label),
+      "No deterministic red flags were generated from the current intake.",
+    ),
+  );
+  lines.push("");
+  lines.push("[Input Quality Notes]");
+  lines.push(
+    ...buildPackageList(
+      draft.qualityWarnings,
+      "No input quality warnings were generated from the current intake.",
+    ),
+  );
+  lines.push("");
+  lines.push("[Draft Narrative]");
+  lines.push(
+    packageNarrative.length > 0
+      ? packageNarrative
+      : "Narrative not generated. Complete the missing required fields before drafting.",
+  );
+  lines.push("");
+  lines.push("[Missing Information / Follow-Up]");
+  lines.push(
+    ...buildPackageList(
+      draft.missingInfoPrompts,
+      "No additional follow-up prompts were generated from the current intake.",
+    ),
+  );
+  lines.push("");
+  lines.push("[Compliance Checklist]");
+  lines.push(
+    ...buildPackageList(
+      draft.checklist,
+      "No compliance checklist items were generated from the current intake.",
+    ),
+  );
+
+  return lines.join("\n");
 }
 
 export function buildStrDraft(input: StrIntake): StrDraftOutput {

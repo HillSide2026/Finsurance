@@ -33,6 +33,9 @@ Current repo center of gravity:
   - input-quality warnings
   - missing-information prompts
   - final narrative
+- Output can now be exported as either:
+  - the narrative only
+  - a full draft package with facts, flags, narrative, follow-up prompts, and checklist
 - Narrative generation is withheld until the intake is ready enough to draft.
 - Local and hosted runtime binding behavior is explicit and test-covered.
 - Unknown API routes return JSON 404 responses instead of SPA fallthrough.
@@ -46,11 +49,54 @@ Current repo center of gravity:
 - Tightened suspicion-level calibration so not every representative scenario lands in `high`.
 - Added fact summaries and input-quality warnings to improve operator review.
 - Improved narrative basis language so it is more fact-pattern driven and less repetitive.
+- Added a full draft package formatter so the operator can export one self-contained work product instead of manually stitching sections together.
+- Strengthened output usability with:
+  - session context
+  - readiness status
+  - suspicion strength
+  - full-package export controls
+- Added deterministic coverage for:
+  - rapid movement through new relationships
+  - cash-to-electronic movement patterns
+  - high-value profile mismatch
+- Added sharper guidance where the intake still lacks:
+  - onboarding expectation detail
+  - origin and destination detail
+  - stated transaction purpose or commercial rationale
 - Added presets for:
   - medium suspicion
   - low-information guidance-only use
   - conflicting-input QA
 - Expanded tests around malformed input, blocked/guidance states, preset coverage, and API payload shape.
+
+## Product/App Focus Completed In This Pass
+
+This pass deliberately focused on the next two product steps instead of adding more platform surface area.
+
+### Step 1: Make the output usable as a real draft package
+
+Necessary work:
+- add a shared formatter for a full STR package export
+- preserve the operator-edited narrative inside that package
+- keep narrative-only export as a secondary option
+- show session, readiness, and suspicion context directly on the output screen
+- test the package formatter so export structure stays stable
+
+Status: completed
+
+### Step 2: Tighten deterministic rules and operator guidance
+
+Necessary work:
+- add rules for rapid movement through a new relationship
+- add rules for cash activity followed by electronic movement
+- add rules for high-value activity that materially exceeds the stated profile
+- add warnings when the intake is missing onboarding expectation detail
+- add warnings when origin/destination detail is absent from rapid or cross-border fact patterns
+- add warnings when the stated transaction purpose or rationale is still not captured
+- add follow-up prompts that specifically address cash-to-electronic movement and onboarding context
+- test the new rule and warning coverage directly
+
+Status: completed
 
 ## Concrete Implementation Plan
 
@@ -92,53 +138,14 @@ Acceptance:
 - `npm run build`
 - smaller manifest and less repo noise
 
-3. Add three to five more deterministic quality/risk rules
-Files:
-- [`shared/str.ts`](/Users/matthewlevine/Repos/Finsurance/shared/str.ts)
-- [`shared/str.test.ts`](/Users/matthewlevine/Repos/Finsurance/shared/str.test.ts)
-
-Work:
-- add weak-signal rules for vague purpose, missing counterparty detail, and profile mismatch without supporting context
-- add conflict warnings for cash structuring with single transaction, rapid movement over long duration, and unhelpful generic jurisdiction input
-- keep scoring simple and explicit
-
-Acceptance:
-- medium-risk and low-information scenarios stay out of `high` unless the fact pattern justifies it
-- each new rule has one test
-
 ### Track 2: Output Usability
 
 Goal: make the draft package easier to use without turning the product into a workflow platform.
 
-1. Add “copy full draft package”
-Files:
-- [`client/src/pages/StrAssistant.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/StrAssistant.tsx)
-- [`shared/str.ts`](/Users/matthewlevine/Repos/Finsurance/shared/str.ts)
-
-Work:
-- generate one formatted text package containing:
-  - facts provided
-  - detected red flags
-  - narrative
-  - missing-info prompts
-  - checklist
-- keep the existing narrative-only copy/download as a second option
-
-Acceptance:
-- operator can export one self-contained work product without manually stitching sections together
-
-2. Add a stronger output header
-Files:
-- [`client/src/pages/StrAssistant.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/StrAssistant.tsx)
-
-Work:
-- show session id
-- show suspicion level
-- show readiness status used to generate the draft
-- show a short “drafting assist only” warning directly above the export controls
-
-Acceptance:
-- the output screen is usable as a review artifact, not just a text area
+Completed in this pass:
+- full draft package copy/download
+- preserved edited narrative in exports
+- stronger output context with session, readiness, suspicion level, and drafting-assist warning
 
 ### Track 3: Public Site Design For fintechlawyer.ca
 
@@ -258,6 +265,24 @@ Work:
 - add `POST /api/billing/webhook`
 - use Stripe Checkout hosted pages, not custom embedded billing UI
 - add env vars:
+
+## Next Product/App Steps
+
+These are the next two product-facing steps after the work completed in this pass.
+
+1. Add one browser smoke test for the only path that matters
+Necessary work:
+- add an `e2e` test harness
+- load the landing page
+- apply a representative preset
+- move through `Risk Signals -> Narrative -> Output`
+- assert narrative text plus full-package export controls
+
+2. Trim dead dependencies and unused UI inventory
+Necessary work:
+- remove packages left over from the old repo shape
+- remove unreferenced UI components
+- keep the manifest aligned to the current single-function STR app
   - `STRIPE_SECRET_KEY`
   - `STRIPE_WEBHOOK_SECRET`
   - `STRIPE_PRICE_ID`

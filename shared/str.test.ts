@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buildDraftPackageText,
   buildStrDraft,
   createEmptyStrIntake,
   createIntakeFromPreset,
@@ -173,4 +174,112 @@ test("conflicting presets surface input quality warnings and medium-risk presets
   );
   assert.equal(mediumDraft.suspicionLevel, "medium");
   assert.equal(mediumDraft.readiness.canGenerate, true);
+});
+
+test("buildDraftPackageText assembles a self-contained STR package export", () => {
+  const draft = buildStrDraft(createIntakeFromPreset("cash-structuring"));
+  const editedNarrative = `${draft.narrativeText}\n\n[Operator Note]\nReviewed internally before escalation.`;
+
+  const packageText = buildDraftPackageText(draft, {
+    productName: "FinSure",
+    sessionId: "STR-TEST-1",
+    sessionTimestamp: "2026-03-20T15:30:00.000Z",
+    narrativeText: editedNarrative,
+  });
+
+  assert.match(packageText, /^FinSure STR Draft Package/m);
+  assert.match(packageText, /Session: STR-TEST-1/);
+  assert.match(packageText, /Session started: 2026-03-20T15:30:00.000Z/);
+  assert.match(packageText, /\[Facts Provided\]/);
+  assert.match(packageText, /\[Detected Red Flags\]/);
+  assert.match(packageText, /\[Draft Narrative\]/);
+  assert.match(packageText, /\[Compliance Checklist\]/);
+  assert.match(packageText, /\[Operator Note\]/);
+});
+
+test("rapid new-client cash-to-electronic scenarios trigger stronger rules and guidance", () => {
+  const draft = buildStrDraft({
+    ...createEmptyStrIntake(),
+    triggerTypes: ["rapid_movement"],
+    amountBand: "100k_to_500k",
+    currency: "CAD",
+    transactionCount: "4_to_10",
+    timeframe: "same_day",
+    transactionChannels: ["cash", "wire_transfer"],
+    clientRelationship: "new",
+    customerType: "business",
+    jurisdictions: ["canada", "united_states"],
+    suspicionIndicators: ["inconsistent_behaviour"],
+    customerData: {
+      name: "Signal Ridge Advisory Inc.",
+      referenceId: "FAST-3001",
+      dateOfBirthOrIncorporation: "2025-06-04",
+      occupationOrBusiness: "Business advisory firm",
+      expectedActivity: "",
+    },
+    freeTextNotes:
+      "Staff observed incoming cash activity followed by outgoing transfers without a credible explanation.",
+  });
+
+  assert.ok(
+    draft.redFlags.some((flag) => flag.id === "new-client-pass-through"),
+    "expected the new-client pass-through rule to trigger",
+  );
+  assert.ok(
+    draft.redFlags.some((flag) => flag.id === "cash-to-electronic-conversion"),
+    "expected the cash-to-electronic conversion rule to trigger",
+  );
+  assert.ok(
+    draft.redFlags.some((flag) => flag.id === "high-value-profile-mismatch"),
+    "expected the high-value profile mismatch rule to trigger",
+  );
+  assert.ok(
+    draft.qualityWarnings.some((warning) =>
+      warning.includes("expected activity established at onboarding"),
+    ),
+    "expected onboarding guidance when early high-value activity lacks expected activity detail",
+  );
+  assert.ok(
+    draft.qualityWarnings.some((warning) =>
+      warning.includes("origin and destination account"),
+    ),
+    "expected a warning for missing origin and destination detail",
+  );
+  assert.ok(
+    draft.missingInfoPrompts.some((prompt) =>
+      prompt.includes("cash activity was followed by outgoing electronic movement"),
+    ),
+    "expected a prompt tying cash activity to electronic follow-on movement",
+  );
+});
+
+test("unusual activity scenarios ask for the stated transaction purpose when notes stay generic", () => {
+  const draft = buildStrDraft({
+    ...createEmptyStrIntake(),
+    triggerTypes: ["unusual_transaction"],
+    amountBand: "10k_to_50k",
+    currency: "CAD",
+    transactionCount: "2_to_3",
+    timeframe: "2_to_7_days",
+    transactionChannels: ["cheque"],
+    clientRelationship: "existing",
+    customerType: "individual",
+    jurisdictions: ["canada"],
+    suspicionIndicators: ["inconsistent_behaviour"],
+    customerData: {
+      name: "Taylor Example",
+      referenceId: "PUR-4402",
+      dateOfBirthOrIncorporation: "",
+      occupationOrBusiness: "Salaried employee",
+      expectedActivity: "Routine payroll deposits and household spending",
+    },
+    freeTextNotes: "Staff observed cheque activity that did not match prior account use.",
+  });
+
+  assert.ok(
+    draft.qualityWarnings.some((warning) =>
+      warning.includes("stated purpose or commercial rationale"),
+    ),
+    "expected a warning when the transaction purpose is not captured in the notes",
+  );
 });
