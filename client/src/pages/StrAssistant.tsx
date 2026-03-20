@@ -45,7 +45,6 @@ import {
   type StrCustomerData,
   type StrIntake,
   type StrReadinessStatus,
-  type StrScenarioPreset,
   type SuspicionLevel,
 } from "@shared/str";
 import { Badge } from "@/components/ui/badge";
@@ -359,47 +358,6 @@ function SummaryList({
   );
 }
 
-function PresetCard({
-  preset,
-  onApply,
-}: {
-  preset: StrScenarioPreset;
-  onApply: (presetId: string) => void;
-}) {
-  return (
-    <Card className="brand-site-card text-white">
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <CardTitle className="text-xl">{preset.name}</CardTitle>
-            <CardDescription className="mt-2 leading-6">
-              {preset.description}
-            </CardDescription>
-          </div>
-          <FileStack className="h-5 w-5 text-primary" />
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          {preset.highlights.map((highlight) => (
-            <Badge
-              key={highlight}
-              variant="outline"
-              className="border-primary/20 bg-primary/10 text-[#EAF2F3]"
-            >
-              {highlight}
-            </Badge>
-          ))}
-        </div>
-        <Button className="w-full rounded-2xl" onClick={() => onApply(preset.id)}>
-          Use Preset
-          <ArrowRight className="h-4 w-4" />
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function StrAssistant() {
   const { toast } = useToast();
   const [view, setView] = useState<View>("landing");
@@ -452,7 +410,7 @@ export default function StrAssistant() {
     }));
   };
 
-  const startBlankFlow = () => {
+  const openWorkflow = () => {
     setSession(createSessionMeta());
     setIntake(createEmptyStrIntake());
     setNarrativeText("");
@@ -689,6 +647,14 @@ export default function StrAssistant() {
                     </a>
                   </Button>
                 </div>
+                <button
+                  type="button"
+                  onClick={openWorkflow}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-[#EAF2F3]/78 transition-colors hover:text-[#00D4D4]"
+                >
+                  Preview product workflow
+                  <ArrowRight className="h-4 w-4" />
+                </button>
               </div>
 
               <div className="hidden lg:block">

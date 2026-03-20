@@ -22,6 +22,7 @@ The product supports:
 - deterministic rules
 - editable narrative output
 - copy/download workflow
+- full draft package export
 
 ## Architecture
 
@@ -55,8 +56,14 @@ The STR engine is deterministic and explainable.
 - `npm run dev`
 - `npm run check`
 - `npm test`
+- `npm run test:e2e`
 - `npm run build`
 - `HOST=127.0.0.1 npm run start`
+
+Browser smoke coverage:
+
+- `npm run test:e2e` exercises `Landing -> Preset -> Risk Signals -> Narrative -> Output`
+- first-time Playwright setup may require `npx playwright install chromium`
 
 ## Runtime Assumptions
 
@@ -86,3 +93,9 @@ Out of scope:
 - MLRO tasking
 - multi-report case management
 - regulatory decision automation
+
+## Stage Boundary
+
+Stage 1 is the current MVP in this repo.
+
+Stage 2 items are intentionally out of scope for the current MVP. They can be planned, but they are not current build requirements.

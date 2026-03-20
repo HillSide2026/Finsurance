@@ -18,6 +18,12 @@ Current repo center of gravity:
 - STR engine: [`shared/str.ts`](/Users/matthewlevine/Repos/Finsurance/shared/str.ts)
 - runtime host/API glue: [`server/index.ts`](/Users/matthewlevine/Repos/Finsurance/server/index.ts), [`server/routes.ts`](/Users/matthewlevine/Repos/Finsurance/server/routes.ts), [`server/http.ts`](/Users/matthewlevine/Repos/Finsurance/server/http.ts)
 
+## Stage Boundary
+
+Stage 1 is the current MVP.
+
+Everything listed in the Stage 2 section below is explicitly out of scope for Stage 1 / the current MVP. Stage 2 items can be planned, but they are not current build requirements.
+
 ## What Works Now
 
 - Structured intake can start blank or from presets.
@@ -39,6 +45,13 @@ Current repo center of gravity:
 - Narrative generation is withheld until the intake is ready enough to draft.
 - Local and hosted runtime binding behavior is explicit and test-covered.
 - Unknown API routes return JSON 404 responses instead of SPA fallthrough.
+- One browser smoke path now covers:
+  - landing
+  - preset application
+  - risk review
+  - narrative build
+  - final output
+- The dependency manifest and UI component inventory are now trimmed to the current Stage 1 app.
 
 ## Improvements Completed In This Pass
 
@@ -106,37 +119,12 @@ This is the next execution plan from the current repo state, not a broad product
 
 Goal: keep the single-function STR flow reliable before adding anything commercial around it.
 
-1. Add browser smoke coverage for the only journey that matters
-Files:
-- new [`e2e/`](/Users/matthewlevine/Repos/Finsurance/e2e) test folder
-- [`package.json`](/Users/matthewlevine/Repos/Finsurance/package.json)
-
-Work:
-- add one end-to-end test that loads the landing page
-- apply one preset
-- move through `Risk Signals -> Narrative -> Output`
-- assert that a narrative is present and copy/download controls render
-
-Acceptance:
-- one command can verify the happy path in CI
-- regressions in the main flow fail before deploy
-
-2. Trim dead dependencies and unused UI inventory
-Files:
-- [`package.json`](/Users/matthewlevine/Repos/Finsurance/package.json)
-- [`package-lock.json`](/Users/matthewlevine/Repos/Finsurance/package-lock.json)
-- unused files in [`client/src/components/ui`](/Users/matthewlevine/Repos/Finsurance/client/src/components/ui)
-
-Work:
-- remove unused backend-era packages
-- remove UI components not referenced by the STR flow
-- keep only what is needed by [`client/src/pages/StrAssistant.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/StrAssistant.tsx)
-
-Acceptance:
-- `npm run check`
-- `npm test`
-- `npm run build`
-- smaller manifest and less repo noise
+Completed in this pass:
+- one browser smoke test now exercises `Landing -> Preset -> Risk Signals -> Narrative -> Output`
+- the landing page now exposes a workflow entry point so the real user path is testable
+- unused backend-era dependencies were removed from the manifest
+- unused shadcn/ui inventory was removed so the repo matches the current STR app
+- the server build allowlist was reduced to the runtime dependency actually used by the app
 
 ### Track 2: Output Usability
 
@@ -265,28 +253,10 @@ Work:
 - add `POST /api/billing/webhook`
 - use Stripe Checkout hosted pages, not custom embedded billing UI
 - add env vars:
-
-## Next Product/App Steps
-
-These are the next two product-facing steps after the work completed in this pass.
-
-1. Add one browser smoke test for the only path that matters
-Necessary work:
-- add an `e2e` test harness
-- load the landing page
-- apply a representative preset
-- move through `Risk Signals -> Narrative -> Output`
-- assert narrative text plus full-package export controls
-
-2. Trim dead dependencies and unused UI inventory
-Necessary work:
-- remove packages left over from the old repo shape
-- remove unreferenced UI components
-- keep the manifest aligned to the current single-function STR app
-  - `STRIPE_SECRET_KEY`
-  - `STRIPE_WEBHOOK_SECRET`
-  - `STRIPE_PRICE_ID`
-  - `APP_BASE_URL`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRICE_ID`
+- `APP_BASE_URL`
 
 Required follow-up before true gating:
 - minimal auth
@@ -300,6 +270,25 @@ Acceptance for Phase B:
 - payment completes
 - webhook confirms `checkout.session.completed`
 - app can map payment to an account or entitlement record
+
+## Next Product/App Steps
+
+These are the next two product-facing steps after the work completed in this pass.
+
+1. Add one more browser smoke test for the blocked / guidance-only path
+Necessary work:
+- start from the landing page
+- enter the workflow
+- apply the low-information preset
+- assert that the user can review risk signals but cannot build a narrative
+- assert that required-gap guidance is visible
+
+2. Tighten the landing-to-workflow product path without bloating the homepage
+Necessary work:
+- keep the marketing hierarchy intact
+- make the workflow entry point obvious enough for real users
+- avoid reintroducing dashboard clutter or internal-product copy
+- validate that the flow remains easy to find on desktop
 
 ### Track 6: Production Readiness Checklist
 
@@ -324,27 +313,26 @@ Before sending real users to the domain:
 - smoke test result
 - known limitations
 
-## Known Gaps
+## Stage 1 Known Gaps
 
 - The product is still client-first; there is no server-side STR draft API.
-- There is no browser automation or screenshot-based regression coverage.
-- The repo still contains a broad UI component inventory that the MVP does not actively use.
-- Dependency cleanup has not been completed; the package manifest still carries legacy weight from the older app shape.
 - Narrative export is plain text only.
+- There is only one browser smoke path today; blocked/guidance-only coverage is still manual.
+- The landing-to-workflow path is now present, but it still needs design refinement.
 
-## Prioritized Roadmap
+## Stage 1 Prioritized Roadmap
 
 ### Do Now
 
-1. Add browser-level smoke coverage for the core flow
+1. Add one more browser smoke test for the blocked / guidance-only path
 Impact: high
-Complexity: medium
-Why: protects the one user journey that matters most.
+Complexity: low
+Why: protects the second-most-important product path without adding platform complexity.
 
-2. Trim unused dependencies and component inventory
+2. Tighten the landing-to-workflow product path
 Impact: medium
-Complexity: medium
-Why: reduces build noise and makes the repo easier to reason about.
+Complexity: low
+Why: the product is only as usable as the path into the workflow.
 
 3. Add a few stronger conflict and weak-signal rules
 Impact: medium
@@ -353,41 +341,75 @@ Why: improves operator guidance without changing the product shape.
 
 ### Next
 
-4. Add a copyable “draft package” export that includes narrative, flags, prompts, and checklist
-Impact: medium
-Complexity: low
-Why: improves real operator handoff and review.
-
-5. Add a tiny sample-scenario library for QA and demo scripts
+4. Add a tiny sample-scenario library for QA and demo scripts
 Impact: medium
 Complexity: low
 Why: makes regression checking faster and more realistic.
 
-6. Add lightweight analytics hooks for local/product testing only
+5. Add lightweight analytics hooks for local/product testing only
 Impact: low
 Complexity: low
 Why: helps understand drop-off without turning the app into a platform.
 
 ### Later
 
-7. Optional PDF export
+6. Optional PDF export
 Impact: medium
 Complexity: medium
 Why: useful, but plain text and copy/download already cover MVP output.
 
-8. Optional persistence for saved local sessions
+7. Optional persistence for saved local sessions
 Impact: medium
 Complexity: medium
 Why: may help operator workflow later, but it is not required for the single-function MVP.
 
-9. Optional server-side draft endpoint for shared deployment contracts
+8. Optional server-side draft endpoint for shared deployment contracts
 Impact: low to medium
 Complexity: medium
 Why: useful only if the hosting/runtime model changes or client-only logic becomes limiting.
 
 ### Not Worth It Right Now
 
-10. Filing workflow, case queues, role-based approvals, or AML dashboard expansion
+9. Filing workflow, case queues, role-based approvals, or AML dashboard expansion
 Impact: misaligned
 Complexity: high
 Why: pulls the product away from its disciplined scope.
+
+## Stage 2 Roadmap
+
+Everything in this section is explicitly out of scope for Stage 1 / the current MVP.
+
+1. Self-serve billing and entitlement checks
+Why it matters:
+- converts pilot access into a real commercial flow
+- prevents manual post-payment fulfillment from becoming operational drag
+
+2. Saved sessions and return-to-draft workflow
+Why it matters:
+- supports multi-step review across longer internal compliance processes
+- allows operators to resume work without rebuilding the fact pattern from scratch
+
+3. PDF / document-grade export package
+Why it matters:
+- makes the output easier to circulate internally
+- supports teams that need a more formal handoff artifact than plain text
+
+4. Server-side draft generation endpoint
+Why it matters:
+- creates a cleaner deployment contract if the client-first model becomes limiting
+- supports future entitlement, auditing, or versioning layers
+
+5. Structured product analytics and funnel instrumentation
+Why it matters:
+- shows where users abandon the flow
+- helps improve conversion without guessing
+
+6. CRM or lead-routing integration for early access and paid pilots
+Why it matters:
+- turns interest capture into a real follow-up pipeline
+- reduces manual handling of inbound requests
+
+7. Organization-level access and account management
+Why it matters:
+- supports teams rather than one-off users
+- creates the foundation for billing, saved work, and controlled access
