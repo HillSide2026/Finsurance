@@ -240,20 +240,44 @@ Verify:
 - one manual preset run through the UI
 
 4. Attach the production domain
-Recommended split:
-- `app.finsurance.com` -> product app
-- `www.finsurance.com` -> marketing site later, if needed
+Use:
+- `fintechlawyer.ca` -> product app
+- `www.fintechlawyer.ca` -> product app alias / redirect path
 
 5. In Render custom-domain settings
-- add `app.finsurance.com`
+- add `fintechlawyer.ca`
+- add `www.fintechlawyer.ca`
 - update DNS with the registrar/provider
-- verify the domain in Render
+- verify both domains in Render
 - optionally disable the default `onrender.com` hostname after the custom domain is confirmed
 
 Acceptance:
 - public app is live at `https://fintechlawyer.ca`
 - HTTPS is working
 - health endpoint is reachable at the production domain
+
+### Deployment Status Snapshot
+
+As of March 20, 2026:
+
+- The Stage 1 app is deployed on Render at `https://finsure-w321.onrender.com`.
+- The Render deployment has been verified for:
+  - `/`
+  - `/api/health`
+  - `/api/not-found`
+  - happy-path browser flow to final output
+  - guidance-only browser flow with blocked narrative generation
+- Render custom domains have been configured for:
+  - `fintechlawyer.ca`
+  - `www.fintechlawyer.ca`
+- The remaining deployment blocker is DNS cutover in HostGator.
+- `fintechlawyer.ca` is still pointing at the existing WordPress site as of this snapshot.
+- Moving `fintechlawyer.ca` to Render will replace the current WordPress site on that root domain unless WordPress is moved to another host name first.
+
+Current DNS values expected by Render:
+
+- `www` CNAME -> `finsure-w321.onrender.com`
+- root domain `@` -> `216.24.57.1` if the DNS provider does not support `ALIAS` / `ANAME`
 
 ### Track 5: Payment Processing
 
@@ -344,8 +368,9 @@ Before sending real users to the domain:
 
 ## Stage 1 Known Gaps
 
-- The app has not yet been verified as live and usable on `https://fintechlawyer.ca`.
-- Production-domain acceptance checks still need to be completed and recorded.
+- The app has been verified on the Render host, but not yet on `https://fintechlawyer.ca`.
+- HostGator DNS still needs to be cut over from the current WordPress target to Render.
+- Production-domain acceptance checks still need to be completed and recorded on the final custom domain.
 - The product is still client-first; there is no server-side STR draft API.
 - Narrative export is plain text only.
 
@@ -353,17 +378,22 @@ Before sending real users to the domain:
 
 ### Do Now
 
-1. Deploy and verify the public Stage 1 app at `https://fintechlawyer.ca`
+1. Complete HostGator DNS cutover from WordPress to Render for `fintechlawyer.ca`
 Impact: high
 Complexity: low
-Why: Stage 1 is not complete until an external user can use the live domain.
+Why: the app is already deployed on Render, and Stage 1 is not complete until the public domain points at it.
 
-2. Run and record the production-domain acceptance checklist
+2. Verify `fintechlawyer.ca` and `www.fintechlawyer.ca` in Render after DNS propagation
 Impact: medium
 Complexity: low
-Why: local success is not enough for a public Stage 1 release.
+Why: custom-domain verification and TLS issuance must complete before public launch.
 
-3. Add a few stronger conflict and weak-signal rules
+3. Run and record the production-domain acceptance checklist
+Impact: medium
+Complexity: low
+Why: Render-host success is not enough; Stage 1 requires real-domain validation.
+
+4. Add a few stronger conflict and weak-signal rules
 Impact: medium
 Complexity: low
 Why: improves operator guidance without changing the product shape.
