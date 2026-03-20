@@ -436,7 +436,7 @@ export default function StrAssistant() {
           <header className="flex flex-col gap-4 border-b border-border/60 pb-8 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-                STR Drafting Assistant
+                Finsurance
               </p>
               <h1 className="mt-3 text-4xl leading-tight text-primary md:text-6xl">
                 Draft an STR in minutes.
@@ -556,10 +556,10 @@ export default function StrAssistant() {
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-                FINTRAC STR Triage
+                Finsurance
               </p>
               <h1 className="mt-2 text-3xl text-primary md:text-4xl">
-                Structured suspicion in, usable narrative out.
+                FINTRAC STR triage in a one-minute drafting flow.
               </h1>
             </div>
             <div className="flex flex-wrap gap-3">

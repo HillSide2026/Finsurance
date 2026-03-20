@@ -1,10 +1,10 @@
-# STR Drafting Assistant
+# Finsurance
 
 Client-first MVP for structured suspicious transaction report drafting.
 
 ## Product
 
-This app converts a structured suspicious activity scenario into:
+Finsurance converts a structured suspicious activity scenario into:
 
 - a deterministic red-flag summary
 - a suspicion-strength assessment

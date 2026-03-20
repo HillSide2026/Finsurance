@@ -9,7 +9,7 @@ export async function registerRoutes(
     res.json({
       ok: true,
       mode: "client-first-mvp",
-      product: "str-drafting-assistant",
+      product: "Finsurance",
     });
   });
 
