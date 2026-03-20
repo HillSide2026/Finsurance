@@ -20,9 +20,33 @@ Current repo center of gravity:
 
 ## Stage Boundary
 
-Stage 1 is the current MVP.
+Stage 1 is the public MVP for `https://fintechlawyer.ca`.
+
+Stage 1 is not defined as a local-only or internal-only workflow. It is complete only when an external user can open the live domain and use the product without manual team intervention.
 
 Everything listed in the Stage 2 section below is explicitly out of scope for Stage 1 / the current MVP. Stage 2 items can be planned, but they are not current build requirements.
+
+## Stage 1 Completion Criteria
+
+Stage 1 can be marked complete only when all of the following are true:
+
+- the app is deployed and reachable at `https://fintechlawyer.ca`
+- a public user can click `Start drafting` from the homepage and enter the intake flow directly
+- the browser smoke suite covers:
+  - happy path to final output
+  - guidance-only / blocked drafting path
+- production-domain manual checks pass for:
+  - blocked blank intake
+  - low-information guidance-only path
+  - high-risk preset to final draft
+  - copy and download actions
+  - `/api/health`
+  - unknown `/api/*` JSON 404 behavior
+- a release note is recorded with:
+  - commit SHA
+  - domain tested
+  - smoke result
+  - known limitations
 
 ## What Works Now
 
@@ -51,7 +75,13 @@ Everything listed in the Stage 2 section below is explicitly out of scope for St
   - risk review
   - narrative build
   - final output
+- A second browser smoke path now covers:
+  - landing
+  - low-information preset application
+  - guidance-only review
+  - blocked narrative generation
 - The dependency manifest and UI component inventory are now trimmed to the current Stage 1 app.
+- The landing page now exposes `Start drafting` as the primary public path into the workflow.
 
 ## Improvements Completed In This Pass
 
@@ -152,13 +182,12 @@ Work:
 - move typography to a cleaner public-site stack
 - keep the homepage credible for enterprise finance and legal/compliance buyers
 - use a split hero with:
-  - primary CTA: early access
-  - secondary CTA: start the workflow
-  - tertiary authority link: Levine Law
+  - primary CTA: start drafting
+  - secondary authority link: Levine Law
 - add a clear problem/agitation section instead of internal “site posture” copy
 - add a product-value section focused on benefits, not features
 - add a Levine Law authority bridge that supports trust without taking over the page
-- end the homepage with a working early-access capture form
+- keep any contact or update form as a secondary footer-level conversion path, not the main route into the product
 
 Acceptance:
 - the public homepage visually reads as `FintechLawyer.ca`, not a generic internal prototype
@@ -315,24 +344,24 @@ Before sending real users to the domain:
 
 ## Stage 1 Known Gaps
 
+- The app has not yet been verified as live and usable on `https://fintechlawyer.ca`.
+- Production-domain acceptance checks still need to be completed and recorded.
 - The product is still client-first; there is no server-side STR draft API.
 - Narrative export is plain text only.
-- There is only one browser smoke path today; blocked/guidance-only coverage is still manual.
-- The landing-to-workflow path is now present, but it still needs design refinement.
 
 ## Stage 1 Prioritized Roadmap
 
 ### Do Now
 
-1. Add one more browser smoke test for the blocked / guidance-only path
+1. Deploy and verify the public Stage 1 app at `https://fintechlawyer.ca`
 Impact: high
 Complexity: low
-Why: protects the second-most-important product path without adding platform complexity.
+Why: Stage 1 is not complete until an external user can use the live domain.
 
-2. Tighten the landing-to-workflow product path
+2. Run and record the production-domain acceptance checklist
 Impact: medium
 Complexity: low
-Why: the product is only as usable as the path into the workflow.
+Why: local success is not enough for a public Stage 1 release.
 
 3. Add a few stronger conflict and weak-signal rules
 Impact: medium
@@ -413,3 +442,39 @@ Why it matters:
 Why it matters:
 - supports teams rather than one-off users
 - creates the foundation for billing, saved work, and controlled access
+
+## Stage 3 Roadmap
+
+Everything in this section is explicitly out of scope for Stage 1 / the current MVP.
+
+These items are also intentionally beyond the nearer-term Stage 2 roadmap. They represent broader product expansion rather than immediate post-MVP hardening.
+
+1. Support for additional FINTRAC report types beyond STRs
+Why it matters:
+- expands the product from a single-function STR drafting tool into broader FINTRAC reporting coverage
+- allows the product to support additional reporting workflows without forcing users into separate tools
+
+2. All-FINTRAC-reports product layer
+Why it matters:
+- creates a path from “STR drafting assistant” to a more complete FINTRAC reporting product
+- makes future report templates, validation logic, and export behavior reusable across report types
+
+3. Intake of client documents and raw source materials
+Why it matters:
+- allows the product to work from actual compliance artifacts rather than only structured form input
+- reduces manual re-keying of facts that already exist in client files, records, or supporting documents
+
+4. Intake of raw transactional and customer data
+Why it matters:
+- allows report drafting to start from transaction exports, customer records, and operational source data
+- creates a path to structured fact extraction before narrative assembly
+
+5. Draft-report generation from documents or raw data
+Why it matters:
+- moves the product from manual structured-entry drafting toward source-material-assisted drafting
+- reduces operator effort when the relevant facts already exist in uploaded files or system exports
+
+6. Source-to-draft extraction, normalization, and review workflow
+Why it matters:
+- gives operators a controlled way to review extracted facts before they become part of a report draft
+- keeps the product explainable even when source documents or raw data are used as input

@@ -7,7 +7,7 @@ test("landing preset flow reaches final output", async ({ page }) => {
     page.getByRole("heading", { name: "Audit-Ready, Always" }),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Preview product workflow" }).click();
+  await page.getByRole("button", { name: "Start drafting" }).first().click();
 
   await expect(page.getByText("Section 1: Event Type")).toBeVisible();
 

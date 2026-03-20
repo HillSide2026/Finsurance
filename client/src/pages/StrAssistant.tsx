@@ -195,12 +195,12 @@ function formatTimestamp(value: string): string {
 }
 
 function buildEarlyAccessMailto(form: LeadFormState): string {
-  const subject = encodeURIComponent("FinSure early access request");
+  const subject = encodeURIComponent("FinSure product enquiry");
   const body = encodeURIComponent(
     [
       "Hello,",
       "",
-      "I would like early access to FinSure.",
+      "I would like product updates about FinSure.",
       "",
       `Name: ${form.name.trim()}`,
       `Email: ${form.email.trim()}`,
@@ -448,7 +448,7 @@ export default function StrAssistant() {
       toast({
         title: "Add name and email",
         description:
-          "Name and email are enough to request early access. Company is optional.",
+          "Name and email are enough for product updates or a walkthrough request. Company is optional.",
         variant: "destructive",
       });
       return;
@@ -457,7 +457,7 @@ export default function StrAssistant() {
     if (!normalizedLead.email.includes("@")) {
       toast({
         title: "Use a valid email",
-        description: "Enter a valid email address so the early-access request is usable.",
+        description: "Enter a valid email address so the follow-up request is usable.",
         variant: "destructive",
       });
       return;
@@ -613,11 +613,9 @@ export default function StrAssistant() {
                   Expertise
                 </a>
               </nav>
-              <Button asChild className="rounded-2xl px-6">
-                <a href={siteConfig.links.earlyAccess}>
-                  Get Access
-                  <ArrowRight className="h-4 w-4" />
-                </a>
+              <Button className="rounded-2xl px-6" onClick={openWorkflow}>
+                Start drafting
+                <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </header>
@@ -634,11 +632,9 @@ export default function StrAssistant() {
                   submission-ready reports with no ambiguity.
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
-                  <Button asChild size="lg" className="rounded-2xl px-8">
-                    <a href={siteConfig.links.earlyAccess}>
-                      Get Early Access to FinSure
-                      <ArrowRight className="h-4 w-4" />
-                    </a>
+                  <Button size="lg" className="rounded-2xl px-8" onClick={openWorkflow}>
+                    Start drafting
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                   <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
                     <a href={siteConfig.links.levineLaw} target="_blank" rel="noreferrer">
@@ -647,14 +643,6 @@ export default function StrAssistant() {
                     </a>
                   </Button>
                 </div>
-                <button
-                  type="button"
-                  onClick={openWorkflow}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-[#EAF2F3]/78 transition-colors hover:text-[#00D4D4]"
-                >
-                  Preview product workflow
-                  <ArrowRight className="h-4 w-4" />
-                </button>
               </div>
 
               <div className="hidden lg:block">
@@ -793,11 +781,9 @@ export default function StrAssistant() {
                   ))}
                 </div>
                 <div>
-                  <Button asChild size="lg" className="rounded-2xl px-8">
-                    <a href={siteConfig.links.earlyAccess}>
-                      Request Early Access
-                      <ArrowRight className="h-4 w-4" />
-                    </a>
+                  <Button size="lg" className="rounded-2xl px-8" onClick={openWorkflow}>
+                    Start drafting
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -865,11 +851,11 @@ export default function StrAssistant() {
               <Card className="brand-site-card text-white">
                 <CardHeader className="space-y-3">
                   <CardTitle className="text-3xl text-white md:text-4xl">
-                    Stay Compliant. Automatically.
+                    Need rollout updates or a team walkthrough?
                   </CardTitle>
                   <CardDescription className="max-w-3xl text-base leading-8 text-[#EAF2F3]/82">
-                    Generate audit-ready suspicious transaction reports instantly and reduce
-                    compliance risk before it becomes a problem.
+                    FinSure is usable now. If you want product updates, rollout coordination, or a
+                    team introduction, leave your details and we will follow up.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -916,7 +902,7 @@ export default function StrAssistant() {
                     </div>
                     <div className="md:col-span-2">
                       <Button type="submit" size="lg" className="rounded-2xl px-8">
-                        Get Early Access
+                        Request updates
                         <ArrowRight className="h-4 w-4" />
                       </Button>
                     </div>

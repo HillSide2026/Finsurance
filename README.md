@@ -62,7 +62,9 @@ The STR engine is deterministic and explainable.
 
 Browser smoke coverage:
 
-- `npm run test:e2e` exercises `Landing -> Preset -> Risk Signals -> Narrative -> Output`
+- `npm run test:e2e` exercises:
+  - `Landing -> Preset -> Risk Signals -> Narrative -> Output`
+  - `Landing -> Low-Information Preset -> Guidance-Only Review`
 - first-time Playwright setup may require `npx playwright install chromium`
 
 ## Runtime Assumptions
@@ -96,6 +98,8 @@ Out of scope:
 
 ## Stage Boundary
 
-Stage 1 is the current MVP in this repo.
+Stage 1 is the public MVP for `https://fintechlawyer.ca`.
+
+Stage 1 is not defined as a local-only workflow. It is complete only when an external user can open the live domain and use the product directly.
 
 Stage 2 items are intentionally out of scope for the current MVP. They can be planned, but they are not current build requirements.
