@@ -156,10 +156,19 @@ Work:
 - keep teal as the primary CTA color and cyan as the secondary highlight color
 - move typography to a cleaner public-site stack
 - keep the homepage credible for enterprise finance and legal/compliance buyers
+- use a split hero with:
+  - primary CTA: early access
+  - secondary CTA: start the workflow
+  - tertiary authority link: Levine Law
+- add a clear problem/agitation section instead of internal “site posture” copy
+- add a product-value section focused on benefits, not features
+- add a Levine Law authority bridge that supports trust without taking over the page
+- end the homepage with a working early-access capture form
 
 Acceptance:
 - the public homepage visually reads as `FintechLawyer.ca`, not a generic internal prototype
 - the first screen communicates trust, clarity, and product scope
+- the homepage ends with a clear conversion path instead of only navigation links
 
 2. Make pricing and payment intent visible on the live site
 Files:

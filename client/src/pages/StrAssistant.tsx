@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpRight,
   BadgeDollarSign,
   CheckCircle2,
   CircleHelp,
@@ -10,12 +11,12 @@ import {
   Download,
   FileStack,
   FileText,
-  Globe2,
   Hash,
+  Mail,
   RefreshCcw,
   ScanSearch,
-  ScrollText,
   ShieldAlert,
+  ShieldCheck,
   WalletCards,
 } from "lucide-react";
 import { siteConfig } from "@shared/site";
@@ -79,6 +80,12 @@ type SessionMeta = {
   timestamp: string;
 };
 
+type LeadFormState = {
+  name: string;
+  email: string;
+  company: string;
+};
+
 const steps: Array<{ view: Exclude<View, "landing">; label: string }> = [
   { view: "intake", label: "Intake" },
   { view: "review", label: "Risk Signals" },
@@ -126,6 +133,71 @@ const readinessCopy: Record<
   },
 };
 
+const homepagePainPoints = [
+  "Manual reporting slows response times",
+  "Unclear requirements create reporting risk",
+  "Inconsistent documentation creates audit friction",
+] as const;
+
+const homepageBenefits = [
+  "Generate structured STR drafts in under 60 seconds",
+  "Guided inputs reduce omissions and avoidable drafting gaps",
+  "Explainable risk signals keep the reasoning visible",
+  "Cleaner output reduces manual back-and-forth before review",
+] as const;
+
+const homepageWorkflow = [
+  {
+    icon: ScanSearch,
+    title: "Input transaction details",
+    body: "Capture the fact pattern through structured fields instead of a blank text box.",
+  },
+  {
+    icon: ShieldAlert,
+    title: "Surface red flags and gaps",
+    body: "Review deterministic indicators, suspicion strength, and the information still needed.",
+  },
+  {
+    icon: FileText,
+    title: "Review the narrative draft",
+    body: "Build the draft only when the intake is strong enough to support a coherent report.",
+  },
+  {
+    icon: WalletCards,
+    title: "Export and finalize",
+    body: "Copy or download a clean draft package for escalation, filing prep, and internal review.",
+  },
+] as const;
+
+const homepageAuthorityPoints = [
+  "Developed by Levine Law",
+  "Grounded in fintech and financial-regulatory context",
+  "Built for drafting clarity, consistency, and review readiness",
+] as const;
+
+const homepageFaq = [
+  {
+    question: "Is Finsurance a full compliance platform?",
+    answer:
+      "No. It is intentionally narrow: structured suspicious-activity intake in, clearer STR draft package out.",
+  },
+  {
+    question: "Does it file with FINTRAC for us?",
+    answer:
+      "No. The tool supports drafting and review. Filing, escalation, and final reporting judgment stay with your team.",
+  },
+  {
+    question: "How does early access work today?",
+    answer:
+      "Pilot access is coordinated directly through the site. That keeps the MVP simple while billing and entitlement logic stay out of scope for now.",
+  },
+  {
+    question: "Why connect this to Levine Law at all?",
+    answer:
+      "The Levine Law bridge is there for authority and context, not to turn the homepage into a law firm brochure. Finsurance stays the main product story.",
+  },
+] as const;
+
 function createSessionMeta(): SessionMeta {
   return {
     id: `STR-${Date.now().toString(36).toUpperCase()}-${Math.random()
@@ -141,6 +213,25 @@ function formatTimestamp(value: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function buildEarlyAccessMailto(form: LeadFormState): string {
+  const subject = encodeURIComponent("Finsurance early access request");
+  const body = encodeURIComponent(
+    [
+      "Hello,",
+      "",
+      "I would like early access to Finsurance.",
+      "",
+      `Name: ${form.name.trim()}`,
+      `Email: ${form.email.trim()}`,
+      `Company: ${form.company.trim() || "Not provided"}`,
+      "",
+      `Requested from: ${siteConfig.canonicalOrigin}`,
+    ].join("\n"),
+  );
+
+  return `mailto:${siteConfig.supportEmail}?subject=${subject}&body=${body}`;
 }
 
 function Stepper({ currentView }: { currentView: Exclude<View, "landing"> }) {
@@ -323,6 +414,11 @@ export default function StrAssistant() {
   const [session, setSession] = useState<SessionMeta>(() => createSessionMeta());
   const [intake, setIntake] = useState<StrIntake>(() => createEmptyStrIntake());
   const [narrativeText, setNarrativeText] = useState("");
+  const [leadForm, setLeadForm] = useState<LeadFormState>({
+    name: "",
+    email: "",
+    company: "",
+  });
 
   const draft = buildStrDraft(intake);
   const selectedPreset = intake.scenarioPresetId
@@ -345,6 +441,16 @@ export default function StrAssistant() {
         ...current.customerData,
         [key]: value,
       },
+    }));
+  };
+
+  const updateLeadForm = <K extends keyof LeadFormState>(
+    key: K,
+    value: LeadFormState[K],
+  ) => {
+    setLeadForm((current) => ({
+      ...current,
+      [key]: value,
     }));
   };
 
@@ -371,6 +477,38 @@ export default function StrAssistant() {
     setIntake(createEmptyStrIntake());
     setNarrativeText("");
     setView("landing");
+  };
+
+  const requestEarlyAccess = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const normalizedLead = {
+      name: leadForm.name.trim(),
+      email: leadForm.email.trim(),
+      company: leadForm.company.trim(),
+    };
+
+    if (normalizedLead.name.length === 0 || normalizedLead.email.length === 0) {
+      toast({
+        title: "Add name and email",
+        description:
+          "Name and email are enough to request early access. Company is optional.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!normalizedLead.email.includes("@")) {
+      toast({
+        title: "Use a valid email",
+        description: "Enter a valid email address so the early-access request is usable.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLeadForm(normalizedLead);
+    window.location.href = buildEarlyAccessMailto(normalizedLead);
   };
 
   const reviewRiskSignals = () => {
@@ -463,7 +601,7 @@ export default function StrAssistant() {
   if (view === "landing") {
     return (
       <div className="brand-site-shell min-h-screen px-4 py-8 text-white sm:px-6 lg:px-10">
-        <div className="brand-site-frame mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col justify-between rounded-[36px] border p-6 backdrop-blur md:p-10">
+        <div className="brand-site-frame mx-auto max-w-7xl rounded-[36px] border p-6 backdrop-blur md:p-10">
           <header className="flex flex-col gap-6 border-b border-white/10 pb-8">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -472,7 +610,7 @@ export default function StrAssistant() {
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <h1 className="text-4xl leading-tight text-[#EAF2F3] md:text-5xl">
-                    Finsurance
+                    {siteConfig.productName}
                   </h1>
                   <Badge className="border-primary/20 bg-primary/10 px-4 py-2 text-[#EAF2F3]">
                     STR drafting assistant
@@ -485,7 +623,7 @@ export default function StrAssistant() {
                   How it works
                 </a>
                 <a href={siteConfig.links.presets} className="hover:text-[#00D4D4]">
-                  Presets
+                  Use cases
                 </a>
                 <a href={siteConfig.links.pricing} className="hover:text-[#00D4D4]">
                   Pricing
@@ -493,9 +631,11 @@ export default function StrAssistant() {
                 <a href={siteConfig.links.faq} className="hover:text-[#00D4D4]">
                   FAQ
                 </a>
-                <Button size="sm" className="rounded-2xl" onClick={startBlankFlow}>
-                  Start drafting
-                  <ArrowRight className="h-4 w-4" />
+                <Button asChild size="sm" className="rounded-2xl">
+                  <a href={siteConfig.links.earlyAccess}>
+                    Get early access
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
                 </Button>
               </nav>
             </div>
@@ -505,168 +645,333 @@ export default function StrAssistant() {
                 Drafting assist only. Final reporting judgment stays with your team.
               </Badge>
               <Badge className="brand-site-outline-pill w-fit px-4 py-2 text-[#EAF2F3]">
-                Launch target: {siteConfig.canonicalOrigin}
+                Live domain: {siteConfig.canonicalOrigin}
               </Badge>
             </div>
           </header>
 
-          <main id="start" className="grid gap-8 py-10 lg:grid-cols-[minmax(0,1.2fr)_420px] lg:items-start">
-            <div className="space-y-8">
-              <div className="max-w-4xl space-y-5">
-                <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
-                  Public launch on fintechlawyer.ca
-                </p>
-                <h2 className="max-w-4xl text-5xl leading-[1.02] text-[#EAF2F3] md:text-7xl">
-                  Turn suspicious activity facts into a FINTRAC-ready STR draft.
-                </h2>
-                <p className="max-w-3xl text-lg leading-8 text-[#6B8A90] md:text-xl">
-                  Finsurance gives Canadian compliance teams a structured intake, explainable
-                  red flags, and a cleaner draft package without pretending to be a full AML
-                  platform.
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  <Button size="lg" className="rounded-2xl px-8" onClick={startBlankFlow}>
-                    Start drafting now
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                  <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
-                    <a href={siteConfig.links.pricing}>
-                      Pricing & pilot access
-                      <BadgeDollarSign className="h-4 w-4" />
-                    </a>
-                  </Button>
-                  <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
-                    <a href={siteConfig.links.pilotAccess}>
-                      Request pilot access
-                      <Globe2 className="h-4 w-4" />
-                    </a>
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-3">
-                <Card className="brand-site-card text-white">
-                  <CardHeader className="pb-3">
-                    <ScanSearch className="h-8 w-8 text-primary" />
-                    <CardTitle className="mt-4 text-xl">Structured Intake</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm leading-6 text-[#6B8A90]">
-                    Controlled inputs keep the operator focused on transaction facts, customer
-                    profile, and suspicion basis.
-                  </CardContent>
-                </Card>
-
-                <Card className="brand-site-card text-white">
-                  <CardHeader className="pb-3">
-                    <ShieldAlert className="h-8 w-8 text-primary" />
-                    <CardTitle className="mt-4 text-xl">Explainable Signals</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm leading-6 text-[#6B8A90]">
-                    Deterministic rules show why the draft is surfacing risk instead of hiding
-                    the logic behind a black box.
-                  </CardContent>
-                </Card>
-
-                <Card className="brand-site-card text-white">
-                  <CardHeader className="pb-3">
-                    <ScrollText className="h-8 w-8 text-primary" />
-                    <CardTitle className="mt-4 text-xl">Usable Output</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm leading-6 text-[#6B8A90]">
-                    Draft package output separates facts, indicators, narrative, and follow-up
-                    prompts so review is faster.
-                  </CardContent>
-                </Card>
-              </div>
-
-              <section
-                id="how-it-works"
-                className="brand-site-soft space-y-5 rounded-[32px] border p-6"
-              >
-                <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
-                      How It Works
-                    </p>
-                    <h3 className="mt-2 text-2xl text-[#EAF2F3]">
-                      One focused workflow from scenario to draft
-                    </h3>
-                  </div>
-                  <p className="max-w-2xl text-sm leading-6 text-[#6B8A90]">
-                    The product ships as one public-facing experience on `fintechlawyer.ca`,
-                    not as a separate marketing site and app.
+          <main id="start" className="space-y-8 py-10">
+            <section className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_420px] lg:items-start">
+              <div className="space-y-6">
+                <div className="space-y-5">
+                  <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
+                    Suspicious transaction reporting
+                  </p>
+                  <h2 className="max-w-4xl text-5xl leading-[1.02] text-[#EAF2F3] md:text-7xl">
+                    Audit-ready STR drafting in under 60 seconds.
+                  </h2>
+                  <p className="max-w-3xl text-lg leading-8 text-[#6B8A90] md:text-xl">
+                    Generate structured suspicious transaction report drafts with guided
+                    inputs, explainable risk signals, and clearer follow-up prompts so your
+                    team can review faster with less uncertainty.
                   </p>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  {[
-                    {
-                      icon: ScanSearch,
-                      title: "1. Capture facts",
-                      body: "Select the trigger, transaction pattern, customer context, and suspicion basis.",
-                    },
-                    {
-                      icon: ShieldAlert,
-                      title: "2. Review signals",
-                      body: "See deterministic red flags, suspicion strength, and missing-information prompts.",
-                    },
-                    {
-                      icon: FileText,
-                      title: "3. Build the draft",
-                      body: "Assemble the narrative only when the intake is complete enough to support it.",
-                    },
-                    {
-                      icon: WalletCards,
-                      title: "4. Export cleanly",
-                      body: "Review, edit, copy, and download a draft package for internal escalation or filing prep.",
-                    },
-                  ].map((item) => (
-                    <Card
-                      key={item.title}
-                      className="brand-site-card text-white"
-                    >
-                      <CardHeader className="pb-3">
-                        <item.icon className="h-7 w-7 text-primary" />
-                        <CardTitle className="mt-4 text-xl">{item.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-sm leading-6 text-[#6B8A90]">
-                        {item.body}
-                      </CardContent>
-                    </Card>
-                  ))}
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button asChild size="lg" className="rounded-2xl px-8">
+                    <a href={siteConfig.links.earlyAccess}>
+                      Get early access
+                      <ArrowRight className="h-4 w-4" />
+                    </a>
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="rounded-2xl px-8"
+                    onClick={startBlankFlow}
+                  >
+                    Start the workflow
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                  <a
+                    href={siteConfig.links.levineLaw}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-[#EAF2F3] transition-colors hover:text-[#00D4D4]"
+                  >
+                    Visit Levine Law
+                    <ArrowUpRight className="h-4 w-4" />
+                  </a>
                 </div>
-              </section>
-            </div>
 
-            <div className="space-y-6">
-              <Card className="brand-site-dark-panel text-white">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <Card className="brand-site-card text-white">
+                    <CardHeader className="pb-3">
+                      <CardDescription className="text-[#6B8A90]">Draft target</CardDescription>
+                      <CardTitle className="mt-1 text-4xl text-[#00D4D4]">60 sec</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm leading-6 text-[#6B8A90]">
+                      Fast enough for real triage while keeping the fact pattern visible.
+                    </CardContent>
+                  </Card>
+
+                  <Card className="brand-site-card text-white">
+                    <CardHeader className="pb-3">
+                      <CardDescription className="text-[#6B8A90]">Workflow shape</CardDescription>
+                      <CardTitle className="mt-1 text-4xl text-[#00D4D4]">4 steps</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm leading-6 text-[#6B8A90]">
+                      Guided intake, red flags, narrative review, and export in one flow.
+                    </CardContent>
+                  </Card>
+
+                  <Card className="brand-site-card text-white">
+                    <CardHeader className="pb-3">
+                      <CardDescription className="text-[#6B8A90]">Signal style</CardDescription>
+                      <CardTitle className="mt-1 text-4xl text-[#00D4D4]">
+                        Explainable
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm leading-6 text-[#6B8A90]">
+                      Deterministic rules keep the reasoning visible to the operator.
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              <Card className="brand-site-dark-panel overflow-hidden text-white">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-3xl text-white">Live site posture</CardTitle>
                   <CardDescription className="text-slate-300">
-                    The current app is being shaped into the public `fintechlawyer.ca` experience.
+                    Product preview
+                  </CardDescription>
+                  <CardTitle className="text-3xl text-white">
+                    One workflow from facts to draft package
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="rounded-[24px] border border-white/10 bg-white/5 p-4">
+                    <p className="text-sm font-semibold text-[#EAF2F3]">Captured facts</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">
+                      Trigger, transaction pattern, customer profile, jurisdictions, and
+                      suspicion basis are gathered through controlled inputs.
+                    </p>
+                  </div>
+                  <div className="rounded-[24px] border border-white/10 bg-white/5 p-4">
+                    <p className="text-sm font-semibold text-[#EAF2F3]">Detected indicators</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {["Structuring pattern", "Third-party involvement", "Source of funds gap"].map(
+                        (flag) => (
+                          <Badge
+                            key={flag}
+                            variant="outline"
+                            className="border-primary/20 bg-primary/10 text-[#EAF2F3]"
+                          >
+                            {flag}
+                          </Badge>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-[24px] border border-white/10 bg-white/5 p-4">
+                    <p className="text-sm font-semibold text-[#EAF2F3]">Output package</p>
+                    <div className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-[#00D4D4]" />
+                        Facts provided
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-[#00D4D4]" />
+                        Red flags and suspicion strength
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-[#00D4D4]" />
+                        Narrative draft and follow-up prompts
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            <section className="space-y-5">
+              <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
+                    The hidden risk
+                  </p>
+                  <h3 className="mt-2 text-2xl text-[#EAF2F3]">
+                    The hidden risk in every suspicious transaction report
+                  </h3>
+                </div>
+                <p className="max-w-2xl text-sm leading-6 text-[#6B8A90]">
+                  Manual processes create delay, ambiguity, and uneven documentation. Finsurance
+                  changes that with one disciplined drafting workflow.
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                {homepagePainPoints.map((point) => (
+                  <Card key={point} className="brand-site-card text-white">
+                    <CardHeader className="pb-3">
+                      <ShieldAlert className="h-7 w-7 text-primary" />
+                      <CardTitle className="mt-4 text-xl">{point}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm leading-6 text-[#6B8A90]">
+                      Structured inputs and cleaner output reduce last-minute rework and make
+                      review easier to defend.
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
+
+            <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+              <Card className="brand-site-card text-white">
+                <CardHeader>
+                  <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
+                    Meet {siteConfig.productName}
+                  </p>
+                  <CardTitle className="mt-2 text-3xl text-white">
+                    Instant suspicious transaction drafting with clearer operator guidance
+                  </CardTitle>
+                  <CardDescription className="mt-3 max-w-3xl leading-6 text-[#6B8A90]">
+                    The value is not generic automation hype. It is faster drafting, fewer
+                    omissions, and more consistent documentation when a team needs to move
+                    quickly.
                   </CardDescription>
                 </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-2">
+                  {homepageBenefits.map((benefit) => (
+                    <div
+                      key={benefit}
+                      className="brand-site-soft rounded-[24px] border p-5 text-sm leading-6 text-[#EAF2F3]"
+                    >
+                      {benefit}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className="brand-site-dark-panel text-white">
+                <CardHeader>
+                  <CardDescription className="text-slate-300">Outcome</CardDescription>
+                  <CardTitle className="text-3xl text-white">Less ambiguity. Faster review.</CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-4 text-sm leading-7 text-slate-200">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    One Render-hosted web service serves both the public site and the STR app.
+                  <p>
+                    Finsurance is built to reduce uncertainty around what belongs in the draft
+                    and what follow-up information still needs to be gathered before filing.
+                  </p>
+                  <Button asChild className="w-full rounded-2xl">
+                    <a href={siteConfig.links.earlyAccess}>
+                      Request early access
+                      <ArrowRight className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            </section>
+
+            <section
+              id="how-it-works"
+              className="brand-site-soft space-y-5 rounded-[32px] border p-6"
+            >
+              <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
+                    How it works
+                  </p>
+                  <h3 className="mt-2 text-2xl text-[#EAF2F3]">
+                    One clear path from scenario to export
+                  </h3>
+                </div>
+                <p className="max-w-2xl text-sm leading-6 text-[#6B8A90]">
+                  Clarity removes friction. Every step keeps the fact pattern visible and the
+                  drafting logic explainable.
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {homepageWorkflow.map((item, index) => (
+                  <Card key={item.title} className="brand-site-card text-white">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <item.icon className="h-7 w-7 text-primary" />
+                        <span className="text-sm font-semibold text-[#00D4D4]">
+                          {index + 1}
+                        </span>
+                      </div>
+                      <CardTitle className="mt-4 text-xl">{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm leading-6 text-[#6B8A90]">
+                      {item.body}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
+
+            <section id="presets" className="space-y-5 border-t border-white/10 pt-8">
+              <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
+                    Representative scenarios
+                  </p>
+                  <h2 className="mt-2 text-2xl text-[#EAF2F3]">
+                    Start from common suspicious transaction patterns
+                  </h2>
+                </div>
+                <p className="max-w-2xl text-sm leading-6 text-[#6B8A90]">
+                  These presets are useful for demonstration, QA, and faster first use. Each
+                  one loads a different fact pattern, suspicion level, and drafting context.
+                </p>
+              </div>
+              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                {strScenarioPresets.map((preset) => (
+                  <PresetCard key={preset.id} preset={preset} onApply={applyPreset} />
+                ))}
+              </div>
+            </section>
+
+            <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <Card className="brand-site-card text-white">
+                <CardHeader>
+                  <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
+                    Powered by real legal expertise
+                  </p>
+                  <CardTitle className="mt-2 text-3xl text-white">
+                    Built with regulatory context, not generic fintech fluff
+                  </CardTitle>
+                  <CardDescription className="mt-3 max-w-3xl leading-6 text-[#6B8A90]">
+                    Finsurance is backed by Levine Law. That bridge is here to transfer trust
+                    and practical context, while keeping the homepage centered on the product.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5 text-sm leading-7 text-slate-200">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {homepageAuthorityPoints.map((item) => (
+                      <div
+                        key={item}
+                        className="brand-site-soft rounded-[24px] border p-5 text-[#EAF2F3]"
+                      >
+                        {item}
+                      </div>
+                    ))}
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    The product stays narrow: suspicious activity scenario in, STR draft package out.
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    Future hosted billing returns are wired to `https://fintechlawyer.ca`.
+                  <div className="flex flex-wrap gap-3">
+                    <Button asChild variant="outline" className="rounded-2xl">
+                      <a href={siteConfig.links.levineLaw} target="_blank" rel="noreferrer">
+                        Visit Levine Law
+                        <ArrowUpRight className="h-4 w-4" />
+                      </a>
+                    </Button>
+                    <Button size="lg" className="rounded-2xl" onClick={startBlankFlow}>
+                      Open the workflow
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="brand-site-card text-white">
+              <Card className="brand-site-dark-panel text-white">
                 <CardHeader>
-                  <CardTitle className="text-xl">What this tool is for</CardTitle>
-                  <CardDescription className="text-[#6B8A90]">
-                    Public-facing copy for the live site needs to keep this boundary crisp.
+                  <ShieldCheck className="h-7 w-7 text-primary" />
+                  <CardTitle className="text-2xl text-white">Keep the scope disciplined</CardTitle>
+                  <CardDescription className="text-slate-300">
+                    This product should stay narrow even as the site becomes more polished.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3 text-sm leading-6 text-[#6B8A90]">
+                <CardContent className="space-y-3 text-sm leading-6 text-slate-200">
                   <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-[#EAF2F3]">
                     Drafting suspicious transaction narratives from structured facts.
                   </div>
@@ -678,176 +983,226 @@ export default function StrAssistant() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </main>
+            </section>
 
-          <section
-            id="presets"
-            className="space-y-5 border-t border-white/10 pt-8"
-          >
-            <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
-                  Scenario Presets
-                </p>
-                <h2 className="mt-2 text-2xl text-[#EAF2F3]">
-                  Start from representative STR patterns
-                </h2>
-              </div>
-              <p className="max-w-2xl text-sm leading-6 text-[#6B8A90]">
-                Presets are public demo and QA starting points. They load a realistic fact
-                pattern, customer profile, and draft-ready transaction context for the live
-                site.
-              </p>
-            </div>
-            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-              {strScenarioPresets.map((preset) => (
-                <PresetCard key={preset.id} preset={preset} onApply={applyPreset} />
-              ))}
-            </div>
-          </section>
-
-          <section
-            id="pricing"
-            className="mt-8 grid gap-6 border-t border-white/10 pt-8 lg:grid-cols-[minmax(0,1fr)_360px]"
-          >
-            <Card className="brand-site-card text-white">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
-                      Pricing & Access
+            <section
+              id="pricing"
+              className="grid gap-6 border-t border-white/10 pt-8 lg:grid-cols-[minmax(0,1fr)_320px]"
+            >
+              <Card className="brand-site-card text-white">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
+                        Pricing & access
+                      </p>
+                      <CardTitle className="mt-2 text-3xl text-white">
+                        Pilot access for teams that need faster, cleaner drafting
+                      </CardTitle>
+                      <CardDescription className="mt-2 leading-6 text-[#6B8A90]">
+                        Pricing should be visible on the live site without crowding the
+                        workflow. Early access is the main commercial CTA today.
+                      </CardDescription>
+                    </div>
+                    <BadgeDollarSign className="h-6 w-6 text-primary" />
+                  </div>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-2">
+                  <div className="brand-site-soft rounded-[26px] border p-5">
+                    <p className="text-sm font-semibold text-[#EAF2F3]">Current model</p>
+                    <p className="mt-2 text-sm leading-6 text-[#6B8A90]">
+                      Early teams request access directly. Onboarding and pricing are handled
+                      manually while the product stays lightweight.
                     </p>
-                    <CardTitle className="mt-2 text-3xl">Pilot pricing lives on the public site</CardTitle>
-                    <CardDescription className="mt-2 leading-6 text-[#6B8A90]">
-                      The pricing and payment CTA should live in two places on
-                      `fintechlawyer.ca`: as a secondary hero action and as this dedicated
-                      pricing section before the FAQ.
-                    </CardDescription>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <Button asChild className="rounded-2xl">
+                        <a href={siteConfig.links.earlyAccess}>
+                          Request early access
+                          <ArrowRight className="h-4 w-4" />
+                        </a>
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="rounded-2xl"
+                        onClick={startBlankFlow}
+                      >
+                        Try the workflow
+                      </Button>
+                    </div>
                   </div>
-                  <BadgeDollarSign className="h-6 w-6 text-primary" />
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2">
-                <div className="brand-site-soft rounded-[26px] border p-5">
-                  <p className="text-sm font-semibold text-[#EAF2F3]">Pilot access now</p>
-                  <p className="mt-2 text-sm leading-6 text-[#6B8A90]">
-                    Use email-led onboarding while pricing is validated. This avoids fake
-                    self-serve billing before auth and entitlements exist.
+
+                  <div className="brand-site-soft rounded-[26px] border p-5">
+                    <p className="text-sm font-semibold text-[#EAF2F3]">Future billing path</p>
+                    <p className="mt-2 text-sm leading-6 text-[#6B8A90]">
+                      When self-serve Stripe billing is worth adding, the pricing entry and
+                      return URLs should stay pinned to the canonical production domain.
+                    </p>
+                    <div className="mt-4 space-y-2 text-sm text-[#6B8A90]">
+                      <div>
+                        Pricing entry:
+                        <span className="brand-site-highlight ml-1 font-mono">
+                          {siteConfig.billing.pricingUrl}
+                        </span>
+                      </div>
+                      <div>
+                        Checkout success:
+                        <span className="brand-site-highlight ml-1 font-mono">
+                          {siteConfig.billing.successUrl}
+                        </span>
+                      </div>
+                      <div>
+                        Checkout cancel:
+                        <span className="brand-site-highlight ml-1 font-mono">
+                          {siteConfig.billing.cancelUrl}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="brand-site-dark-panel text-white">
+                <CardHeader>
+                  <CardTitle className="text-white">Why teams ask for access</CardTitle>
+                  <CardDescription className="text-slate-300">
+                    The product is designed to reduce uncertainty, not just add another tool.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm leading-6 text-slate-200">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                    Structured intake instead of open-ended drafting.
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                    Consistent report language and visible information gaps.
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                    Faster internal review and cleaner escalation packages.
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            <section id="faq" className="space-y-5 border-t border-white/10 pt-8">
+              <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
+                    FAQ
                   </p>
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    <Button asChild className="rounded-2xl">
-                      <a href={siteConfig.links.pilotAccess}>
-                        Request pilot access
-                        <ArrowRight className="h-4 w-4" />
-                      </a>
-                    </Button>
-                    <Button asChild variant="outline" className="rounded-2xl">
-                      <a href={siteConfig.links.pricing}>Stay on pricing section</a>
-                    </Button>
-                  </div>
+                  <h2 className="mt-2 text-2xl text-[#EAF2F3]">
+                    Common questions before adopting the workflow
+                  </h2>
                 </div>
-
-                <div className="brand-site-soft rounded-[26px] border p-5">
-                  <p className="text-sm font-semibold text-[#EAF2F3]">Future self-serve billing</p>
-                  <p className="mt-2 text-sm leading-6 text-[#6B8A90]">
-                    When Stripe Checkout is added, its pricing entry and return flow should be
-                    pinned to the canonical domain instead of a temporary host.
-                  </p>
-                  <div className="mt-4 space-y-2 text-sm text-[#6B8A90]">
-                    <div>
-                      Pricing entry:
-                      <span className="brand-site-highlight ml-1 font-mono">
-                        {siteConfig.billing.pricingUrl}
-                      </span>
-                    </div>
-                    <div>
-                      Checkout success:
-                      <span className="brand-site-highlight ml-1 font-mono">
-                        {siteConfig.billing.successUrl}
-                      </span>
-                    </div>
-                    <div>
-                      Checkout cancel:
-                      <span className="brand-site-highlight ml-1 font-mono">
-                        {siteConfig.billing.cancelUrl}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="brand-site-dark-panel text-white">
-              <CardHeader>
-                <CardTitle className="text-white">Deployment target</CardTitle>
-                <CardDescription className="text-slate-300">
-                  The repo is being prepared to ship directly on the live domain.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm leading-6 text-slate-200">
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  Primary domain: {siteConfig.canonicalOrigin}
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  Secondary domain: {siteConfig.wwwUrl}
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  Render blueprint is stored in `render.yaml`.
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-
-          <section id="faq" className="mt-8 space-y-5 border-t border-white/10 pt-8">
-            <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-[#6B8A90]">
-                  FAQ
-                </p>
-                <h2 className="mt-2 text-2xl text-[#EAF2F3]">
-                  Public-site questions the homepage should answer
-                </h2>
+                <CircleHelp className="h-6 w-6 text-[#00D4D4]" />
               </div>
-              <CircleHelp className="h-6 w-6 text-[#00D4D4]" />
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              {[
-                {
-                  question: "Is this a full compliance platform?",
-                  answer:
-                    "No. Finsurance is intentionally narrow. It helps an operator move from a structured suspicious-activity scenario to an STR draft package faster.",
-                },
-                {
-                  question: "Does the app file with FINTRAC?",
-                  answer:
-                    "No. The tool helps draft and organize reporting content. Filing, escalation, and final judgment remain with the reporting entity.",
-                },
-                {
-                  question: "Where should pricing live on the live site?",
-                  answer:
-                    "On the hero as a secondary CTA and in a dedicated pricing section before the FAQ, so payment intent is visible without overwhelming the drafting flow.",
-                },
-                {
-                  question: "What happens before Stripe billing is added?",
-                  answer:
-                    "Pilot access is handled manually through the public site while billing, auth, and entitlement flows are kept out of the MVP until they are worth adding.",
-                },
-              ].map((item) => (
-                <Card
-                  key={item.question}
-                  className="brand-site-card text-white"
-                >
-                  <CardHeader>
-                    <CardTitle className="text-xl">{item.question}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm leading-6 text-[#6B8A90]">
-                    {item.answer}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
+              <div className="grid gap-4 md:grid-cols-2">
+                {homepageFaq.map((item) => (
+                  <Card key={item.question} className="brand-site-card text-white">
+                    <CardHeader>
+                      <CardTitle className="text-xl">{item.question}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm leading-6 text-[#6B8A90]">
+                      {item.answer}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
+
+            <section id="early-access" className="border-t border-white/10 pt-8">
+              <Card className="brand-site-dark-panel text-white">
+                <CardHeader className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.28em] text-slate-300">
+                        Early access
+                      </p>
+                      <CardTitle className="mt-2 text-4xl text-white">
+                        Stay ahead of the filing scramble
+                      </CardTitle>
+                      <CardDescription className="mt-3 max-w-3xl leading-6 text-slate-300">
+                        Tell us who you are and we will coordinate access for your team. Name
+                        and email are enough to get started.
+                      </CardDescription>
+                    </div>
+                    <Mail className="mt-1 h-6 w-6 text-primary" />
+                  </div>
+                </CardHeader>
+                <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+                  <form className="grid gap-4 md:grid-cols-2" onSubmit={requestEarlyAccess}>
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#EAF2F3]" htmlFor="lead-name">
+                        Name
+                      </label>
+                      <Input
+                        id="lead-name"
+                        value={leadForm.name}
+                        onChange={(event) => updateLeadForm("name", event.target.value)}
+                        placeholder="Your name"
+                        className="h-12 rounded-xl border-white/10 bg-[#0C3540] text-[#EAF2F3] placeholder:text-[#6B8A90]"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <label className="text-sm font-medium text-[#EAF2F3]" htmlFor="lead-email">
+                        Email
+                      </label>
+                      <Input
+                        id="lead-email"
+                        type="email"
+                        value={leadForm.email}
+                        onChange={(event) => updateLeadForm("email", event.target.value)}
+                        placeholder="you@company.com"
+                        className="h-12 rounded-xl border-white/10 bg-[#0C3540] text-[#EAF2F3] placeholder:text-[#6B8A90]"
+                      />
+                    </div>
+                    <div className="grid gap-2 md:col-span-2">
+                      <label
+                        className="text-sm font-medium text-[#EAF2F3]"
+                        htmlFor="lead-company"
+                      >
+                        Company
+                      </label>
+                      <Input
+                        id="lead-company"
+                        value={leadForm.company}
+                        onChange={(event) => updateLeadForm("company", event.target.value)}
+                        placeholder="Optional"
+                        className="h-12 rounded-xl border-white/10 bg-[#0C3540] text-[#EAF2F3] placeholder:text-[#6B8A90]"
+                      />
+                    </div>
+                    <div className="md:col-span-2 flex flex-wrap items-center gap-3">
+                      <Button type="submit" size="lg" className="rounded-2xl px-8">
+                        Get early access
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                      <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
+                        <a href={siteConfig.links.levineLaw} target="_blank" rel="noreferrer">
+                          Visit Levine Law
+                          <ArrowUpRight className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    </div>
+                  </form>
+
+                  <div className="space-y-4 text-sm leading-6 text-slate-200">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      Early access requests are coordinated manually while the MVP stays
+                      simple and single-function.
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      Prefer email directly?
+                      <a
+                        href={siteConfig.links.pilotAccess}
+                        className="brand-site-highlight ml-1 font-medium hover:underline"
+                      >
+                        {siteConfig.supportEmail}
+                      </a>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+          </main>
         </div>
       </div>
     );

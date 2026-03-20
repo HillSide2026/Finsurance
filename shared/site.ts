@@ -10,9 +10,11 @@ export const siteConfig = {
     howItWorks: "#how-it-works",
     presets: "#presets",
     pricing: "#pricing",
+    earlyAccess: "#early-access",
     faq: "#faq",
+    levineLaw: "https://levinelegal.ca/",
     pilotAccess:
-      "mailto:hello@fintechlawyer.ca?subject=FintechLawyer%20pilot%20access",
+      "mailto:hello@fintechlawyer.ca?subject=Finsurance%20early%20access",
   },
   billing: {
     pricingUrl: "https://fintechlawyer.ca/#pricing",
