@@ -3,65 +3,65 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: "IBM Plex Sans", sans-serif;
-  --font-serif: "Source Serif 4", serif;
-  --font-display: "Source Serif 4", serif;
-  --font-mono: "IBM Plex Mono", monospace;
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "Inter", sans-serif;
+  --font-display: "Montserrat", sans-serif;
+  --font-mono: "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
 
-  --background: 42 28% 96%;
-  --foreground: 218 31% 16%;
+  --background: 191 79% 11%;
+  --foreground: 191 42% 14%;
 
-  --card: 0 0% 100%;
-  --card-foreground: 218 31% 16%;
-  --card-border: 40 16% 84%;
+  --card: 190 46% 19%;
+  --card-foreground: 191 42% 14%;
+  --card-border: 190 28% 29%;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 218 31% 16%;
-  --popover-border: 40 16% 84%;
+  --popover: 190 46% 19%;
+  --popover-foreground: 191 42% 14%;
+  --popover-border: 190 28% 29%;
 
-  --primary: 214 56% 18%;
-  --primary-foreground: 42 43% 98%;
-  --primary-border: hsl(214 56% 24%);
+  --primary: 180 100% 33%;
+  --primary-foreground: 191 79% 11%;
+  --primary-border: hsl(180 100% 28%);
 
-  --secondary: 39 28% 90%;
-  --secondary-foreground: 218 31% 16%;
-  --secondary-border: hsl(39 22% 80%);
+  --secondary: 190 34% 24%;
+  --secondary-foreground: 191 42% 14%;
+  --secondary-border: hsl(190 28% 29%);
 
-  --muted: 42 18% 92%;
-  --muted-foreground: 215 16% 40%;
-  --muted-border: hsl(40 14% 84%);
+  --muted: 191 47% 16%;
+  --muted-foreground: 190 15% 49%;
+  --muted-border: hsl(190 22% 28%);
 
-  --accent: 34 78% 88%;
-  --accent-foreground: 214 56% 18%;
-  --accent-border: hsl(34 58% 72%);
+  --accent: 180 100% 42%;
+  --accent-foreground: 191 79% 11%;
+  --accent-border: hsl(180 100% 36%);
 
   --destructive: 0 76% 52%;
   --destructive-foreground: 0 0% 100%;
   --destructive-border: hsl(0 76% 44%);
 
-  --border: 40 16% 84%;
-  --input: 40 16% 84%;
-  --ring: 34 77% 48%;
+  --border: 190 28% 29%;
+  --input: 190 28% 29%;
+  --ring: 180 100% 42%;
 
-  --button-outline: hsl(40 16% 78%);
-  --badge-outline: hsl(40 16% 78%);
+  --button-outline: hsl(190 25% 33%);
+  --badge-outline: hsl(190 25% 33%);
 
-  --chart-1: 214 56% 18%;
-  --chart-2: 34 77% 48%;
-  --chart-3: 173 41% 34%;
-  --chart-4: 14 70% 53%;
-  --chart-5: 263 43% 44%;
+  --chart-1: 180 100% 33%;
+  --chart-2: 180 100% 42%;
+  --chart-3: 187 27% 94%;
+  --chart-4: 190 15% 49%;
+  --chart-5: 190 34% 24%;
 
-  --sidebar: 0 0% 100%;
-  --sidebar-foreground: 218 31% 16%;
-  --sidebar-border: 40 16% 84%;
-  --sidebar-ring: 34 77% 48%;
-  --sidebar-primary: 214 56% 18%;
-  --sidebar-primary-foreground: 42 43% 98%;
-  --sidebar-primary-border: hsl(214 56% 24%);
-  --sidebar-accent: 42 18% 92%;
-  --sidebar-accent-foreground: 218 31% 16%;
-  --sidebar-accent-border: hsl(40 16% 84%);
+  --sidebar: 190 46% 19%;
+  --sidebar-foreground: 191 42% 14%;
+  --sidebar-border: 190 28% 29%;
+  --sidebar-ring: 180 100% 42%;
+  --sidebar-primary: 180 100% 33%;
+  --sidebar-primary-foreground: 191 79% 11%;
+  --sidebar-primary-border: hsl(180 100% 28%);
+  --sidebar-accent: 191 47% 16%;
+  --sidebar-accent-foreground: 191 42% 14%;
+  --sidebar-accent-border: hsl(190 22% 28%);
 
   --radius: 1rem;
 }
@@ -87,9 +87,9 @@
   h4,
   h5,
   h6 {
-    color: hsl(var(--primary));
+    color: hsl(var(--foreground));
     font-family: var(--font-display);
-    font-weight: 650;
+    font-weight: 700;
     letter-spacing: -0.02em;
   }
 
@@ -102,6 +102,49 @@
 @layer components {
   .font-display {
     font-family: var(--font-display);
+  }
+
+  .brand-site-shell {
+    background:
+      radial-gradient(circle at top left, rgba(0, 212, 212, 0.14), transparent 28%),
+      radial-gradient(circle at bottom right, rgba(0, 166, 166, 0.12), transparent 32%),
+      linear-gradient(180deg, #041f25 0%, #062b33 100%);
+  }
+
+  .brand-site-frame {
+    background: rgba(6, 43, 51, 0.86);
+    border-color: rgba(107, 138, 144, 0.22);
+    box-shadow: 0 30px 120px rgba(0, 0, 0, 0.24);
+  }
+
+  .brand-site-card {
+    background: rgba(26, 63, 70, 0.92);
+    border-color: rgba(107, 138, 144, 0.2);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.16);
+  }
+
+  .brand-site-soft {
+    background: rgba(26, 63, 70, 0.72);
+    border-color: rgba(107, 138, 144, 0.18);
+  }
+
+  .brand-site-dark-panel {
+    background: linear-gradient(180deg, rgba(4, 23, 28, 0.98), rgba(9, 44, 52, 0.98));
+    border-color: rgba(0, 166, 166, 0.18);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  }
+
+  .brand-site-outline-pill {
+    background: rgba(26, 63, 70, 0.56);
+    border-color: rgba(107, 138, 144, 0.24);
+  }
+
+  .brand-site-quiet-text {
+    color: #6b8a90;
+  }
+
+  .brand-site-highlight {
+    color: #00d4d4;
   }
 }
 

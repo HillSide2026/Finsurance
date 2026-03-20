@@ -140,7 +140,42 @@ Work:
 Acceptance:
 - the output screen is usable as a review artifact, not just a text area
 
-### Track 3: Hosting, Domain, and Frontend Delivery
+### Track 3: Public Site Design For fintechlawyer.ca
+
+Goal: make the current landing page strong enough to ship as the live public website, not just an internal app splash.
+
+1. Apply the approved brand system to the public-facing experience
+Files:
+- [`client/src/index.css`](/Users/matthewlevine/Repos/Finsurance/client/src/index.css)
+- [`client/index.html`](/Users/matthewlevine/Repos/Finsurance/client/index.html)
+- [`client/src/pages/StrAssistant.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/StrAssistant.tsx)
+
+Work:
+- set deep teal as the dominant site shell
+- use darker surface cards for public sections
+- keep teal as the primary CTA color and cyan as the secondary highlight color
+- move typography to a cleaner public-site stack
+- keep the homepage credible for enterprise finance and legal/compliance buyers
+
+Acceptance:
+- the public homepage visually reads as `FintechLawyer.ca`, not a generic internal prototype
+- the first screen communicates trust, clarity, and product scope
+
+2. Make pricing and payment intent visible on the live site
+Files:
+- [`client/src/pages/StrAssistant.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/StrAssistant.tsx)
+- [`shared/site.ts`](/Users/matthewlevine/Repos/Finsurance/shared/site.ts)
+
+Work:
+- keep pricing CTA in the hero as a secondary action
+- keep a dedicated pricing section on the homepage before the FAQ
+- route future billing success/cancel URLs back to the canonical domain
+
+Acceptance:
+- pricing is visible without taking over the drafting flow
+- payment and pilot-access entry points live on the public website itself
+
+### Track 4: Hosting, Domain, and Frontend Delivery
 
 Goal: ship the current app exactly as it is built today.
 
@@ -183,11 +218,11 @@ Recommended split:
 - optionally disable the default `onrender.com` hostname after the custom domain is confirmed
 
 Acceptance:
-- public app is live at the custom domain
+- public app is live at `https://fintechlawyer.ca`
 - HTTPS is working
 - health endpoint is reachable at the production domain
 
-### Track 4: Payment Processing
+### Track 5: Payment Processing
 
 Goal: add payment capability without pretending the current MVP already has account entitlements.
 
@@ -226,13 +261,13 @@ Required follow-up before true gating:
 - webhook-based fulfillment
 
 Acceptance for Phase B:
-- customer clicks pay
+- customer clicks pay from `https://fintechlawyer.ca`
 - Stripe Checkout opens
 - payment completes
 - webhook confirms `checkout.session.completed`
 - app can map payment to an account or entitlement record
 
-### Track 5: Production Readiness Checklist
+### Track 6: Production Readiness Checklist
 
 Before sending real users to the domain:
 
