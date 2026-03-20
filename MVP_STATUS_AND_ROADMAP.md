@@ -52,6 +52,209 @@ Current repo center of gravity:
   - conflicting-input QA
 - Expanded tests around malformed input, blocked/guidance states, preset coverage, and API payload shape.
 
+## Concrete Implementation Plan
+
+This is the next execution plan from the current repo state, not a broad product wish list.
+
+### Track 1: Lock the Current Core Flow
+
+Goal: keep the single-function STR flow reliable before adding anything commercial around it.
+
+1. Add browser smoke coverage for the only journey that matters
+Files:
+- new [`e2e/`](/Users/matthewlevine/Repos/Finsurance/e2e) test folder
+- [`package.json`](/Users/matthewlevine/Repos/Finsurance/package.json)
+
+Work:
+- add one end-to-end test that loads the landing page
+- apply one preset
+- move through `Risk Signals -> Narrative -> Output`
+- assert that a narrative is present and copy/download controls render
+
+Acceptance:
+- one command can verify the happy path in CI
+- regressions in the main flow fail before deploy
+
+2. Trim dead dependencies and unused UI inventory
+Files:
+- [`package.json`](/Users/matthewlevine/Repos/Finsurance/package.json)
+- [`package-lock.json`](/Users/matthewlevine/Repos/Finsurance/package-lock.json)
+- unused files in [`client/src/components/ui`](/Users/matthewlevine/Repos/Finsurance/client/src/components/ui)
+
+Work:
+- remove unused backend-era packages
+- remove UI components not referenced by the STR flow
+- keep only what is needed by [`client/src/pages/StrAssistant.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/StrAssistant.tsx)
+
+Acceptance:
+- `npm run check`
+- `npm test`
+- `npm run build`
+- smaller manifest and less repo noise
+
+3. Add three to five more deterministic quality/risk rules
+Files:
+- [`shared/str.ts`](/Users/matthewlevine/Repos/Finsurance/shared/str.ts)
+- [`shared/str.test.ts`](/Users/matthewlevine/Repos/Finsurance/shared/str.test.ts)
+
+Work:
+- add weak-signal rules for vague purpose, missing counterparty detail, and profile mismatch without supporting context
+- add conflict warnings for cash structuring with single transaction, rapid movement over long duration, and unhelpful generic jurisdiction input
+- keep scoring simple and explicit
+
+Acceptance:
+- medium-risk and low-information scenarios stay out of `high` unless the fact pattern justifies it
+- each new rule has one test
+
+### Track 2: Output Usability
+
+Goal: make the draft package easier to use without turning the product into a workflow platform.
+
+1. Add “copy full draft package”
+Files:
+- [`client/src/pages/StrAssistant.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/StrAssistant.tsx)
+- [`shared/str.ts`](/Users/matthewlevine/Repos/Finsurance/shared/str.ts)
+
+Work:
+- generate one formatted text package containing:
+  - facts provided
+  - detected red flags
+  - narrative
+  - missing-info prompts
+  - checklist
+- keep the existing narrative-only copy/download as a second option
+
+Acceptance:
+- operator can export one self-contained work product without manually stitching sections together
+
+2. Add a stronger output header
+Files:
+- [`client/src/pages/StrAssistant.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/StrAssistant.tsx)
+
+Work:
+- show session id
+- show suspicion level
+- show readiness status used to generate the draft
+- show a short “drafting assist only” warning directly above the export controls
+
+Acceptance:
+- the output screen is usable as a review artifact, not just a text area
+
+### Track 3: Hosting, Domain, and Frontend Delivery
+
+Goal: ship the current app exactly as it is built today.
+
+Decision:
+- deploy this repo as a single Render Web Service, not Vercel, because the current app is a Vite-built frontend served by an Express runtime
+- keep frontend and backend together for now
+
+Why this fits the repo:
+- [`script/build.ts`](/Users/matthewlevine/Repos/Finsurance/script/build.ts) already builds the client bundle and server bundle together
+- [`server/index.ts`](/Users/matthewlevine/Repos/Finsurance/server/index.ts) already serves the built app and API from one process
+
+Concrete deployment steps:
+
+1. Create one Render Web Service from the GitHub repo
+Use:
+- Build command: `npm ci && npm run build`
+- Start command: `npm run start`
+
+2. Set environment variables in Render only when needed
+Baseline:
+- `NODE_ENV=production` is already handled by the start command
+- `PORT` is supplied by Render
+- do not hardcode `HOST`; [`server/http.ts`](/Users/matthewlevine/Repos/Finsurance/server/http.ts) already resolves hosted runtime binding
+
+3. Deploy first to the default Render URL
+Verify:
+- `/`
+- `/api/health`
+- one manual preset run through the UI
+
+4. Attach the production domain
+Recommended split:
+- `app.finsurance.com` -> product app
+- `www.finsurance.com` -> marketing site later, if needed
+
+5. In Render custom-domain settings
+- add `app.finsurance.com`
+- update DNS with the registrar/provider
+- verify the domain in Render
+- optionally disable the default `onrender.com` hostname after the custom domain is confirmed
+
+Acceptance:
+- public app is live at the custom domain
+- HTTPS is working
+- health endpoint is reachable at the production domain
+
+### Track 4: Payment Processing
+
+Goal: add payment capability without pretending the current MVP already has account entitlements.
+
+Important scope decision:
+- do not gate product access with payments yet
+- this repo currently has no auth, no user accounts, and no entitlement storage
+- charging for access before that exists creates operational confusion
+
+Concrete payment path for this repo:
+
+Phase A: pilot payments now
+- use Stripe-hosted Checkout or a Stripe Payment Link for pilot purchases, paid trials, or a subscription agreement
+- fulfillment is manual: after payment, the team grants access or onboarding out of band
+- this keeps billing real without adding auth/platform complexity yet
+
+Phase B: self-serve in-app billing next
+Files to add/change:
+- [`server/routes.ts`](/Users/matthewlevine/Repos/Finsurance/server/routes.ts)
+- new [`shared/billing.ts`](/Users/matthewlevine/Repos/Finsurance/shared/billing.ts)
+- likely [`client/src/pages/StrAssistant.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/StrAssistant.tsx) or a small billing CTA component
+
+Work:
+- add `POST /api/billing/create-checkout-session`
+- add `POST /api/billing/webhook`
+- use Stripe Checkout hosted pages, not custom embedded billing UI
+- add env vars:
+  - `STRIPE_SECRET_KEY`
+  - `STRIPE_WEBHOOK_SECRET`
+  - `STRIPE_PRICE_ID`
+  - `APP_BASE_URL`
+
+Required follow-up before true gating:
+- minimal auth
+- minimal entitlement record
+- post-payment success state
+- webhook-based fulfillment
+
+Acceptance for Phase B:
+- customer clicks pay
+- Stripe Checkout opens
+- payment completes
+- webhook confirms `checkout.session.completed`
+- app can map payment to an account or entitlement record
+
+### Track 5: Production Readiness Checklist
+
+Before sending real users to the domain:
+
+1. Run:
+- `npm run check`
+- `npm test`
+- `npm run build`
+
+2. Manual test at the production domain:
+- blank intake blocked state
+- low-information guidance-only preset
+- high-risk preset to full draft
+- copy and download actions
+- `/api/health`
+- unknown `/api/*` route returns JSON 404
+
+3. Record one deployment note per release:
+- commit SHA
+- domain tested
+- smoke test result
+- known limitations
+
 ## Known Gaps
 
 - The product is still client-first; there is no server-side STR draft API.
