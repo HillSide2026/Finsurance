@@ -1,6 +1,6 @@
 export const siteConfig = {
   siteName: "FintechLawyer.ca",
-  productName: "Finsurance",
+  productName: "FinSure",
   canonicalOrigin: "https://fintechlawyer.ca",
   canonicalUrl: "https://fintechlawyer.ca/",
   wwwUrl: "https://www.fintechlawyer.ca",
@@ -14,7 +14,7 @@ export const siteConfig = {
     faq: "#faq",
     levineLaw: "https://levinelegal.ca/",
     pilotAccess:
-      "mailto:hello@fintechlawyer.ca?subject=Finsurance%20early%20access",
+      "mailto:hello@fintechlawyer.ca?subject=FinSure%20early%20access",
   },
   billing: {
     pricingUrl: "https://fintechlawyer.ca/#pricing",

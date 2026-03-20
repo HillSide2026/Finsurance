@@ -9,7 +9,7 @@ export type ServerListenOptions = {
 export type HealthResponse = {
   ok: true;
   mode: "client-first-mvp";
-  product: "Finsurance";
+  product: "FinSure";
 };
 
 export type ApiErrorResponse = {
@@ -79,7 +79,7 @@ export function buildHealthResponse(): HealthResponse {
   return {
     ok: true,
     mode: "client-first-mvp",
-    product: "Finsurance",
+    product: "FinSure",
   };
 }
 

@@ -1,6 +1,6 @@
-# Finsurance
+# FinSure
 
-Finsurance is a focused STR drafting assistant. It converts a structured suspicious activity scenario into:
+FinSure is a focused STR drafting assistant. It converts a structured suspicious activity scenario into:
 
 - deterministic red flags
 - a calibrated suspicion-strength assessment

@@ -50,7 +50,7 @@ test("API payload helpers expose stable health and error shapes", () => {
   assert.deepEqual(buildHealthResponse(), {
     ok: true,
     mode: "client-first-mvp",
-    product: "Finsurance",
+    product: "FinSure",
   });
 
   assert.deepEqual(buildApiErrorResponse("API route not found.", "not_found"), {
