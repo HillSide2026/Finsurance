@@ -916,6 +916,27 @@ export default function StrAssistant() {
     );
   }
 
+  const s1Incomplete =
+    intake.triggerTypes.length === 0 ||
+    (intake.triggerTypes.includes("other") && !intake.triggerOtherText.trim());
+  const s2Incomplete =
+    intake.amountBand === null ||
+    intake.currency === null ||
+    (intake.currency === "other" && !intake.currencyOtherText.trim()) ||
+    intake.transactionCount === null ||
+    intake.timeframe === null ||
+    intake.transactionChannels.length === 0 ||
+    (intake.transactionChannels.includes("other") && !intake.transactionChannelOtherText.trim());
+  const s3Incomplete =
+    intake.clientRelationship === null ||
+    intake.customerType === null ||
+    intake.jurisdictions.length === 0;
+  const s4Incomplete =
+    intake.suspicionIndicators.length === 0 ||
+    (intake.suspicionIndicators.includes("other") && !intake.suspicionOtherText.trim());
+  const incompleteCard = "border-amber-300 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]";
+  const completeCard = "border-border/70 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]";
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(185,112,29,0.10),_transparent_26%),radial-gradient(circle_at_bottom_right,_rgba(15,23,42,0.10),_transparent_35%),linear-gradient(180deg,_#fbf8f1_0%,_#f2efe7_100%)] px-4 py-6 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -968,12 +989,21 @@ export default function StrAssistant() {
         {view === "intake" ? (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="space-y-6">
-              <Card className="border-border/70 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+              <Card className={s1Incomplete ? incompleteCard : completeCard}>
                 <CardHeader>
-                  <CardTitle>Section 1: Event Type</CardTitle>
-                  <CardDescription>
-                    Choose what triggered concern. Multiple triggers are allowed.
-                  </CardDescription>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <CardTitle>Section 1: Event Type</CardTitle>
+                      <CardDescription>
+                        Choose what triggered concern. Multiple triggers are allowed.
+                      </CardDescription>
+                    </div>
+                    {s1Incomplete && (
+                      <span className="shrink-0 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                        Required
+                      </span>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="grid gap-3 md:grid-cols-2">
                   {triggerTypeValues.map((trigger) => (
@@ -1003,12 +1033,21 @@ export default function StrAssistant() {
                 </CardContent>
               </Card>
 
-              <Card className="border-border/70 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+              <Card className={s2Incomplete ? incompleteCard : completeCard}>
                 <CardHeader>
-                  <CardTitle>Section 2: Transaction Pattern</CardTitle>
-                  <CardDescription>
-                    Capture the scale, pace, and channels used in the activity.
-                  </CardDescription>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <CardTitle>Section 2: Transaction Pattern</CardTitle>
+                      <CardDescription>
+                        Capture the scale, pace, and channels used in the activity.
+                      </CardDescription>
+                    </div>
+                    {s2Incomplete && (
+                      <span className="shrink-0 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                        Required
+                      </span>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -1161,12 +1200,21 @@ export default function StrAssistant() {
                 </CardContent>
               </Card>
 
-              <Card className="border-border/70 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+              <Card className={s3Incomplete ? incompleteCard : completeCard}>
                 <CardHeader>
-                  <CardTitle>Section 3: Customer Context</CardTitle>
-                  <CardDescription>
-                    Capture both the customer profile and the customer data that helps anchor the narrative.
-                  </CardDescription>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <CardTitle>Section 3: Customer Context</CardTitle>
+                      <CardDescription>
+                        Capture both the customer profile and the customer data that helps anchor the narrative.
+                      </CardDescription>
+                    </div>
+                    {s3Incomplete && (
+                      <span className="shrink-0 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                        Required
+                      </span>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -1325,12 +1373,21 @@ export default function StrAssistant() {
                 </CardContent>
               </Card>
 
-              <Card className="border-border/70 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+              <Card className={s4Incomplete ? incompleteCard : completeCard}>
                 <CardHeader>
-                  <CardTitle>Section 4: Suspicion Indicators</CardTitle>
-                  <CardDescription>
-                    Select the reasons the activity appeared suspicious and add optional factual notes.
-                  </CardDescription>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <CardTitle>Section 4: Suspicion Indicators</CardTitle>
+                      <CardDescription>
+                        Select the reasons the activity appeared suspicious and add optional factual notes.
+                      </CardDescription>
+                    </div>
+                    {s4Incomplete && (
+                      <span className="shrink-0 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                        Required
+                      </span>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <div className="grid gap-3 md:grid-cols-2">
