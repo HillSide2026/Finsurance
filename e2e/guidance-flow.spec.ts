@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("landing low-information flow stays in guidance-only mode", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/finsure");
 
   await expect(
     page.getByRole("heading", { name: "Audit-Ready, Always" }),

@@ -206,7 +206,7 @@ function buildEarlyAccessMailto(form: LeadFormState): string {
       `Email: ${form.email.trim()}`,
       `Company: ${form.company.trim() || "Not provided"}`,
       "",
-      `Requested from: ${siteConfig.canonicalOrigin}`,
+      `Requested from: ${siteConfig.productUrl}`,
     ].join("\n"),
   );
 
@@ -589,7 +589,7 @@ export default function StrAssistant() {
       <div className="brand-site-shell min-h-screen px-4 py-8 text-white sm:px-6 lg:px-10">
         <div className="brand-site-frame mx-auto max-w-6xl rounded-[36px] border p-6 backdrop-blur md:p-10">
           <header className="flex items-center justify-between border-b border-white/10 pb-6">
-            <a href="#start" className="flex items-center gap-3 text-[#EAF2F3]">
+            <a href={siteConfig.links.start} className="flex items-center gap-3 text-[#EAF2F3]">
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-sm font-semibold">
                 FS
               </span>
@@ -600,16 +600,25 @@ export default function StrAssistant() {
 
             <div className="flex items-center gap-6">
               <nav className="hidden items-center gap-6 text-sm text-[#EAF2F3]/78 lg:flex">
-                <a href="#product" className="transition-colors hover:text-[#00D4D4]">
+                <a href={siteConfig.links.product} className="transition-colors hover:text-[#00D4D4]">
                   Product
                 </a>
-                <a href="#how-it-works" className="transition-colors hover:text-[#00D4D4]">
+                <a
+                  href={siteConfig.links.howItWorks}
+                  className="transition-colors hover:text-[#00D4D4]"
+                >
                   How It Works
                 </a>
-                <a href="#social-proof" className="transition-colors hover:text-[#00D4D4]">
+                <a
+                  href={siteConfig.links.socialProof}
+                  className="transition-colors hover:text-[#00D4D4]"
+                >
                   Social Proof
                 </a>
-                <a href="#levine-law" className="transition-colors hover:text-[#00D4D4]">
+                <a
+                  href={siteConfig.links.expertise}
+                  className="transition-colors hover:text-[#00D4D4]"
+                >
                   Expertise
                 </a>
               </nav>
