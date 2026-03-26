@@ -5,7 +5,7 @@ test("root homepage loads and routes into FinSure", async ({ page }) => {
 
   await expect(
     page.getByRole("heading", {
-      name: "Legal infrastructure for fintech teams building under real regulation.",
+      name: "Canadian Counsel for Global FinTech Teams",
     }),
   ).toBeVisible();
 

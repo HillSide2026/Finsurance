@@ -8,60 +8,67 @@
   --font-display: "Montserrat", sans-serif;
   --font-mono: "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
 
-  --background: 191 79% 11%;
-  --foreground: 191 42% 14%;
+  --brand-ivory: #f7f1e4;
+  --brand-money-green: #6f8b65;
+  --brand-money-green-soft: #a6be98;
+  --brand-deep-green: #1f3325;
+  --brand-deep-green-soft: #273b2e;
+  --brand-gold: #e6c989;
 
-  --card: 190 46% 19%;
-  --card-foreground: 191 42% 14%;
-  --card-border: 190 28% 29%;
+  --background: 41 54% 93%;
+  --foreground: 138 24% 16%;
 
-  --popover: 190 46% 19%;
-  --popover-foreground: 191 42% 14%;
-  --popover-border: 190 28% 29%;
+  --card: 41 42% 97%;
+  --card-foreground: 138 24% 16%;
+  --card-border: 103 14% 80%;
 
-  --primary: 180 100% 33%;
-  --primary-foreground: 191 79% 11%;
-  --primary-border: hsl(180 100% 28%);
+  --popover: 41 42% 97%;
+  --popover-foreground: 138 24% 16%;
+  --popover-border: 103 14% 80%;
 
-  --secondary: 190 34% 24%;
-  --secondary-foreground: 191 42% 14%;
-  --secondary-border: hsl(190 28% 29%);
+  --primary: 104 16% 47%;
+  --primary-foreground: 41 54% 93%;
+  --primary-border: hsl(104 19% 37%);
 
-  --muted: 191 47% 16%;
-  --muted-foreground: 190 15% 49%;
-  --muted-border: hsl(190 22% 28%);
+  --secondary: 94 22% 90%;
+  --secondary-foreground: 138 24% 16%;
+  --secondary-border: hsl(103 13% 77%);
 
-  --accent: 180 100% 42%;
-  --accent-foreground: 191 79% 11%;
-  --accent-border: hsl(180 100% 36%);
+  --muted: 94 17% 89%;
+  --muted-foreground: 102 11% 43%;
+  --muted-border: hsl(102 12% 76%);
+
+  --accent: 103 17% 53%;
+  --accent-foreground: 41 54% 93%;
+  --accent-border: hsl(103 17% 45%);
 
   --destructive: 0 76% 52%;
   --destructive-foreground: 0 0% 100%;
   --destructive-border: hsl(0 76% 44%);
 
-  --border: 190 28% 29%;
-  --input: 190 28% 29%;
-  --ring: 180 100% 42%;
+  --border: 103 13% 77%;
+  --input: 103 13% 77%;
+  --ring: 103 17% 53%;
 
-  --button-outline: hsl(190 25% 33%);
-  --badge-outline: hsl(190 25% 33%);
+  --button-outline: hsl(102 14% 46%);
+  --badge-outline: hsl(102 14% 46%);
 
-  --chart-1: 180 100% 33%;
-  --chart-2: 180 100% 42%;
-  --chart-3: 187 27% 94%;
-  --chart-4: 190 15% 49%;
-  --chart-5: 190 34% 24%;
+  --chart-1: 104 16% 47%;
+  --chart-2: 103 17% 53%;
+  --chart-3: 41 65% 72%;
+  --chart-4: 102 14% 46%;
+  --chart-5: 138 24% 16%;
 
-  --sidebar: 190 46% 19%;
-  --sidebar-foreground: 191 42% 14%;
-  --sidebar-border: 190 28% 29%;
-  --sidebar-ring: 180 100% 42%;
-  --sidebar-primary: 180 100% 33%;
-  --sidebar-primary-foreground: 191 79% 11%;
-  --sidebar-primary-border: hsl(180 100% 28%);
-  --sidebar-accent: 191 47% 16%;
-  --sidebar-accent-foreground: 191 42% 14%;
-  --sidebar-accent-border: hsl(190 22% 28%);
+  --sidebar: 41 42% 97%;
+  --sidebar-foreground: 138 24% 16%;
+  --sidebar-border: 103 14% 80%;
+  --sidebar-ring: 103 17% 53%;
+  --sidebar-primary: 104 16% 47%;
+  --sidebar-primary-foreground: 41 54% 93%;
+  --sidebar-primary-border: hsl(104 19% 37%);
+  --sidebar-accent: 94 17% 89%;
+  --sidebar-accent-foreground: 138 24% 16%;
+  --sidebar-accent-border: hsl(102 12% 76%);
 
   --radius: 1rem;
 }
@@ -95,7 +102,7 @@
 
   ::selection {
     background: hsl(var(--accent));
-    color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
   }
 }
 
@@ -106,16 +113,16 @@
 
   .brand-site-shell {
     background:
-      radial-gradient(circle at top left, rgba(0, 212, 212, 0.14), transparent 28%),
-      radial-gradient(circle at bottom right, rgba(0, 166, 166, 0.12), transparent 32%),
-      linear-gradient(180deg, #041f25 0%, #062b33 100%);
+      radial-gradient(circle at top left, rgba(166, 190, 152, 0.18), transparent 28%),
+      radial-gradient(circle at bottom right, rgba(197, 155, 71, 0.14), transparent 32%),
+      linear-gradient(180deg, #121a14 0%, #1f2b21 100%);
   }
 
   .legal-home-shell {
     background:
-      radial-gradient(circle at 14% 16%, rgba(0, 212, 212, 0.17), transparent 26%),
+      radial-gradient(circle at 14% 16%, rgba(166, 190, 152, 0.18), transparent 26%),
       radial-gradient(circle at 84% 18%, rgba(197, 155, 71, 0.18), transparent 24%),
-      linear-gradient(180deg, #021318 0%, #07252c 54%, #0a3137 100%);
+      linear-gradient(180deg, #101812 0%, #1b2a1d 54%, #233526 100%);
     position: relative;
   }
 
@@ -132,61 +139,61 @@
   }
 
   .legal-home-panel {
-    background: rgba(4, 26, 31, 0.74);
-    border-color: rgba(143, 167, 171, 0.18);
+    background: rgba(18, 29, 20, 0.76);
+    border-color: rgba(166, 190, 152, 0.18);
     box-shadow: 0 26px 90px rgba(0, 0, 0, 0.22);
     position: relative;
   }
 
   .legal-home-card {
-    background: linear-gradient(180deg, rgba(8, 34, 40, 0.98), rgba(5, 24, 29, 0.96));
-    border-color: rgba(143, 167, 171, 0.16);
+    background: linear-gradient(180deg, rgba(31, 51, 37, 0.98), rgba(20, 32, 23, 0.96));
+    border-color: rgba(166, 190, 152, 0.16);
     box-shadow: 0 18px 48px rgba(0, 0, 0, 0.16);
   }
 
   .legal-home-muted {
-    color: #9db9bc;
+    color: #c4cfbb;
   }
 
   .brand-site-frame {
-    background: rgba(6, 43, 51, 0.86);
-    border-color: rgba(107, 138, 144, 0.22);
+    background: rgba(21, 32, 23, 0.88);
+    border-color: rgba(166, 190, 152, 0.18);
     box-shadow: 0 30px 120px rgba(0, 0, 0, 0.24);
   }
 
   .brand-site-card {
-    background: rgba(26, 63, 70, 0.92);
-    border-color: rgba(107, 138, 144, 0.2);
+    background: rgba(35, 53, 38, 0.92);
+    border-color: rgba(166, 190, 152, 0.18);
     box-shadow: 0 18px 45px rgba(0, 0, 0, 0.16);
   }
 
   .brand-site-soft {
-    background: rgba(26, 63, 70, 0.72);
-    border-color: rgba(107, 138, 144, 0.18);
+    background: rgba(35, 53, 38, 0.74);
+    border-color: rgba(166, 190, 152, 0.18);
   }
 
   .brand-site-dark-panel {
-    background: linear-gradient(180deg, rgba(4, 23, 28, 0.98), rgba(9, 44, 52, 0.98));
-    border-color: rgba(0, 166, 166, 0.18);
+    background: linear-gradient(180deg, rgba(18, 29, 20, 0.98), rgba(35, 53, 38, 0.98));
+    border-color: rgba(197, 155, 71, 0.2);
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
   }
 
   .brand-site-outline-pill {
-    background: rgba(26, 63, 70, 0.56);
-    border-color: rgba(107, 138, 144, 0.24);
+    background: rgba(35, 53, 38, 0.58);
+    border-color: rgba(166, 190, 152, 0.24);
   }
 
   .brand-site-quiet-text {
-    color: #6b8a90;
+    color: #b7c3af;
   }
 
   .brand-site-highlight {
-    color: #00d4d4;
+    color: #a6be98;
   }
 
   .brand-workflow-screen {
-    background: linear-gradient(180deg, rgba(9, 44, 52, 0.98), rgba(5, 29, 35, 0.98));
-    border: 1px solid rgba(107, 138, 144, 0.22);
+    background: linear-gradient(180deg, rgba(31, 51, 37, 0.98), rgba(20, 32, 23, 0.98));
+    border: 1px solid rgba(166, 190, 152, 0.2);
     box-shadow: 0 24px 48px rgba(0, 0, 0, 0.22);
   }
 
@@ -231,10 +238,10 @@
   }
 
   .brand-workflow-chip {
-    background: rgba(0, 166, 166, 0.14);
-    border: 1px solid rgba(0, 212, 212, 0.18);
+    background: rgba(111, 139, 101, 0.16);
+    border: 1px solid rgba(166, 190, 152, 0.24);
     border-radius: 999px;
-    color: #eaf2f3;
+    color: #f7f1e4;
     font-size: 11px;
     font-weight: 600;
     line-height: 1;
@@ -242,9 +249,9 @@
   }
 
   .brand-workflow-button {
-    background: #00a6a6;
+    background: #6f8b65;
     border-radius: 14px;
-    color: #062b33;
+    color: #f7f1e4;
     font-size: 12px;
     font-weight: 700;
     min-height: 42px;

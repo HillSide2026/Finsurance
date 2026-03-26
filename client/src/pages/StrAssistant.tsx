@@ -589,7 +589,7 @@ export default function StrAssistant() {
       <div className="brand-site-shell min-h-screen px-4 py-8 text-white sm:px-6 lg:px-10">
         <div className="brand-site-frame mx-auto max-w-6xl rounded-[36px] border p-6 backdrop-blur md:p-10">
           <header className="flex items-center justify-between border-b border-white/10 pb-6">
-            <a href={siteConfig.links.start} className="flex items-center gap-3 text-[#EAF2F3]">
+            <a href={siteConfig.links.start} className="flex items-center gap-3 text-[#F7F1E4]">
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-sm font-semibold">
                 FS
               </span>
@@ -599,25 +599,25 @@ export default function StrAssistant() {
             </a>
 
             <div className="flex items-center gap-6">
-              <nav className="hidden items-center gap-6 text-sm text-[#EAF2F3]/78 lg:flex">
-                <a href={siteConfig.links.product} className="transition-colors hover:text-[#00D4D4]">
+              <nav className="hidden items-center gap-6 text-sm text-[#F7F1E4]/78 lg:flex">
+                <a href={siteConfig.links.product} className="transition-colors hover:text-[#A6BE98]">
                   Product
                 </a>
                 <a
                   href={siteConfig.links.howItWorks}
-                  className="transition-colors hover:text-[#00D4D4]"
+                  className="transition-colors hover:text-[#A6BE98]"
                 >
                   How It Works
                 </a>
                 <a
                   href={siteConfig.links.socialProof}
-                  className="transition-colors hover:text-[#00D4D4]"
+                  className="transition-colors hover:text-[#A6BE98]"
                 >
                   Social Proof
                 </a>
                 <a
                   href={siteConfig.links.expertise}
-                  className="transition-colors hover:text-[#00D4D4]"
+                  className="transition-colors hover:text-[#A6BE98]"
                 >
                   Expertise
                 </a>
@@ -632,10 +632,10 @@ export default function StrAssistant() {
           <main id="start" className="space-y-0">
             <section className="grid gap-8 py-16 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-center">
               <div className="space-y-6">
-                <h1 className="text-5xl leading-[0.95] text-[#EAF2F3] md:text-7xl">
+                <h1 className="text-5xl leading-[0.95] text-[#F7F1E4] md:text-7xl">
                   Audit-Ready, Always
                 </h1>
-                <p className="max-w-3xl text-lg leading-8 text-[#EAF2F3]/82 md:text-xl">
+                <p className="max-w-3xl text-lg leading-8 text-[#F7F1E4]/82 md:text-xl">
                   Generate compliant suspicious transaction reports in under 60 seconds.
                   FinSure guides your team through structured inputs to produce complete,
                   submission-ready reports with no ambiguity.
@@ -736,8 +736,8 @@ export default function StrAssistant() {
                     </div>
                     <div className="mt-5 space-y-3">
                       {homepageOutputItems.map((item) => (
-                        <div key={item} className="flex items-center gap-2 text-xs text-[#EAF2F3]/86">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-[#00D4D4]" />
+                        <div key={item} className="flex items-center gap-2 text-xs text-[#F7F1E4]/86">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-[#A6BE98]" />
                           {item}
                         </div>
                       ))}
@@ -756,7 +756,7 @@ export default function StrAssistant() {
             <section id="problem" className="py-16">
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <h2 className="text-3xl text-[#EAF2F3] md:text-4xl">
+                  <h2 className="text-3xl text-[#F7F1E4] md:text-4xl">
                     The Hidden Risk in Every Suspicious Transaction Report
                   </h2>
                 </div>
@@ -769,21 +769,21 @@ export default function StrAssistant() {
                     </Card>
                   ))}
                 </div>
-                <p className="text-lg font-semibold text-[#00D4D4]">FinSure changes that.</p>
+                <p className="text-lg font-semibold text-[#A6BE98]">FinSure changes that.</p>
               </div>
             </section>
 
             <section id="product" className="py-16">
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <h2 className="text-3xl text-[#EAF2F3] md:text-4xl">
+                  <h2 className="text-3xl text-[#F7F1E4] md:text-4xl">
                     Meet FinSure — Instant Suspicious Transaction Reporting
                   </h2>
                 </div>
                 <div className="grid gap-5 md:grid-cols-2">
                   {homepageBenefits.map((benefit) => (
                     <Card key={benefit} className="brand-site-card text-white">
-                      <CardContent className="p-6 text-lg leading-8 text-[#EAF2F3]">
+                      <CardContent className="p-6 text-lg leading-8 text-[#F7F1E4]">
                         {benefit}
                       </CardContent>
                     </Card>
@@ -800,7 +800,7 @@ export default function StrAssistant() {
 
             <section id="how-it-works" className="py-16">
               <div className="space-y-6">
-                <h2 className="text-3xl text-[#EAF2F3] md:text-4xl">How It Works</h2>
+                <h2 className="text-3xl text-[#F7F1E4] md:text-4xl">How It Works</h2>
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                   {homepageWorkflow.map((item) => (
                     <Card key={item.title} className="brand-site-card text-white">
@@ -808,7 +808,7 @@ export default function StrAssistant() {
                         <item.icon className="h-7 w-7 text-primary" />
                         <CardTitle className="mt-4 text-2xl leading-tight">{item.title}</CardTitle>
                       </CardHeader>
-                      <CardContent className="text-sm leading-6 text-[#6B8A90]">
+                      <CardContent className="text-sm leading-6 text-[#BCC7B6]">
                         {item.body}
                       </CardContent>
                     </Card>
@@ -819,13 +819,13 @@ export default function StrAssistant() {
 
             <section id="social-proof" className="py-16">
               <div className="space-y-6">
-                <h2 className="text-3xl text-[#EAF2F3] md:text-4xl">
+                <h2 className="text-3xl text-[#F7F1E4] md:text-4xl">
                   Built by Legal Experts Behind Fintech Compliance
                 </h2>
                 <div className="grid gap-5 md:grid-cols-3">
                   {homepageAuthorityPoints.map((item) => (
                     <Card key={item} className="brand-site-card text-white">
-                      <CardContent className="p-6 text-lg leading-8 text-[#EAF2F3]">
+                      <CardContent className="p-6 text-lg leading-8 text-[#F7F1E4]">
                         {item}
                       </CardContent>
                     </Card>
@@ -840,7 +840,7 @@ export default function StrAssistant() {
                   <CardTitle className="text-3xl text-white md:text-4xl">
                     Powered by Real Legal Expertise
                   </CardTitle>
-                  <CardDescription className="max-w-3xl text-base leading-8 text-[#EAF2F3]/82">
+                  <CardDescription className="max-w-3xl text-base leading-8 text-[#F7F1E4]/82">
                     FinSure is built and backed by Levine Law — a firm specializing in fintech,
                     financial regulation, and compliance.
                   </CardDescription>
@@ -862,7 +862,7 @@ export default function StrAssistant() {
                   <CardTitle className="text-3xl text-white md:text-4xl">
                     Need rollout updates or a team walkthrough?
                   </CardTitle>
-                  <CardDescription className="max-w-3xl text-base leading-8 text-[#EAF2F3]/82">
+                  <CardDescription className="max-w-3xl text-base leading-8 text-[#F7F1E4]/82">
                     FinSure is usable now. If you want product updates, rollout coordination, or a
                     team introduction, leave your details and we will follow up.
                   </CardDescription>
@@ -870,7 +870,7 @@ export default function StrAssistant() {
                 <CardContent>
                   <form className="grid gap-5 md:grid-cols-2" onSubmit={requestEarlyAccess}>
                     <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#EAF2F3]" htmlFor="lead-name">
+                      <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="lead-name">
                         Name
                       </label>
                       <Input
@@ -878,11 +878,11 @@ export default function StrAssistant() {
                         value={leadForm.name}
                         onChange={(event) => updateLeadForm("name", event.target.value)}
                         placeholder="Your name"
-                        className="h-12 rounded-xl border-white/10 bg-[#0C3540] text-[#EAF2F3] placeholder:text-[#6B8A90]"
+                        className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
                       />
                     </div>
                     <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#EAF2F3]" htmlFor="lead-email">
+                      <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="lead-email">
                         Email
                       </label>
                       <Input
@@ -891,12 +891,12 @@ export default function StrAssistant() {
                         value={leadForm.email}
                         onChange={(event) => updateLeadForm("email", event.target.value)}
                         placeholder="you@company.com"
-                        className="h-12 rounded-xl border-white/10 bg-[#0C3540] text-[#EAF2F3] placeholder:text-[#6B8A90]"
+                        className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
                       />
                     </div>
                     <div className="grid gap-2 md:col-span-2">
                       <label
-                        className="text-sm font-medium text-[#EAF2F3]"
+                        className="text-sm font-medium text-[#F7F1E4]"
                         htmlFor="lead-company"
                       >
                         Company
@@ -906,7 +906,7 @@ export default function StrAssistant() {
                         value={leadForm.company}
                         onChange={(event) => updateLeadForm("company", event.target.value)}
                         placeholder="Optional"
-                        className="h-12 rounded-xl border-white/10 bg-[#0C3540] text-[#EAF2F3] placeholder:text-[#6B8A90]"
+                        className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
                       />
                     </div>
                     <div className="md:col-span-2">

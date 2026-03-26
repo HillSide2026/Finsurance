@@ -145,16 +145,16 @@ export default function SiteHome() {
             </a>
 
             <nav className="flex flex-wrap items-center gap-5 text-sm text-[#D2DEE0]">
-              <a href={siteConfig.links.offerings} className="transition-colors hover:text-[#7EF0EF]">
+              <a href={siteConfig.links.offerings} className="transition-colors hover:text-[#A6BE98]">
                 Offerings
               </a>
-              <a href={siteConfig.links.approach} className="transition-colors hover:text-[#7EF0EF]">
+              <a href={siteConfig.links.approach} className="transition-colors hover:text-[#A6BE98]">
                 Approach
               </a>
-              <a href={siteConfig.links.contact} className="transition-colors hover:text-[#7EF0EF]">
+              <a href={siteConfig.links.contact} className="transition-colors hover:text-[#A6BE98]">
                 Contact
               </a>
-              <a href={siteConfig.links.finsure} className="transition-colors hover:text-[#7EF0EF]">
+              <a href={siteConfig.links.finsure} className="transition-colors hover:text-[#A6BE98]">
                 {siteConfig.productName}
               </a>
             </nav>
@@ -170,7 +170,7 @@ export default function SiteHome() {
                 </div>
                 <div className="space-y-5">
                   <h1 className="max-w-4xl text-5xl leading-[0.92] text-[#F7F1E4] md:text-7xl">
-                    Legal infrastructure for fintech teams building under real regulation.
+                    Canadian Counsel for Global FinTech Teams
                   </h1>
                   <p className="max-w-2xl text-lg leading-8 text-[#D2DEE0] md:text-xl">
                     {siteConfig.siteName} combines counsel, compliance systems, and
@@ -213,11 +213,11 @@ export default function SiteHome() {
               </div>
 
               <div className="relative">
-                <div className="absolute inset-x-10 top-8 h-44 rounded-full bg-[radial-gradient(circle,_rgba(0,212,212,0.20),_transparent_68%)] blur-3xl" />
+                <div className="absolute inset-x-10 top-8 h-44 rounded-full bg-[radial-gradient(circle,_rgba(166,190,152,0.20),_transparent_68%)] blur-3xl" />
                 <div className="legal-home-card relative rounded-[32px] border p-6 md:p-7">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                      <ScanSearch className="h-6 w-6 text-[#7EF0EF]" />
+                      <ScanSearch className="h-6 w-6 text-[#A6BE98]" />
                     </div>
                     <span className="rounded-full border border-[rgba(197,155,71,0.28)] bg-[rgba(197,155,71,0.10)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[#E6C989]">
                       Live now
@@ -225,7 +225,7 @@ export default function SiteHome() {
                   </div>
                   <div className="mt-6 space-y-4">
                     <div>
-                      <p className="text-sm uppercase tracking-[0.28em] text-[#7EF0EF]">
+                      <p className="text-sm uppercase tracking-[0.28em] text-[#A6BE98]">
                         {siteConfig.productName}
                       </p>
                       <h2 className="mt-3 text-3xl text-[#F7F1E4]">
@@ -257,7 +257,7 @@ export default function SiteHome() {
                   </div>
                   <HomepageLink
                     item={offerings[0]}
-                    className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#F7F1E4] transition-colors hover:text-[#7EF0EF]"
+                    className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#F7F1E4] transition-colors hover:text-[#A6BE98]"
                   />
                 </div>
               </div>
@@ -271,7 +271,7 @@ export default function SiteHome() {
               return (
                 <article key={item.title} className="legal-home-card rounded-[30px] border p-6">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                    <Icon className="h-5 w-5 text-[#7EF0EF]" />
+                    <Icon className="h-5 w-5 text-[#A6BE98]" />
                   </div>
                   <p className="mt-6 text-xs font-semibold uppercase tracking-[0.24em] text-[#E6C989]">
                     {item.eyebrow}
@@ -280,7 +280,7 @@ export default function SiteHome() {
                   <p className="mt-4 text-base leading-7 text-[#D2DEE0]">{item.body}</p>
                   <HomepageLink
                     item={item}
-                    className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#F7F1E4] transition-colors hover:text-[#7EF0EF]"
+                    className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#F7F1E4] transition-colors hover:text-[#A6BE98]"
                   />
                 </article>
               );
@@ -297,7 +297,7 @@ export default function SiteHome() {
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
                       <Icon className="h-5 w-5 text-[#E6C989]" />
                     </div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7EF0EF]">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#A6BE98]">
                       {item.eyebrow}
                     </p>
                   </div>
@@ -310,7 +310,7 @@ export default function SiteHome() {
 
           <section id="approach" className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
             <div className="legal-home-panel rounded-[30px] border p-6 md:p-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7EF0EF]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#A6BE98]">
                 Working model
               </p>
               <h2 className="mt-4 text-4xl text-[#F7F1E4]">
@@ -338,7 +338,7 @@ export default function SiteHome() {
           <section id="contact" className="legal-home-panel rounded-[36px] border px-6 py-8 md:px-10">
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7EF0EF]">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#A6BE98]">
                   Next step
                 </p>
                 <h2 className="mt-4 text-4xl text-[#F7F1E4]">

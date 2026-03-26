@@ -18,15 +18,15 @@ export type SitePageMetadata = {
 };
 
 const homePageMetadata: SitePageMetadata = {
-  title: "FintechLawyer.ca | Counsel and compliance systems for fintech teams",
+  title: "FintechLawyer.ca | Counsel for FinTech Teams",
   description:
     "FintechLawyer.ca combines counsel, compliance systems, and productized tools for regulated fintech teams navigating AML, payments, and launch risk.",
   canonicalUrl: homeUrl,
-  openGraphTitle: "FintechLawyer.ca | Counsel and compliance systems for fintech teams",
+  openGraphTitle: "FintechLawyer.ca | Counsel for FinTech Teams",
   openGraphDescription:
     "Counsel, compliance systems, and productized tools for regulated fintech teams.",
   openGraphUrl: homeUrl,
-  twitterTitle: "FintechLawyer.ca | Counsel and compliance systems for fintech teams",
+  twitterTitle: "FintechLawyer.ca | Counsel for FinTech Teams",
   twitterDescription:
     "Counsel, compliance systems, and productized tools for regulated fintech teams.",
 };
