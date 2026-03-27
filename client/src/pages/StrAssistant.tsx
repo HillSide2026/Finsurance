@@ -424,7 +424,7 @@ function AuthCard({
   return (
     <Card
       id="auth-access"
-      className="brand-site-card shadow-[0_18px_40px_rgba(31,51,37,0.06)]"
+      className="legal-home-card shadow-[0_18px_40px_rgba(31,51,37,0.06)]"
     >
       <CardHeader className="space-y-4">
         <div className="flex items-center justify-between gap-4">
@@ -1284,34 +1284,35 @@ export default function StrAssistant() {
 
   if (view === "workspace" && authSession) {
     return (
-      <div className="brand-site-shell min-h-screen px-4 py-8 text-[#1F241D] sm:px-6 lg:px-10">
-        <div className="brand-site-frame mx-auto max-w-6xl rounded-[36px] border p-6 backdrop-blur md:p-10">
-          <header className="flex flex-col gap-4 border-b border-[rgba(96,110,89,0.14)] pb-6 md:flex-row md:items-center md:justify-between">
-            <a href={siteConfig.links.start} className="flex items-center gap-3 text-[#1F241D]">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[rgba(96,110,89,0.14)] bg-white/70 text-sm font-semibold">
-                FS
-              </span>
-              <span className="text-lg font-semibold tracking-[0.02em]">
-                {siteConfig.productName}
-              </span>
-            </a>
+      <div className="legal-home-shell min-h-screen px-4 py-6 text-[#1F241D] sm:px-6 lg:px-10">
+        <div className="mx-auto max-w-6xl space-y-8">
+          <header className="legal-home-panel rounded-[32px] border px-8 py-5 md:px-10">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <a href={siteConfig.links.home} className="flex items-center">
+                <img
+                  src="/fintechlawyer-logo.png"
+                  alt="FintechLawyer.ca"
+                  className="h-12 w-auto md:h-14"
+                />
+              </a>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge className="w-fit border-[rgba(96,110,89,0.14)] bg-white/70 px-4 py-2 text-[#1F241D]">
-                {authSession.team.name}
-              </Badge>
-              <Button className="rounded-2xl px-6" onClick={beginNewDraft}>
-                <ShieldCheck className="h-4 w-4" />
-                New draft
-              </Button>
-              <Button variant="outline" className="rounded-2xl px-6" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge className="w-fit border-[rgba(96,110,89,0.14)] bg-white/70 px-4 py-2 text-[#1F241D]">
+                  {authSession.team.name}
+                </Badge>
+                <Button className="rounded-2xl px-6" onClick={beginNewDraft}>
+                  <ShieldCheck className="h-4 w-4" />
+                  New draft
+                </Button>
+                <Button variant="outline" className="rounded-2xl px-6" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </Button>
+              </div>
             </div>
           </header>
 
-          <main className="py-12">
+          <main className="legal-home-panel rounded-[40px] border px-6 py-10 md:px-10 md:py-12">
             <WorkspaceCard
               session={authSession}
               drafts={drafts}
@@ -1332,69 +1333,70 @@ export default function StrAssistant() {
 
   if (view === "landing") {
     return (
-      <div className="brand-site-shell min-h-screen px-4 py-8 text-[#1F241D] sm:px-6 lg:px-10">
-        <div className="brand-site-frame mx-auto max-w-6xl rounded-[36px] border p-6 backdrop-blur md:p-10">
-          <header className="flex items-center justify-between border-b border-[rgba(96,110,89,0.14)] pb-6">
-            <a href={siteConfig.links.start} className="flex items-center gap-3 text-[#1F241D]">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[rgba(96,110,89,0.14)] bg-white/70 text-sm font-semibold">
-                FS
-              </span>
-              <span className="text-lg font-semibold tracking-[0.02em]">
-                {siteConfig.productName}
-              </span>
-            </a>
+      <div className="legal-home-shell min-h-screen px-4 py-6 text-[#1F241D] sm:px-6 lg:px-10">
+        <div className="mx-auto max-w-7xl space-y-8">
+          <header className="legal-home-panel rounded-[32px] border px-8 py-5 md:px-10">
+            <div className="flex items-center justify-between gap-6">
+              <a href={siteConfig.links.home} className="shrink-0 flex items-center">
+                <img
+                  src="/fintechlawyer-logo.png"
+                  alt="FintechLawyer.ca"
+                  className="h-12 w-auto md:h-14"
+                />
+              </a>
 
-            <div className="flex items-center gap-6">
-              <nav className="hidden items-center gap-6 text-sm text-[#525B50] lg:flex">
-                <a href={siteConfig.links.product} className="transition-colors hover:text-[#6F8B65]">
-                  Product
-                </a>
-                <a
-                  href={siteConfig.links.howItWorks}
-                  className="transition-colors hover:text-[#6F8B65]"
-                >
-                  How It Works
-                </a>
-                <a
-                  href={siteConfig.links.socialProof}
-                  className="transition-colors hover:text-[#6F8B65]"
-                >
-                  Social Proof
-                </a>
-                <a
-                  href={siteConfig.links.expertise}
-                  className="transition-colors hover:text-[#6F8B65]"
-                >
-                  Expertise
-                </a>
-                <a
-                  href={siteConfig.links.pricing}
-                  className="transition-colors hover:text-[#6F8B65]"
-                >
-                  Pricing
-                </a>
-              </nav>
-              {authSession ? (
-                <div className="flex items-center gap-3">
-                  <Button className="rounded-2xl px-6" onClick={() => setView("workspace")}>
-                    Open workspace
+              <div className="flex items-center gap-6">
+                <nav className="hidden items-center gap-6 text-sm font-medium text-[#525B50] lg:flex">
+                  <a href={siteConfig.links.product} className="transition-colors hover:text-[#6F8B65]">
+                    Product
+                  </a>
+                  <a
+                    href={siteConfig.links.howItWorks}
+                    className="transition-colors hover:text-[#6F8B65]"
+                  >
+                    How It Works
+                  </a>
+                  <a
+                    href={siteConfig.links.socialProof}
+                    className="transition-colors hover:text-[#6F8B65]"
+                  >
+                    Social Proof
+                  </a>
+                  <a
+                    href={siteConfig.links.expertise}
+                    className="transition-colors hover:text-[#6F8B65]"
+                  >
+                    Expertise
+                  </a>
+                  <a
+                    href={siteConfig.links.pricing}
+                    className="transition-colors hover:text-[#6F8B65]"
+                  >
+                    Pricing
+                  </a>
+                </nav>
+                {authSession ? (
+                  <div className="flex items-center gap-3">
+                    <Button className="rounded-2xl px-6" onClick={() => setView("workspace")}>
+                      Open workspace
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" className="rounded-2xl px-6" onClick={handleSignOut}>
+                      <LogOut className="h-4 w-4" />
+                      Sign out
+                    </Button>
+                  </div>
+                ) : (
+                  <Button className="rounded-2xl px-6" onClick={() => scrollToElement("auth-access")}>
+                    Access workspace
                     <ArrowRight className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" className="rounded-2xl px-6" onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4" />
-                    Sign out
-                  </Button>
-                </div>
-              ) : (
-                <Button className="rounded-2xl px-6" onClick={() => scrollToElement("auth-access")}>
-                  Access workspace
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              )}
+                )}
+              </div>
             </div>
           </header>
 
-          <main id="start" className="space-y-0">
+          <main id="start" className="space-y-8">
             <section className="grid gap-8 py-16 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-center">
               <div className="space-y-6">
                 <h1 className="text-5xl leading-[0.95] text-[#1B2118] md:text-7xl">
@@ -1528,7 +1530,7 @@ export default function StrAssistant() {
 
             <section className="py-10">
               {isAuthLoading ? (
-                <Card className="brand-site-card">
+                <Card className="legal-home-card">
                   <CardContent className="flex items-center gap-3 p-6 text-sm text-[#596255]">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Loading workspace availability...
@@ -1565,7 +1567,7 @@ export default function StrAssistant() {
                 </div>
                 <div className="grid gap-5 md:grid-cols-3">
                   {homepagePainPoints.map((point) => (
-                    <Card key={point} className="brand-site-card">
+                    <Card key={point} className="legal-home-card">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-2xl leading-tight text-[#1F241D]">{point}</CardTitle>
                       </CardHeader>
@@ -1585,7 +1587,7 @@ export default function StrAssistant() {
                 </div>
                 <div className="grid gap-5 md:grid-cols-2">
                   {homepageBenefits.map((benefit) => (
-                    <Card key={benefit} className="brand-site-card">
+                    <Card key={benefit} className="legal-home-card">
                       <CardContent className="p-6 text-lg leading-8 text-[#596255]">
                         {benefit}
                       </CardContent>
@@ -1606,7 +1608,7 @@ export default function StrAssistant() {
                 <h2 className="text-3xl text-[#1B2118] md:text-4xl">How It Works</h2>
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                   {homepageWorkflow.map((item) => (
-                    <Card key={item.title} className="brand-site-card">
+                    <Card key={item.title} className="legal-home-card">
                       <CardHeader className="pb-3">
                         <item.icon className="h-7 w-7 text-primary" />
                         <CardTitle className="mt-4 text-2xl leading-tight text-[#1F241D]">{item.title}</CardTitle>
@@ -1627,7 +1629,7 @@ export default function StrAssistant() {
                 </h2>
                 <div className="grid gap-5 md:grid-cols-3">
                   {homepageAuthorityPoints.map((item) => (
-                    <Card key={item} className="brand-site-card">
+                    <Card key={item} className="legal-home-card">
                       <CardContent className="p-6 text-lg leading-8 text-[#596255]">
                         {item}
                       </CardContent>
@@ -1638,7 +1640,7 @@ export default function StrAssistant() {
             </section>
 
             <section id="levine-law" className="py-16">
-              <Card className="brand-site-card">
+              <Card className="legal-home-card">
                 <CardHeader className="space-y-3">
                   <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">
                     Powered by Real Legal Expertise
@@ -1660,7 +1662,7 @@ export default function StrAssistant() {
             </section>
 
             <section id="pricing" className="py-16">
-              <Card className="brand-site-card">
+              <Card className="legal-home-card">
                 <CardHeader className="space-y-3">
                   <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#6F8B65]">
                     Secure Checkout
@@ -1713,7 +1715,7 @@ export default function StrAssistant() {
             </section>
 
             <section id="early-access" className="py-16">
-              <Card className="brand-site-card">
+              <Card className="legal-home-card">
                 <CardHeader className="space-y-3">
                   <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">
                     Need rollout updates or a team walkthrough?

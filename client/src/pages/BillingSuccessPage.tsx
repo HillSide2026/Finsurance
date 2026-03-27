@@ -86,19 +86,34 @@ export default function BillingSuccessPage() {
         : "Your Stripe Checkout session returned successfully.";
 
   return (
-    <div className="brand-site-shell min-h-screen px-4 py-8 text-[#1F241D] sm:px-6 lg:px-10">
-      <div className="brand-site-frame mx-auto max-w-4xl rounded-[36px] border p-6 backdrop-blur md:p-10">
-        <header className="border-b border-[rgba(96,110,89,0.14)] pb-6">
-          <a href={siteConfig.links.finsure} className="flex items-center gap-3 text-[#1F241D]">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[rgba(96,110,89,0.14)] bg-white/70 text-sm font-semibold">
-              FS
-            </span>
-            <span className="text-lg font-semibold tracking-[0.02em]">{siteConfig.productName}</span>
-          </a>
+    <div className="legal-home-shell min-h-screen px-4 py-6 text-[#1F241D] sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-5xl space-y-8">
+        <header className="legal-home-panel rounded-[32px] border px-8 py-5 md:px-10">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <a href={siteConfig.links.home} className="flex items-center">
+              <img
+                src="/fintechlawyer-logo.png"
+                alt="FintechLawyer.ca"
+                className="h-12 w-auto md:h-14"
+              />
+            </a>
+
+            <nav className="flex flex-wrap items-center gap-4 text-sm font-medium text-[#525B50] md:gap-6">
+              <a href={siteConfig.links.home} className="transition-colors hover:text-[#6F8B65]">
+                Home
+              </a>
+              <a
+                href={siteConfig.links.finsure}
+                className="transition-colors hover:text-[#6F8B65]"
+              >
+                FinSure
+              </a>
+            </nav>
+          </div>
         </header>
 
-        <main className="py-12">
-          <Card className="brand-site-card">
+        <main className="legal-home-panel rounded-[40px] border px-6 py-10 md:px-10 md:py-12">
+          <Card className="legal-home-card">
             <CardHeader className="space-y-3">
               <div className="flex items-center gap-3 text-[#6F8B65]">
                 {loadState === "loading" ? (
