@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -9,12 +9,34 @@ import {
   Download,
   FileStack,
   FileText,
+  FolderOpen,
   Hash,
+  Loader2,
+  LogOut,
   RefreshCcw,
   ScanSearch,
+  Save,
   ShieldAlert,
+  ShieldCheck,
 } from "lucide-react";
 import { siteConfig } from "@shared/site";
+import {
+  draftStatusValues,
+  type AuthSessionResponse,
+  type AuthSessionSummary,
+  type DraftListResponse,
+  type DraftRecord,
+  type DraftStatus,
+  type DraftSummary,
+  type LoginRequest,
+  type ProductEnquiryResponse,
+  type RegisterRequest,
+  type SaveDraftRequest,
+  type SaveDraftResponse,
+  type UserSummary,
+  type WorkflowStepView,
+  type WorkspaceSessionMeta,
+} from "@shared/workspace";
 import { SiteFooter } from "@/components/SiteFooter";
 import {
   amountBandLabels,
@@ -68,13 +90,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { ApiError, apiRequest } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-type View = "landing" | "intake" | "review" | "narrative" | "output";
-type SessionMeta = {
-  id: string;
-  timestamp: string;
-};
+type View = "landing" | "workspace" | "intake" | "review" | "narrative" | "output";
+type SessionMeta = WorkspaceSessionMeta;
 
 type LeadFormState = {
   name: string;
@@ -82,12 +102,28 @@ type LeadFormState = {
   company: string;
 };
 
-const steps: Array<{ view: Exclude<View, "landing">; label: string }> = [
+type AuthMode = "register" | "login";
+
+type AuthFormState = {
+  teamName: string;
+  name: string;
+  email: string;
+  password: string;
+};
+
+const steps: Array<{ view: Exclude<View, "landing" | "workspace">; label: string }> = [
   { view: "intake", label: "Intake" },
   { view: "review", label: "Risk Signals" },
   { view: "narrative", label: "Narrative" },
   { view: "output", label: "Output" },
 ];
+
+const draftStatusLabels: Record<DraftStatus, string> = {
+  draft: "Draft",
+  in_review: "In Review",
+  ready_for_filing: "Ready for Filing",
+  archived: "Archived",
+};
 
 const levelCopy: Record<SuspicionLevel, { label: string; className: string }> = {
   low: {
@@ -195,23 +231,30 @@ function formatTimestamp(value: string): string {
   }).format(new Date(value));
 }
 
-function buildEarlyAccessMailto(form: LeadFormState): string {
-  const subject = encodeURIComponent("FinSure product enquiry");
-  const body = encodeURIComponent(
-    [
-      "Hello,",
-      "",
-      "I would like product updates about FinSure.",
-      "",
-      `Name: ${form.name.trim()}`,
-      `Email: ${form.email.trim()}`,
-      `Company: ${form.company.trim() || "Not provided"}`,
-      "",
-      `Requested from: ${siteConfig.productUrl}`,
-    ].join("\n"),
-  );
+function isWorkflowView(
+  view: View,
+): view is Exclude<View, "landing" | "workspace"> {
+  return view === "intake" || view === "review" || view === "narrative" || view === "output";
+}
 
-  return `mailto:${siteConfig.supportEmail}?subject=${subject}&body=${body}`;
+function getDraftSaveView(view: View): WorkflowStepView {
+  return isWorkflowView(view) ? view : "intake";
+}
+
+function scrollToElement(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ApiError) {
+    return error.message;
+  }
+
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+
+  return fallback;
 }
 
 function downloadTextFile(fileName: string, content: string) {
@@ -359,6 +402,275 @@ function SummaryList({
   );
 }
 
+function AuthCard({
+  mode,
+  form,
+  onModeChange,
+  onFieldChange,
+  onSubmit,
+  isSubmitting,
+}: {
+  mode: AuthMode;
+  form: AuthFormState;
+  onModeChange: (mode: AuthMode) => void;
+  onFieldChange: <K extends keyof AuthFormState>(
+    key: K,
+    value: AuthFormState[K],
+  ) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  isSubmitting: boolean;
+}) {
+  return (
+    <Card
+      id="auth-access"
+      className="brand-site-card border-[rgba(166,190,152,0.16)] text-white shadow-[0_22px_50px_rgba(0,0,0,0.18)]"
+    >
+      <CardHeader className="space-y-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-2xl text-white">
+              {mode === "register" ? "Create your workspace" : "Sign in to your workspace"}
+            </CardTitle>
+            <CardDescription className="mt-2 max-w-xl text-sm leading-7 text-[#F7F1E4]/78">
+              Save drafts, reopen active files, and keep review-ready STR work in one protected
+              workspace.
+            </CardDescription>
+          </div>
+          <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 p-1 md:flex">
+            <button
+              type="button"
+              onClick={() => onModeChange("register")}
+              className={cn(
+                "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                mode === "register" ? "bg-[#6F8B65] text-[#F7F1E4]" : "text-[#F7F1E4]/72",
+              )}
+            >
+              Create workspace
+            </button>
+            <button
+              type="button"
+              onClick={() => onModeChange("login")}
+              className={cn(
+                "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                mode === "login" ? "bg-[#6F8B65] text-[#F7F1E4]" : "text-[#F7F1E4]/72",
+              )}
+            >
+              Sign in
+            </button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <form className="grid gap-5 md:grid-cols-2" onSubmit={onSubmit}>
+          {mode === "register" ? (
+            <div className="grid gap-2 md:col-span-2">
+              <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="auth-team-name">
+                Team name
+              </label>
+              <Input
+                id="auth-team-name"
+                value={form.teamName}
+                onChange={(event) => onFieldChange("teamName", event.target.value)}
+                placeholder="Levine Law AML Team"
+                className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+              />
+            </div>
+          ) : null}
+          {mode === "register" ? (
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="auth-name">
+                Full name
+              </label>
+              <Input
+                id="auth-name"
+                value={form.name}
+                onChange={(event) => onFieldChange("name", event.target.value)}
+                placeholder="Your name"
+                className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+              />
+            </div>
+          ) : null}
+          {mode === "register" ? (
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="auth-email">
+                Workspace email
+              </label>
+              <Input
+                id="auth-email"
+                type="email"
+                value={form.email}
+                onChange={(event) => onFieldChange("email", event.target.value)}
+                placeholder="you@company.com"
+                className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+              />
+            </div>
+          ) : null}
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="auth-password">
+              Password
+            </label>
+            <Input
+              id="auth-password"
+              type="password"
+              value={form.password}
+              onChange={(event) => onFieldChange("password", event.target.value)}
+              placeholder="Minimum 8 characters"
+              className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+            />
+          </div>
+          {mode === "login" ? (
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="auth-email-login">
+                Workspace email
+              </label>
+              <Input
+                id="auth-email-login"
+                type="email"
+                value={form.email}
+                onChange={(event) => onFieldChange("email", event.target.value)}
+                placeholder="you@company.com"
+                className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+              />
+            </div>
+          ) : null}
+          <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
+            <p className="text-xs text-[#BCC7B6]">
+              {mode === "register"
+                ? "The first account becomes the workspace owner."
+                : "Use the workspace email and password you registered with."}
+            </p>
+            <Button type="submit" size="lg" className="rounded-2xl px-8" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {mode === "register" ? "Create account" : "Sign in"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+function WorkspaceCard({
+  session,
+  drafts,
+  reviewers,
+  onStartNewDraft,
+  onOpenDraft,
+  onSignOut,
+  isLoading,
+  showActions = true,
+}: {
+  session: AuthSessionSummary;
+  drafts: DraftSummary[];
+  reviewers: UserSummary[];
+  onStartNewDraft: () => void;
+  onOpenDraft: (draftId: string) => void;
+  onSignOut: () => void;
+  isLoading: boolean;
+  showActions?: boolean;
+}) {
+  return (
+    <Card className="border-border/70 bg-white/92 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+      <CardHeader className="space-y-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              Saved Draft Workspace
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight text-primary">
+              Your active STR files
+            </h2>
+            <CardDescription className="max-w-2xl text-base leading-7">
+              Signed in as {session.user.name} at {session.team.name}. Save drafts, reopen them,
+              and move files through review-ready states.
+            </CardDescription>
+          </div>
+          {showActions ? (
+            <div className="flex flex-wrap gap-3">
+              <Button className="rounded-2xl px-6" onClick={onStartNewDraft}>
+                <ShieldCheck className="h-4 w-4" />
+                New draft
+              </Button>
+              <Button variant="outline" className="rounded-2xl px-6" onClick={onSignOut}>
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-[24px] border border-border/70 bg-secondary/35 p-5">
+            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Open drafts</p>
+            <p className="mt-3 text-3xl font-semibold text-foreground">{drafts.length}</p>
+          </div>
+          <div className="rounded-[24px] border border-border/70 bg-secondary/35 p-5">
+            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+              Reviewers available
+            </p>
+            <p className="mt-3 text-3xl font-semibold text-foreground">{reviewers.length}</p>
+          </div>
+          <div className="rounded-[24px] border border-border/70 bg-secondary/35 p-5">
+            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+              Workspace role
+            </p>
+            <p className="mt-3 text-3xl font-semibold text-foreground capitalize">
+              {session.user.role}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {isLoading ? (
+            <div className="flex items-center gap-3 rounded-[24px] border border-border/70 bg-white p-5 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading saved drafts...
+            </div>
+          ) : drafts.length === 0 ? (
+            <div className="rounded-[24px] border border-dashed border-border/70 bg-white p-6">
+              <p className="text-lg font-semibold text-foreground">No drafts saved yet.</p>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Start a draft, save it once, and it will appear here with status and last-updated
+                context.
+              </p>
+            </div>
+          ) : (
+            drafts.map((draft) => (
+              <button
+                key={draft.id}
+                type="button"
+                onClick={() => onOpenDraft(draft.id)}
+                className="flex w-full items-start justify-between gap-4 rounded-[24px] border border-border/70 bg-white p-5 text-left transition-colors hover:border-primary/20 hover:bg-secondary/35"
+              >
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-lg font-semibold text-foreground">{draft.title}</p>
+                    <Badge className="border-primary/15 bg-primary/10 text-primary">
+                      {draftStatusLabels[draft.status]}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Updated {formatTimestamp(draft.updatedAt)} by {draft.createdByName}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Readiness: {draft.readinessStatus.replace(/_/g, " ")}. Suspicion level:{" "}
+                    {draft.suspicionLevel}.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 rounded-full border border-border/70 bg-secondary/35 px-4 py-2 text-sm font-medium text-foreground">
+                  <FolderOpen className="h-4 w-4 text-primary" />
+                  Open
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function StrAssistant() {
   const { toast } = useToast();
   const [view, setView] = useState<View>("landing");
@@ -370,6 +682,24 @@ export default function StrAssistant() {
     email: "",
     company: "",
   });
+  const [authSession, setAuthSession] = useState<AuthSessionSummary | null>(null);
+  const [authMode, setAuthMode] = useState<AuthMode>("register");
+  const [authForm, setAuthForm] = useState<AuthFormState>({
+    teamName: "",
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
+  const [drafts, setDrafts] = useState<DraftSummary[]>([]);
+  const [reviewers, setReviewers] = useState<UserSummary[]>([]);
+  const [workspaceLoading, setWorkspaceLoading] = useState(false);
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftStatus, setDraftStatus] = useState<DraftStatus>("draft");
+  const [assignedReviewerUserId, setAssignedReviewerUserId] = useState<string | null>(null);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
 
   const draft = buildStrDraft(intake);
   const selectedPreset = intake.scenarioPresetId
@@ -383,6 +713,49 @@ export default function StrAssistant() {
     sessionTimestamp: session.timestamp,
     narrativeText,
   });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const bootstrapWorkspace = async () => {
+      try {
+        const response = await apiRequest<AuthSessionResponse>("/api/auth/session");
+        if (!isMounted) {
+          return;
+        }
+
+        setAuthSession(response.session);
+
+        if (response.session) {
+          setView("workspace");
+          await refreshWorkspace(response.session);
+        }
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        toast({
+          title: "Workspace unavailable",
+          description: getApiErrorMessage(
+            error,
+            "The saved draft workspace could not be loaded right now.",
+          ),
+          variant: "destructive",
+        });
+      } finally {
+        if (isMounted) {
+          setIsAuthLoading(false);
+        }
+      }
+    };
+
+    void bootstrapWorkspace();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [toast]);
 
   const updateIntake = <K extends keyof StrIntake>(key: K, value: StrIntake[K]) => {
     setIntake((current) => ({ ...current, [key]: value }));
@@ -411,17 +784,79 @@ export default function StrAssistant() {
     }));
   };
 
-  const openWorkflow = () => {
+  const updateAuthForm = <K extends keyof AuthFormState>(
+    key: K,
+    value: AuthFormState[K],
+  ) => {
+    setAuthForm((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  };
+
+  const refreshWorkspace = async (sessionOverride?: AuthSessionSummary) => {
+    const currentSession = sessionOverride ?? authSession;
+    if (!currentSession) {
+      setDrafts([]);
+      setReviewers([]);
+      return;
+    }
+
+    setWorkspaceLoading(true);
+    try {
+      const response = await apiRequest<DraftListResponse>("/api/workspace");
+      setDrafts(response.drafts);
+      setReviewers(response.reviewers);
+    } catch (error) {
+      throw error;
+    } finally {
+      setWorkspaceLoading(false);
+    }
+  };
+
+  const beginNewDraft = () => {
     setSession(createSessionMeta());
     setIntake(createEmptyStrIntake());
     setNarrativeText("");
+    setActiveDraftId(null);
+    setDraftTitle("");
+    setDraftStatus("draft");
+    setAssignedReviewerUserId(null);
     setView("intake");
   };
 
+  const openWorkflow = () => {
+    if (!authSession) {
+      setAuthMode("register");
+      scrollToElement("auth-access");
+      toast({
+        title: "Create your workspace first",
+        description: "Sign in or create an account to save drafts and access the drafting flow.",
+      });
+      return;
+    }
+
+    beginNewDraft();
+  };
+
   const applyPreset = (presetId: string) => {
+    if (!authSession) {
+      setAuthMode("register");
+      scrollToElement("auth-access");
+      toast({
+        title: "Create your workspace first",
+        description: "Preset-driven drafting opens inside a protected workspace.",
+      });
+      return;
+    }
+
     setSession(createSessionMeta());
     setIntake(createIntakeFromPreset(presetId));
     setNarrativeText("");
+    setActiveDraftId(null);
+    setDraftTitle("");
+    setDraftStatus("draft");
+    setAssignedReviewerUserId(null);
     setView("intake");
     toast({
       title: "Scenario preset applied",
@@ -433,10 +868,212 @@ export default function StrAssistant() {
     setSession(createSessionMeta());
     setIntake(createEmptyStrIntake());
     setNarrativeText("");
-    setView("landing");
+    setActiveDraftId(null);
+    setDraftTitle("");
+    setDraftStatus("draft");
+    setAssignedReviewerUserId(null);
+    setView(authSession ? "workspace" : "landing");
   };
 
-  const requestEarlyAccess = (event: FormEvent<HTMLFormElement>) => {
+  const handleAuthSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setIsAuthSubmitting(true);
+    try {
+      let response: AuthSessionResponse;
+
+      if (authMode === "register") {
+        const payload: RegisterRequest = {
+          teamName: authForm.teamName.trim(),
+          name: authForm.name.trim(),
+          email: authForm.email.trim(),
+          password: authForm.password,
+        };
+
+        if (payload.teamName.length === 0 || payload.name.length === 0) {
+          toast({
+            title: "Add team and name",
+            description: "Team name and full name are required to create the workspace.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (!payload.email.includes("@") || payload.password.length < 8) {
+          toast({
+            title: "Complete the account details",
+            description: "Use a valid email and a password with at least 8 characters.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        response = await apiRequest<AuthSessionResponse>("/api/auth/register", {
+          method: "POST",
+          body: payload,
+        });
+      } else {
+        const payload: LoginRequest = {
+          email: authForm.email.trim(),
+          password: authForm.password,
+        };
+
+        if (!payload.email.includes("@") || payload.password.length < 8) {
+          toast({
+            title: "Check your sign-in details",
+            description: "Use the workspace email and password you registered with.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        response = await apiRequest<AuthSessionResponse>("/api/auth/login", {
+          method: "POST",
+          body: payload,
+        });
+      }
+
+      setAuthSession(response.session);
+      setAuthForm((current) => ({
+        ...current,
+        password: "",
+      }));
+
+      if (response.session) {
+        await refreshWorkspace(response.session);
+      }
+
+      setView("workspace");
+      toast({
+        title: authMode === "register" ? "Workspace created" : "Signed in",
+        description:
+          authMode === "register"
+            ? "Your saved draft workspace is ready."
+            : "Your saved draft workspace is now available.",
+      });
+    } catch (error) {
+      toast({
+        title: authMode === "register" ? "Registration failed" : "Sign-in failed",
+        description: getApiErrorMessage(
+          error,
+          authMode === "register"
+            ? "The workspace could not be created."
+            : "The workspace could not be opened.",
+        ),
+        variant: "destructive",
+      });
+    } finally {
+      setIsAuthSubmitting(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await apiRequest<{ ok: true }>("/api/auth/logout", {
+        method: "POST",
+      });
+    } finally {
+      setAuthSession(null);
+      setDrafts([]);
+      setReviewers([]);
+      setActiveDraftId(null);
+      setDraftTitle("");
+      setDraftStatus("draft");
+      setAssignedReviewerUserId(null);
+      setSession(createSessionMeta());
+      setIntake(createEmptyStrIntake());
+      setNarrativeText("");
+      setView("landing");
+    }
+  };
+
+  const openSavedDraft = async (draftId: string) => {
+    try {
+      const response = await apiRequest<{ ok: true; draft: DraftRecord }>(`/api/drafts/${draftId}`);
+      setActiveDraftId(response.draft.id);
+      setDraftTitle(response.draft.title);
+      setDraftStatus(response.draft.status);
+      setAssignedReviewerUserId(response.draft.assignedReviewerUserId);
+      setSession(response.draft.sessionMeta);
+      setIntake(response.draft.intake);
+      setNarrativeText(response.draft.narrativeText);
+      setView(response.draft.lastWorkflowView);
+      toast({
+        title: "Draft opened",
+        description: "The saved draft is back in the workflow.",
+      });
+    } catch (error) {
+      toast({
+        title: "Draft unavailable",
+        description: getApiErrorMessage(error, "The saved draft could not be opened."),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveCurrentDraft = async (options?: { status?: DraftStatus; silent?: boolean }) => {
+    if (!authSession || !isWorkflowView(view)) {
+      return;
+    }
+
+    setIsSavingDraft(true);
+    try {
+      const response = await apiRequest<SaveDraftResponse>("/api/drafts", {
+        method: "POST",
+        body: {
+          draftId: activeDraftId ?? undefined,
+          title: draftTitle,
+          status: options?.status ?? draftStatus,
+          assignedReviewerUserId,
+          lastWorkflowView: getDraftSaveView(view),
+          sessionMeta: session,
+          intake,
+          narrativeText,
+        } satisfies SaveDraftRequest,
+      });
+
+      setActiveDraftId(response.draft.id);
+      setDraftTitle(response.draft.title);
+      setDraftStatus(response.draft.status);
+      setAssignedReviewerUserId(response.draft.assignedReviewerUserId);
+      await refreshWorkspace();
+
+      if (!options?.silent) {
+        toast({
+          title: activeDraftId ? "Draft saved" : "Draft created",
+          description: "The STR draft is now stored in your workspace.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Save failed",
+        description: getApiErrorMessage(error, "The draft could not be saved."),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const recordExport = async (format: "narrative" | "package") => {
+    if (!authSession || !activeDraftId) {
+      return;
+    }
+
+    try {
+      await apiRequest<SaveDraftResponse>(`/api/drafts/${activeDraftId}/export`, {
+        method: "POST",
+        body: {
+          format,
+        },
+      });
+      await refreshWorkspace();
+    } catch {
+      // Export logging should not block the operator workflow.
+    }
+  };
+
+  const requestEarlyAccess = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const normalizedLead = {
@@ -464,8 +1101,30 @@ export default function StrAssistant() {
       return;
     }
 
-    setLeadForm(normalizedLead);
-    window.location.href = buildEarlyAccessMailto(normalizedLead);
+    try {
+      await apiRequest<ProductEnquiryResponse>("/api/enquiries", {
+        method: "POST",
+        body: {
+          ...normalizedLead,
+          sourcePath: siteConfig.productPath,
+        },
+      });
+      setLeadForm({
+        name: "",
+        email: "",
+        company: "",
+      });
+      toast({
+        title: "Request received",
+        description: "Your walkthrough or rollout request has been saved.",
+      });
+    } catch (error) {
+      toast({
+        title: "Request failed",
+        description: getApiErrorMessage(error, "The request could not be saved right now."),
+        variant: "destructive",
+      });
+    }
   };
 
   const reviewRiskSignals = () => {
@@ -521,6 +1180,7 @@ export default function StrAssistant() {
 
     try {
       await navigator.clipboard.writeText(narrativeText);
+      await recordExport("narrative");
       toast({
         title: "Narrative copied",
         description: "The STR draft is on your clipboard.",
@@ -545,6 +1205,7 @@ export default function StrAssistant() {
     }
 
     downloadTextFile(`${session.id.toLowerCase()}-str-narrative.txt`, narrativeText);
+    void recordExport("narrative");
   };
 
   const copyDraftPackage = async () => {
@@ -559,6 +1220,7 @@ export default function StrAssistant() {
 
     try {
       await navigator.clipboard.writeText(fullDraftPackageText);
+      await recordExport("package");
       toast({
         title: "Draft package copied",
         description: "The full STR package is on your clipboard.",
@@ -583,7 +1245,56 @@ export default function StrAssistant() {
     }
 
     downloadTextFile(`${session.id.toLowerCase()}-str-package.txt`, fullDraftPackageText);
+    void recordExport("package");
   };
+
+  if (view === "workspace" && authSession) {
+    return (
+      <div className="brand-site-shell min-h-screen px-4 py-8 text-white sm:px-6 lg:px-10">
+        <div className="brand-site-frame mx-auto max-w-6xl rounded-[36px] border p-6 backdrop-blur md:p-10">
+          <header className="flex flex-col gap-4 border-b border-white/10 pb-6 md:flex-row md:items-center md:justify-between">
+            <a href={siteConfig.links.start} className="flex items-center gap-3 text-[#F7F1E4]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-sm font-semibold">
+                FS
+              </span>
+              <span className="text-lg font-semibold tracking-[0.02em]">
+                {siteConfig.productName}
+              </span>
+            </a>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge className="w-fit border-white/10 bg-white/5 px-4 py-2 text-[#F7F1E4]">
+                {authSession.team.name}
+              </Badge>
+              <Button className="rounded-2xl px-6" onClick={beginNewDraft}>
+                <ShieldCheck className="h-4 w-4" />
+                New draft
+              </Button>
+              <Button variant="outline" className="rounded-2xl px-6" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </Button>
+            </div>
+          </header>
+
+          <main className="py-12">
+            <WorkspaceCard
+              session={authSession}
+              drafts={drafts}
+              reviewers={reviewers}
+              onStartNewDraft={beginNewDraft}
+              onOpenDraft={openSavedDraft}
+              onSignOut={handleSignOut}
+              isLoading={workspaceLoading}
+              showActions={false}
+            />
+          </main>
+
+          <SiteFooter theme="dark" />
+        </div>
+      </div>
+    );
+  }
 
   if (view === "landing") {
     return (
@@ -623,10 +1334,23 @@ export default function StrAssistant() {
                   Expertise
                 </a>
               </nav>
-              <Button className="rounded-2xl px-6" onClick={openWorkflow}>
-                Start drafting
-                <ArrowRight className="h-4 w-4" />
-              </Button>
+              {authSession ? (
+                <div className="flex items-center gap-3">
+                  <Button className="rounded-2xl px-6" onClick={() => setView("workspace")}>
+                    Open workspace
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" className="rounded-2xl px-6" onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </Button>
+                </div>
+              ) : (
+                <Button className="rounded-2xl px-6" onClick={() => scrollToElement("auth-access")}>
+                  Access workspace
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </header>
 
@@ -643,7 +1367,7 @@ export default function StrAssistant() {
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button size="lg" className="rounded-2xl px-8" onClick={openWorkflow}>
-                    Start drafting
+                    {authSession ? "Start drafting" : "Create account to draft"}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                   <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
@@ -752,6 +1476,36 @@ export default function StrAssistant() {
                   </div>
                 </div>
               </div>
+            </section>
+
+            <section className="py-10">
+              {isAuthLoading ? (
+                <Card className="brand-site-card text-white">
+                  <CardContent className="flex items-center gap-3 p-6 text-sm text-[#F7F1E4]/82">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading workspace availability...
+                  </CardContent>
+                </Card>
+              ) : authSession ? (
+                <WorkspaceCard
+                  session={authSession}
+                  drafts={drafts}
+                  reviewers={reviewers}
+                  onStartNewDraft={beginNewDraft}
+                  onOpenDraft={openSavedDraft}
+                  onSignOut={handleSignOut}
+                  isLoading={workspaceLoading}
+                />
+              ) : (
+                <AuthCard
+                  mode={authMode}
+                  form={authForm}
+                  onModeChange={setAuthMode}
+                  onFieldChange={updateAuthForm}
+                  onSubmit={handleAuthSubmit}
+                  isSubmitting={isAuthSubmitting}
+                />
+              )}
             </section>
 
             <section id="problem" className="py-16">
@@ -953,7 +1707,7 @@ export default function StrAssistant() {
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(185,112,29,0.10),_transparent_26%),radial-gradient(circle_at_bottom_right,_rgba(15,23,42,0.10),_transparent_35%),linear-gradient(180deg,_#fbf8f1_0%,_#f2efe7_100%)] px-4 py-6 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-7xl space-y-6">
         <header className="flex flex-col gap-4 rounded-[30px] border border-white/70 bg-white/75 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
                 {siteConfig.productName}
@@ -961,15 +1715,86 @@ export default function StrAssistant() {
               <h1 className="mt-2 text-3xl text-primary md:text-4xl">
                 FINTRAC STR triage in a one-minute drafting flow.
               </h1>
+              <p className="mt-3 text-sm text-muted-foreground">
+                {activeDraftId
+                  ? `Saved draft: ${draftTitle || "Untitled draft"}`
+                  : "This draft is still unsaved until you create it in the workspace."}
+              </p>
             </div>
             <div className="flex flex-wrap gap-3">
+              <Button variant="outline" className="rounded-2xl" onClick={() => setView("workspace")}>
+                <FolderOpen className="h-4 w-4" />
+                Workspace
+              </Button>
+              <Button
+                className="rounded-2xl"
+                onClick={() => void saveCurrentDraft()}
+                disabled={isSavingDraft}
+              >
+                {isSavingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {activeDraftId ? "Save draft" : "Create draft"}
+              </Button>
               <Button variant="outline" className="rounded-2xl" onClick={resetFlow}>
                 <RefreshCcw className="h-4 w-4" />
                 Restart
               </Button>
-              <Badge className="w-fit border-amber-200 bg-amber-100 px-4 py-2 text-amber-950">
-                No persistence in MVP
+              <Badge className="w-fit border-primary/15 bg-primary/10 px-4 py-2 text-primary">
+                {draftStatusLabels[draftStatus]}
               </Badge>
+            </div>
+          </div>
+
+          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_220px]">
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-foreground" htmlFor="draft-title">
+                Draft title
+              </label>
+              <Input
+                id="draft-title"
+                value={draftTitle}
+                onChange={(event) => setDraftTitle(event.target.value)}
+                placeholder="Example: Cash structuring review for new client"
+                className="h-11 rounded-2xl border-border/70 bg-white"
+              />
+            </div>
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-foreground">Status</label>
+              <Select
+                value={draftStatus}
+                onValueChange={(value) => setDraftStatus(value as DraftStatus)}
+              >
+                <SelectTrigger className="h-11 rounded-2xl border-border/70 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {draftStatusValues.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {draftStatusLabels[status]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-foreground">Reviewer</label>
+              <Select
+                value={assignedReviewerUserId ?? "unassigned"}
+                onValueChange={(value) =>
+                  setAssignedReviewerUserId(value === "unassigned" ? null : value)
+                }
+              >
+                <SelectTrigger className="h-11 rounded-2xl border-border/70 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {reviewers.map((reviewer) => (
+                    <SelectItem key={reviewer.id} value={reviewer.id}>
+                      {reviewer.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
