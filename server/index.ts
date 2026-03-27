@@ -1,8 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
+import { loadEnvFile } from "./env";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { buildApiErrorResponse, resolveListenOptions } from "./http";
+
+loadEnvFile();
 
 const app = express();
 const httpServer = createServer(app);
