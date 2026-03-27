@@ -54,11 +54,22 @@ type InternalProductEnquiryRecord = ProductEnquiryRequest & {
   status: "new";
 };
 
+type InternalStripeWebhookEventRecord = {
+  id: string;
+  type: string;
+  objectId: string | null;
+  livemode: boolean;
+  apiVersion: string | null;
+  account: string | null;
+  receivedAt: string;
+  payloadHash: string;
+};
+
 type InternalAuditEventRecord = {
   id: string;
   teamId: string | null;
   actorUserId: string | null;
-  entityType: "auth" | "draft" | "enquiry";
+  entityType: "auth" | "draft" | "enquiry" | "billing";
   entityId: string;
   action: string;
   createdAt: string;
@@ -73,6 +84,7 @@ type AppStoreData = {
   drafts: DraftRecord[];
   draftExports: InternalDraftExportRecord[];
   enquiries: InternalProductEnquiryRecord[];
+  stripeWebhookEvents: InternalStripeWebhookEventRecord[];
   auditEvents: InternalAuditEventRecord[];
 };
 
@@ -99,6 +111,7 @@ function createEmptyStore(): AppStoreData {
     drafts: [],
     draftExports: [],
     enquiries: [],
+    stripeWebhookEvents: [],
     auditEvents: [],
   };
 }
@@ -700,6 +713,58 @@ export class PersistentAppStore {
       });
 
       return enquiry.id;
+    });
+  }
+
+  async recordStripeWebhookEvent(
+    input: {
+      eventId: string;
+      eventType: string;
+      objectId: string | null;
+      livemode: boolean;
+      apiVersion: string | null;
+      account: string | null;
+      payload: string;
+    },
+    ipAddress: string,
+  ): Promise<{ duplicate: boolean }> {
+    return this.update((data) => {
+      if (data.stripeWebhookEvents.some((event) => event.id === input.eventId)) {
+        return { duplicate: true };
+      }
+
+      const receivedAt = new Date().toISOString();
+      const payloadHash = crypto
+        .createHash("sha256")
+        .update(input.payload)
+        .digest("hex");
+
+      data.stripeWebhookEvents.push({
+        id: input.eventId,
+        type: input.eventType,
+        objectId: input.objectId,
+        livemode: input.livemode,
+        apiVersion: input.apiVersion,
+        account: input.account,
+        receivedAt,
+        payloadHash,
+      });
+
+      this.appendAuditEvent(data, {
+        teamId: null,
+        actorUserId: null,
+        entityType: "billing",
+        entityId: input.eventId,
+        action: "webhook_received",
+        ipAddress,
+        metadata: {
+          type: input.eventType,
+          objectId: input.objectId ?? "",
+          livemode: input.livemode ? "true" : "false",
+        },
+      });
+
+      return { duplicate: false };
     });
   }
 }

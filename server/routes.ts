@@ -4,6 +4,10 @@ import { createEmptyStrIntake, type StrIntake } from "@shared/str";
 import { clearSessionCookie, getRequestIpAddress, getRequestUserAgent, readSessionToken, setSessionCookie } from "./auth";
 import { buildApiErrorResponse, buildHealthResponse } from "./http";
 import { PersistentAppStore } from "./persistence";
+import {
+  StripeWebhookVerificationError,
+  verifyStripeWebhookEvent,
+} from "./stripe";
 import type {
   AuthSessionSummary,
   DraftStatus,
@@ -24,6 +28,18 @@ function sendApiError(res: Response, status: number, message: string, code: stri
 
 function isValidEmail(value: string): boolean {
   return /\S+@\S+\.\S+/.test(value);
+}
+
+function readRawRequestBody(req: Request): string | Buffer | null {
+  if (Buffer.isBuffer(req.rawBody)) {
+    return req.rawBody;
+  }
+
+  if (typeof req.rawBody === "string") {
+    return req.rawBody;
+  }
+
+  return null;
 }
 
 async function resolveSession(
@@ -314,6 +330,66 @@ export async function registerRoutes(
       ok: true,
       enquiryId,
     });
+  });
+
+  app.post("/api/billing/webhook", async (req, res) => {
+    const rawBody = readRawRequestBody(req);
+    if (!rawBody) {
+      return sendApiError(
+        res,
+        400,
+        "Stripe webhook payload could not be verified because the raw body was unavailable.",
+        "invalid_webhook_payload",
+      );
+    }
+
+    try {
+      const event = verifyStripeWebhookEvent(
+        rawBody,
+        typeof req.headers["stripe-signature"] === "string"
+          ? req.headers["stripe-signature"]
+          : undefined,
+        process.env.STRIPE_WEBHOOK_SECRET,
+      );
+
+      const recordResult = await store.recordStripeWebhookEvent(
+        {
+          eventId: event.id,
+          eventType: event.type,
+          objectId: typeof event.data.object.id === "string" ? event.data.object.id : null,
+          livemode: event.livemode,
+          apiVersion: event.api_version,
+          account: event.account ?? null,
+          payload: typeof rawBody === "string" ? rawBody : rawBody.toString("utf8"),
+        },
+        getRequestIpAddress(req),
+      );
+
+      if (recordResult.duplicate) {
+        return res.status(200).json({
+          ok: true,
+          received: true,
+          duplicate: true,
+        });
+      }
+
+      return res.status(200).json({
+        ok: true,
+        received: true,
+      });
+    } catch (error) {
+      if (error instanceof StripeWebhookVerificationError) {
+        const status = error.code === "missing_secret" ? 503 : 400;
+        return sendApiError(res, status, error.message, error.code);
+      }
+
+      return sendApiError(
+        res,
+        500,
+        "Stripe webhook handling failed.",
+        "stripe_webhook_error",
+      );
+    }
   });
 
   app.use("/api", (_req, res) => {

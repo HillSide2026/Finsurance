@@ -142,3 +142,38 @@ test("persistent store records public enquiries", async (t) => {
 
   assert.match(enquiryId, /^enquiry_/);
 });
+
+test("persistent store records Stripe webhook events idempotently", async (t) => {
+  const { store, cleanup } = await createTempStore();
+  t.after(async () => {
+    await cleanup();
+  });
+
+  const firstRecord = await store.recordStripeWebhookEvent(
+    {
+      eventId: "evt_test_123",
+      eventType: "checkout.session.completed",
+      objectId: "cs_test_123",
+      livemode: false,
+      apiVersion: "2025-03-31.basil",
+      account: null,
+      payload: '{"id":"evt_test_123"}',
+    },
+    "127.0.0.1",
+  );
+  assert.equal(firstRecord.duplicate, false);
+
+  const duplicateRecord = await store.recordStripeWebhookEvent(
+    {
+      eventId: "evt_test_123",
+      eventType: "checkout.session.completed",
+      objectId: "cs_test_123",
+      livemode: false,
+      apiVersion: "2025-03-31.basil",
+      account: null,
+      payload: '{"id":"evt_test_123"}',
+    },
+    "127.0.0.1",
+  );
+  assert.equal(duplicateRecord.duplicate, true);
+});
