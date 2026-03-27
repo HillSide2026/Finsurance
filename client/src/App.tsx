@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { buildSitePageMetadata, resolveSitePage } from "@shared/site";
+import LegalPage from "@/pages/LegalPage";
 import SiteHome from "@/pages/SiteHome";
 import StrAssistant from "@/pages/StrAssistant";
 import { Toaster } from "@/components/ui/toaster";
@@ -35,7 +36,13 @@ function App() {
 
   return (
     <>
-      {page === "product" ? <StrAssistant /> : <SiteHome />}
+      {page === "product" ? (
+        <StrAssistant />
+      ) : page === "home" ? (
+        <SiteHome />
+      ) : (
+        <LegalPage page={page} />
+      )}
       <Toaster />
     </>
   );

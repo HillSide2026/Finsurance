@@ -15,6 +15,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { siteConfig } from "@shared/site";
+import { SiteFooter } from "@/components/SiteFooter";
 import {
   amountBandLabels,
   amountBandValues,
@@ -920,6 +921,8 @@ export default function StrAssistant() {
               </Card>
             </section>
           </main>
+
+          <SiteFooter theme="dark" />
         </div>
       </div>
     );
@@ -1995,6 +1998,8 @@ export default function StrAssistant() {
             </div>
           </div>
         ) : null}
+
+        <SiteFooter />
       </div>
     </div>
   );

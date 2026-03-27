@@ -3,8 +3,19 @@ const homePath = "/";
 const homeUrl = `${canonicalOrigin}${homePath}`;
 const productPath = "/finsure";
 const productUrl = `${canonicalOrigin}${productPath}`;
+const privacyPolicyPath = "/privacy-policy";
+const privacyPolicyUrl = `${canonicalOrigin}${privacyPolicyPath}`;
+const termsOfServicePath = "/terms-of-service";
+const termsOfServiceUrl = `${canonicalOrigin}${termsOfServicePath}`;
+const disclaimerPath = "/disclaimer";
+const disclaimerUrl = `${canonicalOrigin}${disclaimerPath}`;
 
-export type SitePage = "home" | "product";
+export type SitePage =
+  | "home"
+  | "product"
+  | "privacyPolicy"
+  | "termsOfService"
+  | "disclaimer";
 
 export type SitePageMetadata = {
   title: string;
@@ -45,17 +56,81 @@ const productPageMetadata: SitePageMetadata = {
     "FinSure generates Suspicious Transaction Report drafts so your team can review and submit faster.",
 };
 
+const privacyPolicyPageMetadata: SitePageMetadata = {
+  title: "Privacy Policy | FintechLawyer.ca",
+  description:
+    "Read how FintechLawyer.ca and FinSure handle contact information, product inputs, and privacy-related requests.",
+  canonicalUrl: privacyPolicyUrl,
+  openGraphTitle: "Privacy Policy | FintechLawyer.ca",
+  openGraphDescription:
+    "How FintechLawyer.ca and FinSure handle contact information, product inputs, and privacy-related requests.",
+  openGraphUrl: privacyPolicyUrl,
+  twitterTitle: "Privacy Policy | FintechLawyer.ca",
+  twitterDescription:
+    "How FintechLawyer.ca and FinSure handle contact information, product inputs, and privacy-related requests.",
+};
+
+const termsOfServicePageMetadata: SitePageMetadata = {
+  title: "Terms of Service | FintechLawyer.ca",
+  description:
+    "Review the terms governing use of FintechLawyer.ca and the FinSure workflow.",
+  canonicalUrl: termsOfServiceUrl,
+  openGraphTitle: "Terms of Service | FintechLawyer.ca",
+  openGraphDescription:
+    "The terms governing use of FintechLawyer.ca and the FinSure workflow.",
+  openGraphUrl: termsOfServiceUrl,
+  twitterTitle: "Terms of Service | FintechLawyer.ca",
+  twitterDescription:
+    "The terms governing use of FintechLawyer.ca and the FinSure workflow.",
+};
+
+const disclaimerPageMetadata: SitePageMetadata = {
+  title: "Disclaimer | FintechLawyer.ca",
+  description:
+    "Read the general legal and product disclaimer for FintechLawyer.ca and FinSure.",
+  canonicalUrl: disclaimerUrl,
+  openGraphTitle: "Disclaimer | FintechLawyer.ca",
+  openGraphDescription:
+    "The general legal and product disclaimer for FintechLawyer.ca and FinSure.",
+  openGraphUrl: disclaimerUrl,
+  twitterTitle: "Disclaimer | FintechLawyer.ca",
+  twitterDescription:
+    "The general legal and product disclaimer for FintechLawyer.ca and FinSure.",
+};
+
 export function normalizeSitePath(pathname: string): string {
   const normalized = pathname.trim().replace(/\/+$/, "");
   return normalized.length > 0 ? normalized : homePath;
 }
 
 export function resolveSitePage(pathname: string): SitePage {
-  return normalizeSitePath(pathname) === productPath ? "product" : "home";
+  switch (normalizeSitePath(pathname)) {
+    case productPath:
+      return "product";
+    case privacyPolicyPath:
+      return "privacyPolicy";
+    case termsOfServicePath:
+      return "termsOfService";
+    case disclaimerPath:
+      return "disclaimer";
+    default:
+      return "home";
+  }
 }
 
 export function buildSitePageMetadata(page: SitePage): SitePageMetadata {
-  return page === "product" ? productPageMetadata : homePageMetadata;
+  switch (page) {
+    case "product":
+      return productPageMetadata;
+    case "privacyPolicy":
+      return privacyPolicyPageMetadata;
+    case "termsOfService":
+      return termsOfServicePageMetadata;
+    case "disclaimer":
+      return disclaimerPageMetadata;
+    default:
+      return homePageMetadata;
+  }
 }
 
 export const siteConfig = {
@@ -74,6 +149,9 @@ export const siteConfig = {
     offerings: `${homePath}#offerings`,
     approach: `${homePath}#approach`,
     contact: `${homePath}#contact`,
+    privacyPolicy: privacyPolicyPath,
+    termsOfService: termsOfServicePath,
+    disclaimer: disclaimerPath,
     finsure: productPath,
     start: `${productPath}#start`,
     product: `${productPath}#product`,

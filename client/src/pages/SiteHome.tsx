@@ -6,6 +6,7 @@ import {
   X,
 } from "lucide-react";
 import { siteConfig } from "@shared/site";
+import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
 
 type UseCaseCard = {
@@ -408,7 +409,7 @@ export default function SiteHome() {
             className="legal-home-panel rounded-[36px] border px-6 py-20 md:px-10 md:py-24"
           >
             <div className="mx-auto max-w-6xl">
-              <div className="max-w-2xl space-y-4">
+              <div className="mx-auto max-w-2xl space-y-4 text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E6C989]">
                   Use Cases
                 </p>
@@ -455,7 +456,7 @@ export default function SiteHome() {
             className="legal-home-panel rounded-[36px] border px-6 py-20 md:px-10 md:py-24"
           >
             <div className="mx-auto max-w-6xl">
-              <div className="max-w-3xl space-y-4">
+              <div className="mx-auto max-w-3xl space-y-4 text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E6C989]">
                   Platform Overview
                 </p>
@@ -573,7 +574,7 @@ export default function SiteHome() {
 
           <section id="approach" className="legal-home-panel rounded-[36px] border px-6 py-20 md:px-10 md:py-24">
             <div className="mx-auto max-w-6xl">
-              <div className="max-w-2xl space-y-4">
+              <div className="mx-auto max-w-2xl space-y-4 text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E6C989]">
                   Validation
                 </p>
@@ -612,16 +613,25 @@ export default function SiteHome() {
             </div>
           </section>
 
-          <section id="contact" className="legal-home-panel rounded-[36px] border px-6 py-20 md:px-10 md:py-24">
+          <section id="contact" className="legal-home-panel rounded-[36px] border px-6 py-24 md:px-10 md:py-28">
             <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-4xl text-[#1B2118] md:text-5xl">Start with FinSure</h2>
-              <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#596255]">
-                Use structured workflows to draft suspicious transaction reports and support AML
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9F8A55]">
+                START HERE
+              </p>
+              <h2 className="mt-4 text-[2.5rem] leading-tight text-[#1B2118] md:text-[3.25rem]">
+                Start with FinSure
+              </h2>
+              <p className="mx-auto mt-5 max-w-[680px] text-base leading-7 text-[#596255]">
+                Use structured workflows for suspicious transaction reporting and related AML
                 processes.
               </p>
 
               <div className="mt-8">
-                <Button asChild size="lg" className="rounded-2xl px-10">
+                <Button
+                  asChild
+                  size="lg"
+                  className="rounded-2xl px-12 shadow-[0_18px_32px_rgba(31,51,37,0.16)]"
+                >
                   <a href={siteConfig.links.finsure}>
                     Explore FinSure
                     <ArrowRight className="h-4 w-4" />
@@ -629,24 +639,17 @@ export default function SiteHome() {
                 </Button>
               </div>
 
-              <p className="mt-4 text-sm text-[#596255]">
+              <p className="mt-6 text-sm text-[#687164]">
                 Structured intake, deterministic flags, and export-ready drafting.
               </p>
-              <a
-                href={siteConfig.links.product}
-                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#1F241D] transition-colors hover:text-[#6F8B65]"
-              >
-                Learn More
-                <ArrowRight className="h-4 w-4" />
-              </a>
-              <p className="mt-6 text-xs text-[#7A8176]">
-                Built by Levine Law
-                <br />
-                For informational and workflow support purposes only.
+              <p className="mt-10 text-xs text-[#7A8176]">
+                Built by Levine Law for informational and workflow support purposes only.
               </p>
             </div>
           </section>
         </main>
+
+        <SiteFooter />
       </div>
     </div>
   );
