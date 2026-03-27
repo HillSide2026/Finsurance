@@ -269,7 +269,7 @@ function FinsureDevicePreview() {
           </div>
         </div>
       </div>
-      <p className="mt-4 text-center text-sm text-[#D2DEE0] lg:text-left">
+      <p className="mt-4 text-center text-sm text-[#596255] lg:text-left">
         One of the tools available on FintechLawyer.ca.
       </p>
     </div>
@@ -280,13 +280,13 @@ export default function SiteHome() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="legal-home-shell min-h-screen px-4 py-6 text-[#F7F1E4] sm:px-6 lg:px-10">
+    <div className="legal-home-shell min-h-screen px-4 py-6 text-[#1F241D] sm:px-6 lg:px-10">
       <div className="mx-auto max-w-7xl space-y-8">
-        <header className="legal-home-panel rounded-[32px] border px-6 py-5 md:px-8">
-          <div className="relative flex items-center justify-between gap-4">
+        <header className="legal-home-panel rounded-[32px] border px-8 py-5 md:px-10">
+          <div className="flex items-center justify-between gap-6">
             <a
               href={siteConfig.links.home}
-              className="flex items-center text-[#F7F1E4]"
+              className="shrink-0 flex items-center"
             >
               <img
                 src="/fintechlawyer-logo.png"
@@ -295,7 +295,7 @@ export default function SiteHome() {
               />
             </a>
 
-            <nav className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-6 text-sm text-[#D2DEE0] lg:flex">
+            <nav className="hidden items-center gap-9 text-sm text-[#525B50] lg:flex">
               {headerLinks.map((item) => (
                 <a
                   key={item.label}
@@ -307,10 +307,10 @@ export default function SiteHome() {
               ))}
             </nav>
 
-            <div className="ml-auto flex items-center gap-3 md:gap-4">
+            <div className="flex items-center gap-3 md:gap-4 lg:gap-8">
               <Button
                 asChild
-                className="rounded-xl px-4 shadow-[0_12px_28px_rgba(0,0,0,0.18)] md:px-5"
+                className="rounded-xl px-5 shadow-[0_12px_24px_rgba(31,51,37,0.12)] md:px-6"
               >
                 <a href={siteConfig.links.finsure}>Explore FinSure</a>
               </Button>
@@ -320,7 +320,7 @@ export default function SiteHome() {
                 aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
                 aria-expanded={isMenuOpen}
                 onClick={() => setIsMenuOpen((open) => !open)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-[#F7F1E4] lg:hidden"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[rgba(96,110,89,0.16)] bg-white/60 text-[#1F241D] lg:hidden"
               >
                 {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
@@ -328,13 +328,13 @@ export default function SiteHome() {
           </div>
 
           {isMenuOpen ? (
-            <div className="mt-4 grid gap-3 border-t border-white/10 pt-4 lg:hidden">
+            <div className="mt-4 grid gap-3 border-t border-[rgba(96,110,89,0.14)] pt-4 lg:hidden">
               {headerLinks.map((item) => (
                 <a
                   key={item.label}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-sm text-[#D2DEE0] transition-colors hover:text-[#6F8B65]"
+                  className="text-sm text-[#525B50] transition-colors hover:text-[#6F8B65]"
                 >
                   {item.label}
                 </a>
@@ -347,24 +347,24 @@ export default function SiteHome() {
           <section className="legal-home-panel overflow-hidden rounded-[40px] border px-6 py-10 md:px-10 md:py-12">
             <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_420px] lg:items-center">
               <div className="space-y-5">
-                <div className="inline-flex items-center gap-3 rounded-full border border-[rgba(197,155,71,0.28)] bg-[rgba(197,155,71,0.10)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] text-[#E6C989]">
+                <div className="inline-flex items-center gap-3 rounded-full border border-[rgba(111,139,101,0.18)] bg-[rgba(255,255,255,0.5)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] text-[#6F8B65]">
                   BUILT BY LEVINE LAW
                 </div>
                 <div className="space-y-4">
-                  <h1 className="max-w-4xl text-5xl leading-[0.92] text-[#F7F1E4] md:text-7xl">
+                  <h1 className="max-w-4xl text-5xl leading-[0.92] text-[#1B2118] md:text-7xl">
                     Canadian FinTech Infrastructure and Tools
                   </h1>
-                  <p className="max-w-2xl text-lg leading-8 text-[#D2DEE0] md:text-xl">
+                  <p className="max-w-2xl text-lg leading-8 text-[#596255] md:text-xl">
                     Legal information, compliance systems, and productized tools for teams
                     operating in regulated fintech environments in Canada.
                   </p>
-                  <p className="max-w-xl text-sm leading-6 text-[#C4CFBB] md:text-base">
+                  <p className="max-w-xl text-sm leading-6 text-[#737B70] md:text-base">
                     Start with FinSure for STR drafting, then explore resources and
                     implementation guidance.
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-3 pt-1 md:flex-nowrap">
+                <div className="flex flex-wrap gap-3 pt-1 sm:flex-nowrap">
                   <Button asChild size="lg" className="rounded-2xl px-8">
                     <a href={siteConfig.links.finsure}>
                       Explore FinSure
@@ -375,7 +375,7 @@ export default function SiteHome() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="rounded-2xl px-8 text-[#F7F1E4]"
+                    className="rounded-2xl px-8 text-[#1F241D]"
                   >
                     <a href={siteConfig.links.useCases}>
                       Browse Resources
@@ -388,7 +388,7 @@ export default function SiteHome() {
                   {proofPoints.map((point) => (
                     <span
                       key={point}
-                      className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-[#D2DEE0]"
+                      className="rounded-full border border-[rgba(96,110,89,0.14)] bg-[rgba(255,255,255,0.55)] px-4 py-2 text-sm text-[#596255]"
                     >
                       {point}
                     </span>
@@ -409,10 +409,10 @@ export default function SiteHome() {
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E6C989]">
                   Use Cases
                 </p>
-                <h2 className="text-4xl text-[#F7F1E4] md:text-5xl">
+                <h2 className="text-4xl text-[#1B2118] md:text-5xl">
                   Where FintechLawyer.ca Is Used
                 </h2>
-                <p className="max-w-[600px] text-base leading-7 text-[#D2DEE0]">
+                <p className="max-w-[600px] text-base leading-7 text-[#596255]">
                   Applied across regulated fintech workflows involving payments, crypto, AML
                   programs, and financial infrastructure operating in Canada.
                 </p>
@@ -423,13 +423,13 @@ export default function SiteHome() {
                   <a
                     key={card.title}
                     href={card.href}
-                    className="flex cursor-pointer flex-col justify-between rounded-[28px] border border-white/10 bg-white/5 p-6 transition-transform transition-shadow transition-colors hover:-translate-y-1 hover:border-[rgba(111,139,101,0.42)] hover:shadow-[0_18px_42px_rgba(0,0,0,0.18)]"
+                    className="legal-home-card flex cursor-pointer flex-col justify-between rounded-[28px] border p-6 transition-transform transition-shadow transition-colors hover:-translate-y-1 hover:border-[rgba(111,139,101,0.34)] hover:shadow-[0_18px_34px_rgba(31,51,37,0.08)]"
                   >
                     <div>
-                      <h3 className="text-2xl font-semibold leading-tight text-[#F7F1E4]">
+                      <h3 className="text-2xl font-semibold leading-tight text-[#1F241D]">
                         {card.title}
                       </h3>
-                      <ul className="mt-5 space-y-3 text-sm leading-6 text-[#D2DEE0]">
+                      <ul className="mt-5 space-y-3 text-sm leading-6 text-[#596255]">
                         {card.bullets.map((bullet) => (
                           <li key={bullet} className="flex gap-3">
                             <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#6F8B65]" />
@@ -438,7 +438,7 @@ export default function SiteHome() {
                         ))}
                       </ul>
                     </div>
-                    <span className="mt-6 text-sm font-semibold text-[#F7F1E4]">
+                    <span className="mt-6 text-sm font-semibold text-[#1F241D]">
                       View details
                     </span>
                   </a>
@@ -456,10 +456,10 @@ export default function SiteHome() {
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E6C989]">
                   Platform Overview
                 </p>
-                <h2 className="text-4xl text-[#F7F1E4] md:text-5xl">
+                <h2 className="text-4xl text-[#1B2118] md:text-5xl">
                   What FintechLawyer.ca Provides
                 </h2>
-                <p className="max-w-[640px] text-base leading-7 text-[#D2DEE0]">
+                <p className="max-w-[640px] text-base leading-7 text-[#596255]">
                   FintechLawyer.ca brings together legal information, compliance
                   infrastructure, and productized tools for teams operating in regulated
                   fintech environments in Canada.
@@ -475,9 +475,9 @@ export default function SiteHome() {
                     <p className="text-sm font-semibold tracking-[0.2em] text-[#E6C989]">
                       {pillar.number}
                     </p>
-                    <h3 className="mt-5 text-3xl text-[#F7F1E4]">{pillar.title}</h3>
-                    <p className="mt-4 text-base leading-7 text-[#D2DEE0]">{pillar.body}</p>
-                    <ul className="mt-5 space-y-3 text-sm leading-6 text-[#D2DEE0]">
+                    <h3 className="mt-5 text-3xl text-[#1F241D]">{pillar.title}</h3>
+                    <p className="mt-4 text-base leading-7 text-[#596255]">{pillar.body}</p>
+                    <ul className="mt-5 space-y-3 text-sm leading-6 text-[#596255]">
                       {pillar.bullets.map((bullet) => (
                         <li key={bullet} className="flex gap-3">
                           <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#6F8B65]" />
@@ -487,7 +487,7 @@ export default function SiteHome() {
                     </ul>
                     <a
                       href={pillar.href}
-                      className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#F7F1E4] transition-colors hover:text-[#6F8B65]"
+                      className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#1F241D] transition-colors hover:text-[#6F8B65]"
                     >
                       {pillar.cta}
                       <ArrowRight className="h-4 w-4" />
@@ -505,8 +505,8 @@ export default function SiteHome() {
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E6C989]">
                     Featured Tool
                   </p>
-                  <h2 className="text-4xl text-[#F7F1E4] md:text-5xl">FinSure</h2>
-                  <p className="max-w-2xl text-base leading-7 text-[#D2DEE0]">
+                  <h2 className="text-4xl text-[#1B2118] md:text-5xl">FinSure</h2>
+                  <p className="max-w-2xl text-base leading-7 text-[#596255]">
                     A productized tool for suspicious transaction reporting and related AML
                     workflows.
                   </p>
@@ -516,11 +516,11 @@ export default function SiteHome() {
                   <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#6F8B65]">
                     Currently Featured
                   </p>
-                  <h3 className="text-3xl text-[#F7F1E4]">{siteConfig.productName}</h3>
-                  <p className="text-lg text-[#F7F1E4]">
+                  <h3 className="text-3xl text-[#1F241D]">{siteConfig.productName}</h3>
+                  <p className="text-lg text-[#1F241D]">
                     Structured STR drafting for Canadian AML teams.
                   </p>
-                  <p className="max-w-2xl text-base leading-7 text-[#D2DEE0]">
+                  <p className="max-w-2xl text-base leading-7 text-[#596255]">
                     FinSure is a guided interface for drafting suspicious transaction reports
                     using structured intake, deterministic red flags, editable narrative logic,
                     and export-oriented workflow design.
@@ -529,9 +529,12 @@ export default function SiteHome() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   {featuredToolItems.map((item) => (
-                    <div key={item.eyebrow} className="rounded-[24px] border border-white/10 bg-white/5 p-5">
-                      <p className="text-sm font-semibold text-[#F7F1E4]">{item.eyebrow}</p>
-                      <p className="mt-2 text-sm leading-6 text-[#D2DEE0]">{item.title}</p>
+                    <div
+                      key={item.eyebrow}
+                      className="legal-home-card rounded-[24px] border p-5"
+                    >
+                      <p className="text-sm font-semibold text-[#1F241D]">{item.eyebrow}</p>
+                      <p className="mt-2 text-sm leading-6 text-[#596255]">{item.title}</p>
                     </div>
                   ))}
                 </div>
@@ -547,7 +550,7 @@ export default function SiteHome() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="rounded-2xl px-8 text-[#F7F1E4]"
+                    className="rounded-2xl px-8 text-[#1F241D]"
                   >
                     <a href={siteConfig.links.product}>
                       Learn More
@@ -556,7 +559,7 @@ export default function SiteHome() {
                   </Button>
                 </div>
 
-                <p className="text-sm text-[#D2DEE0]">
+                <p className="text-sm text-[#596255]">
                   Built for Canadian AML and FINTRAC-adjacent workflows.
                 </p>
               </div>
@@ -571,10 +574,10 @@ export default function SiteHome() {
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E6C989]">
                   Validation
                 </p>
-                <h2 className="text-4xl text-[#F7F1E4] md:text-5xl">
+                <h2 className="text-4xl text-[#1B2118] md:text-5xl">
                   Used by FinTech and Compliance Teams
                 </h2>
-                <p className="max-w-[600px] text-base leading-7 text-[#D2DEE0]">
+                <p className="max-w-[600px] text-base leading-7 text-[#596255]">
                   Applied across payments, crypto, and AML workflows by teams operating in
                   regulated environments.
                 </p>
@@ -584,10 +587,10 @@ export default function SiteHome() {
                 {validationCards.map((card) => (
                   <article
                     key={card.role}
-                    className="flex h-full flex-col rounded-[28px] border border-white/10 bg-white/5 p-6"
+                    className="legal-home-card flex h-full flex-col rounded-[28px] border p-6"
                   >
-                    <p className="text-xs text-[#BCC7B6]">{card.role}</p>
-                    <p className="mt-4 text-lg leading-8 text-[#F7F1E4]">"{card.quote}"</p>
+                    <p className="text-xs text-[#7A8176]">{card.role}</p>
+                    <p className="mt-4 text-lg leading-8 text-[#1F241D]">"{card.quote}"</p>
                     <p className="mt-6 text-sm font-semibold text-[#6F8B65]">{card.tag}</p>
                   </article>
                 ))}
@@ -597,7 +600,7 @@ export default function SiteHome() {
                 {validationTags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-[#D2DEE0]"
+                    className="rounded-full border border-[rgba(96,110,89,0.14)] bg-[rgba(255,255,255,0.55)] px-4 py-2 text-sm text-[#596255]"
                   >
                     {tag}
                   </span>
@@ -608,8 +611,8 @@ export default function SiteHome() {
 
           <section id="contact" className="legal-home-panel rounded-[36px] border px-6 py-20 md:px-10 md:py-24">
             <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-4xl text-[#F7F1E4] md:text-5xl">Start with FinSure</h2>
-              <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#D2DEE0]">
+              <h2 className="text-4xl text-[#1B2118] md:text-5xl">Start with FinSure</h2>
+              <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#596255]">
                 Use structured workflows to draft suspicious transaction reports and support AML
                 processes.
               </p>
@@ -623,17 +626,17 @@ export default function SiteHome() {
                 </Button>
               </div>
 
-              <p className="mt-4 text-sm text-[#D2DEE0]">
+              <p className="mt-4 text-sm text-[#596255]">
                 Structured intake, deterministic flags, and export-ready drafting.
               </p>
               <a
                 href={siteConfig.links.product}
-                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#F7F1E4] transition-colors hover:text-[#6F8B65]"
+                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#1F241D] transition-colors hover:text-[#6F8B65]"
               >
                 Learn More
                 <ArrowRight className="h-4 w-4" />
               </a>
-              <p className="mt-6 text-xs text-[#BCC7B6]">
+              <p className="mt-6 text-xs text-[#7A8176]">
                 Built by Levine Law
                 <br />
                 For informational and workflow support purposes only.
