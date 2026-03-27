@@ -295,19 +295,22 @@ export default function SiteHome() {
               />
             </a>
 
-            <nav className="hidden items-center gap-9 text-sm text-[#525B50] lg:flex">
-              {headerLinks.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="transition-colors hover:text-[#6F8B65]"
-                >
-                  {item.label}
-                </a>
-              ))}
-            </nav>
+            <div className="flex shrink-0 items-center justify-end gap-3 md:gap-4 lg:gap-8">
+              <nav
+                aria-label="Primary"
+                className="hidden items-center gap-7 text-sm font-medium text-[#525B50] lg:flex"
+              >
+                {headerLinks.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    className="transition-colors hover:text-[#6F8B65]"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
 
-            <div className="flex items-center gap-3 md:gap-4 lg:gap-8">
               <Button
                 asChild
                 className="rounded-xl px-5 shadow-[0_12px_24px_rgba(31,51,37,0.12)] md:px-6"
