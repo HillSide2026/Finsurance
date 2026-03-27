@@ -1,7 +1,19 @@
 import type { Express, Request, Response } from "express";
 import type { Server } from "http";
+import type {
+  CheckoutSessionStatusResponse,
+  CreateCheckoutSessionRequest,
+  CreateCheckoutSessionResponse,
+} from "@shared/billing";
+import { siteConfig } from "@shared/site";
 import { createEmptyStrIntake, type StrIntake } from "@shared/str";
 import { clearSessionCookie, getRequestIpAddress, getRequestUserAgent, readSessionToken, setSessionCookie } from "./auth";
+import {
+  createStripeCheckoutSession,
+  retrieveStripeCheckoutSession,
+  StripeBillingError,
+  summarizeStripeCheckoutSession,
+} from "./billing";
 import { buildApiErrorResponse, buildHealthResponse } from "./http";
 import { PersistentAppStore } from "./persistence";
 import {
@@ -40,6 +52,25 @@ function readRawRequestBody(req: Request): string | Buffer | null {
   }
 
   return null;
+}
+
+function getRequestOrigin(req: Request): string | undefined {
+  const host = req.get("host");
+  if (!host) {
+    return undefined;
+  }
+
+  const forwardedProto = req.get("x-forwarded-proto");
+  const protocol =
+    typeof forwardedProto === "string" && forwardedProto.trim().length > 0
+      ? forwardedProto.split(",")[0]?.trim()
+      : req.protocol;
+
+  if (!protocol) {
+    return undefined;
+  }
+
+  return `${protocol}://${host}`;
 }
 
 async function resolveSession(
@@ -332,6 +363,117 @@ export async function registerRoutes(
     });
   });
 
+  app.post("/api/billing/create-checkout-session", async (req, res) => {
+    const body = (req.body ?? {}) as Partial<CreateCheckoutSessionRequest>;
+    const sourcePath =
+      typeof body.sourcePath === "string" && body.sourcePath.trim().startsWith("/")
+        ? body.sourcePath.trim()
+        : siteConfig.productPath;
+    const currentSession = await resolveSession(store, req);
+    const clientReferenceId = currentSession
+      ? `team:${currentSession.team.id}:user:${currentSession.user.id}`
+      : null;
+
+    try {
+      const stripeSession = await createStripeCheckoutSession(
+        {
+          fallbackBaseUrl: getRequestOrigin(req),
+          customerEmail: currentSession?.user.email ?? null,
+          clientReferenceId,
+          metadata: {
+            product: siteConfig.productName,
+            source_path: sourcePath,
+            ...(currentSession
+              ? {
+                  team_id: currentSession.team.id,
+                  user_id: currentSession.user.id,
+                }
+              : {}),
+          },
+        },
+        process.env,
+      );
+
+      await store.recordBillingCheckoutSession(
+        {
+          sessionId: stripeSession.id,
+          checkoutUrl: stripeSession.checkoutUrl,
+          sourcePath,
+          teamId: currentSession?.team.id ?? null,
+          userId: currentSession?.user.id ?? null,
+          customerEmail: stripeSession.customerEmail ?? currentSession?.user.email ?? null,
+          clientReferenceId: stripeSession.clientReferenceId ?? clientReferenceId,
+          status: stripeSession.status,
+          paymentStatus: stripeSession.paymentStatus,
+          amountTotal: stripeSession.amountTotal,
+          currency: stripeSession.currency,
+          livemode: stripeSession.livemode,
+        },
+        getRequestIpAddress(req),
+      );
+
+      return res.status(201).json({
+        ok: true,
+        session: {
+          id: stripeSession.id,
+          checkoutUrl: stripeSession.checkoutUrl,
+          mode: stripeSession.mode,
+          status: stripeSession.status,
+          paymentStatus: stripeSession.paymentStatus,
+          customerEmail: stripeSession.customerEmail,
+          clientReferenceId: stripeSession.clientReferenceId,
+          amountTotal: stripeSession.amountTotal,
+          currency: stripeSession.currency,
+          livemode: stripeSession.livemode,
+        },
+      } satisfies CreateCheckoutSessionResponse);
+    } catch (error) {
+      if (error instanceof StripeBillingError) {
+        return sendApiError(res, error.status, error.message, error.code);
+      }
+
+      return sendApiError(
+        res,
+        502,
+        "Stripe Checkout could not be started.",
+        "stripe_checkout_error",
+      );
+    }
+  });
+
+  app.get("/api/billing/checkout-session/:sessionId", async (req, res) => {
+    try {
+      const stripeSession = await retrieveStripeCheckoutSession(req.params.sessionId, process.env);
+
+      return res.json({
+        ok: true,
+        session: {
+          id: stripeSession.id,
+          checkoutUrl: stripeSession.checkoutUrl,
+          mode: stripeSession.mode,
+          status: stripeSession.status,
+          paymentStatus: stripeSession.paymentStatus,
+          customerEmail: stripeSession.customerEmail,
+          clientReferenceId: stripeSession.clientReferenceId,
+          amountTotal: stripeSession.amountTotal,
+          currency: stripeSession.currency,
+          livemode: stripeSession.livemode,
+        },
+      } satisfies CheckoutSessionStatusResponse);
+    } catch (error) {
+      if (error instanceof StripeBillingError) {
+        return sendApiError(res, error.status, error.message, error.code);
+      }
+
+      return sendApiError(
+        res,
+        502,
+        "Stripe Checkout session lookup failed.",
+        "stripe_checkout_lookup_error",
+      );
+    }
+  });
+
   app.post("/api/billing/webhook", async (req, res) => {
     const rawBody = readRawRequestBody(req);
     if (!rawBody) {
@@ -364,6 +506,27 @@ export async function registerRoutes(
         },
         getRequestIpAddress(req),
       );
+
+      if (event.type.startsWith("checkout.session.")) {
+        const checkoutSession = summarizeStripeCheckoutSession(event.data.object);
+        await store.recordBillingCheckoutSession(
+          {
+            sessionId: checkoutSession.id,
+            checkoutUrl: checkoutSession.checkoutUrl,
+            sourcePath: checkoutSession.metadata.source_path ?? siteConfig.productPath,
+            teamId: checkoutSession.metadata.team_id ?? null,
+            userId: checkoutSession.metadata.user_id ?? null,
+            customerEmail: checkoutSession.customerEmail,
+            clientReferenceId: checkoutSession.clientReferenceId,
+            status: checkoutSession.status,
+            paymentStatus: checkoutSession.paymentStatus,
+            amountTotal: checkoutSession.amountTotal,
+            currency: checkoutSession.currency,
+            livemode: checkoutSession.livemode,
+          },
+          getRequestIpAddress(req),
+        );
+      }
 
       if (recordResult.duplicate) {
         return res.status(200).json({

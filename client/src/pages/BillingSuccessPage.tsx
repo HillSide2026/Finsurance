@@ -1,0 +1,152 @@
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+import type { BillingCheckoutSessionSummary, CheckoutSessionStatusResponse } from "@shared/billing";
+import { siteConfig } from "@shared/site";
+import { SiteFooter } from "@/components/SiteFooter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { apiRequest } from "@/lib/api";
+
+type LoadState = "idle" | "loading" | "ready" | "error";
+
+function formatAmount(session: BillingCheckoutSessionSummary | null): string | null {
+  if (!session || typeof session.amountTotal !== "number" || !session.currency) {
+    return null;
+  }
+
+  try {
+    return new Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: session.currency,
+    }).format(session.amountTotal / 100);
+  } catch {
+    return `${(session.amountTotal / 100).toFixed(2)} ${session.currency}`;
+  }
+}
+
+export default function BillingSuccessPage() {
+  const sessionId = useMemo(
+    () => new URLSearchParams(window.location.search).get("session_id"),
+    [],
+  );
+  const [loadState, setLoadState] = useState<LoadState>(sessionId ? "loading" : "idle");
+  const [session, setSession] = useState<BillingCheckoutSessionSummary | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!sessionId) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadSession = async () => {
+      try {
+        const response = await apiRequest<CheckoutSessionStatusResponse>(
+          `/api/billing/checkout-session/${encodeURIComponent(sessionId)}`,
+        );
+        if (!isMounted) {
+          return;
+        }
+
+        setSession(response.session);
+        setLoadState("ready");
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        const message =
+          error instanceof Error ? error.message : "The checkout session could not be confirmed.";
+        setErrorMessage(message);
+        setLoadState("error");
+      }
+    };
+
+    void loadSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [sessionId]);
+
+  const amountLabel = formatAmount(session);
+  const title =
+    session?.paymentStatus === "paid"
+      ? "Payment received"
+      : loadState === "error"
+        ? "We could not confirm payment yet"
+        : "Checkout complete";
+  const description =
+    session?.paymentStatus === "paid"
+      ? "Stripe confirmed the payment. You can head back into FinSure and continue from there."
+      : loadState === "error"
+        ? errorMessage ??
+          "The session returned from Stripe, but the payment status could not be confirmed yet."
+        : "Your Stripe Checkout session returned successfully.";
+
+  return (
+    <div className="brand-site-shell min-h-screen px-4 py-8 text-[#1F241D] sm:px-6 lg:px-10">
+      <div className="brand-site-frame mx-auto max-w-4xl rounded-[36px] border p-6 backdrop-blur md:p-10">
+        <header className="border-b border-[rgba(96,110,89,0.14)] pb-6">
+          <a href={siteConfig.links.finsure} className="flex items-center gap-3 text-[#1F241D]">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[rgba(96,110,89,0.14)] bg-white/70 text-sm font-semibold">
+              FS
+            </span>
+            <span className="text-lg font-semibold tracking-[0.02em]">{siteConfig.productName}</span>
+          </a>
+        </header>
+
+        <main className="py-12">
+          <Card className="brand-site-card">
+            <CardHeader className="space-y-3">
+              <div className="flex items-center gap-3 text-[#6F8B65]">
+                {loadState === "loading" ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-5 w-5" />
+                )}
+                <span className="text-sm font-semibold uppercase tracking-[0.18em]">
+                  Stripe Checkout
+                </span>
+              </div>
+              <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">{title}</CardTitle>
+              <CardDescription className="max-w-2xl text-base leading-8 text-[#596255]">
+                {description}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {sessionId ? (
+                <div className="rounded-3xl border border-[rgba(96,110,89,0.14)] bg-white/70 p-5 text-sm text-[#596255]">
+                  <div>Session ID: {sessionId}</div>
+                  {session?.customerEmail ? <div className="mt-2">Customer email: {session.customerEmail}</div> : null}
+                  {amountLabel ? <div className="mt-2">Amount: {amountLabel}</div> : null}
+                  {session?.status ? <div className="mt-2">Checkout status: {session.status}</div> : null}
+                  {session?.paymentStatus ? <div className="mt-2">Payment status: {session.paymentStatus}</div> : null}
+                </div>
+              ) : (
+                <div className="rounded-3xl border border-[rgba(96,110,89,0.14)] bg-white/70 p-5 text-sm text-[#596255]">
+                  Stripe returned without a `session_id`, so there is nothing specific to confirm on this page.
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-3">
+                <Button asChild size="lg" className="rounded-2xl px-8">
+                  <a href={siteConfig.links.finsure}>
+                    Open FinSure
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
+                  <a href={siteConfig.links.earlyAccess}>Need rollout help?</a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </main>
+
+        <SiteFooter />
+      </div>
+    </div>
+  );
+}

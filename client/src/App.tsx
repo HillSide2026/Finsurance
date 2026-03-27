@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { buildSitePageMetadata, resolveSitePage } from "@shared/site";
+import BillingSuccessPage from "@/pages/BillingSuccessPage";
 import LegalPage from "@/pages/LegalPage";
 import SiteHome from "@/pages/SiteHome";
 import StrAssistant from "@/pages/StrAssistant";
@@ -38,6 +39,8 @@ function App() {
     <>
       {page === "product" ? (
         <StrAssistant />
+      ) : page === "billingSuccess" ? (
+        <BillingSuccessPage />
       ) : page === "home" ? (
         <SiteHome />
       ) : (

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -176,4 +176,78 @@ test("persistent store records Stripe webhook events idempotently", async (t) =>
     "127.0.0.1",
   );
   assert.equal(duplicateRecord.duplicate, true);
+});
+
+test("persistent store records and updates Stripe checkout sessions", async (t) => {
+  const { filePath, store, cleanup } = await createTempStore();
+  t.after(async () => {
+    await cleanup();
+  });
+
+  const summary = await store.registerOwnerAccount({
+    teamName: "FinSure Ops",
+    name: "Billing Owner",
+    email: "billing.owner@example.com",
+    password: "Password123",
+  });
+
+  const createdRecord = await store.recordBillingCheckoutSession(
+    {
+      sessionId: "cs_test_456",
+      checkoutUrl: "https://checkout.stripe.com/c/pay/cs_test_456",
+      sourcePath: "/finsure",
+      teamId: summary.team.id,
+      userId: summary.user.id,
+      customerEmail: summary.user.email,
+      clientReferenceId: `team:${summary.team.id}:user:${summary.user.id}`,
+      status: "open",
+      paymentStatus: "unpaid",
+      amountTotal: 4900,
+      currency: "CAD",
+      livemode: false,
+    },
+    "127.0.0.1",
+  );
+  assert.equal(createdRecord.created, true);
+
+  const updatedRecord = await store.recordBillingCheckoutSession(
+    {
+      sessionId: "cs_test_456",
+      checkoutUrl: null,
+      sourcePath: "/finsure",
+      teamId: null,
+      userId: null,
+      customerEmail: "billing.owner@example.com",
+      clientReferenceId: null,
+      status: "complete",
+      paymentStatus: "paid",
+      amountTotal: 4900,
+      currency: "CAD",
+      livemode: false,
+    },
+    "127.0.0.1",
+  );
+  assert.equal(updatedRecord.created, false);
+
+  const persisted = JSON.parse(await readFile(filePath, "utf8")) as {
+    billingCheckoutSessions?: Array<{
+      id: string;
+      teamId: string | null;
+      userId: string | null;
+      status: string | null;
+      paymentStatus: string | null;
+      completedAt: string | null;
+      customerEmail: string | null;
+    }>;
+  };
+
+  const sessionRecord = persisted.billingCheckoutSessions?.find(
+    (candidate) => candidate.id === "cs_test_456",
+  );
+  assert.equal(sessionRecord?.teamId, summary.team.id);
+  assert.equal(sessionRecord?.userId, summary.user.id);
+  assert.equal(sessionRecord?.status, "complete");
+  assert.equal(sessionRecord?.paymentStatus, "paid");
+  assert.equal(sessionRecord?.customerEmail, "billing.owner@example.com");
+  assert.ok(sessionRecord?.completedAt);
 });

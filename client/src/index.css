@@ -113,9 +113,9 @@
 
   .brand-site-shell {
     background:
-      radial-gradient(circle at top left, rgba(166, 190, 152, 0.18), transparent 28%),
-      radial-gradient(circle at bottom right, rgba(197, 155, 71, 0.14), transparent 32%),
-      linear-gradient(180deg, #121a14 0%, #1f2b21 100%);
+      radial-gradient(circle at top left, rgba(111, 139, 101, 0.14), transparent 28%),
+      radial-gradient(circle at bottom right, rgba(230, 201, 137, 0.16), transparent 34%),
+      linear-gradient(180deg, #fbf7ef 0%, #f4efe4 100%);
   }
 
   .legal-home-shell {
@@ -165,39 +165,39 @@
   }
 
   .brand-site-frame {
-    background: rgba(21, 32, 23, 0.88);
-    border-color: rgba(166, 190, 152, 0.18);
-    box-shadow: 0 30px 120px rgba(0, 0, 0, 0.24);
+    background: rgba(255, 252, 245, 0.78);
+    border-color: rgba(96, 110, 89, 0.16);
+    box-shadow: 0 24px 72px rgba(31, 51, 37, 0.08);
   }
 
   .brand-site-card {
-    background: rgba(35, 53, 38, 0.92);
-    border-color: rgba(166, 190, 152, 0.18);
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.16);
+    background: rgba(255, 255, 255, 0.62);
+    border-color: rgba(96, 110, 89, 0.14);
+    box-shadow: 0 14px 34px rgba(31, 51, 37, 0.06);
   }
 
   .brand-site-soft {
-    background: rgba(35, 53, 38, 0.74);
-    border-color: rgba(166, 190, 152, 0.18);
+    background: rgba(255, 252, 245, 0.76);
+    border-color: rgba(96, 110, 89, 0.14);
   }
 
   .brand-site-dark-panel {
-    background: linear-gradient(180deg, rgba(18, 29, 20, 0.98), rgba(35, 53, 38, 0.98));
-    border-color: rgba(197, 155, 71, 0.2);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+    background: linear-gradient(180deg, rgba(255, 252, 245, 0.96), rgba(248, 243, 234, 0.96));
+    border-color: rgba(159, 138, 85, 0.18);
+    box-shadow: 0 18px 44px rgba(31, 51, 37, 0.08);
   }
 
   .brand-site-outline-pill {
-    background: rgba(35, 53, 38, 0.58);
-    border-color: rgba(166, 190, 152, 0.24);
+    background: rgba(255, 255, 255, 0.64);
+    border-color: rgba(96, 110, 89, 0.14);
   }
 
   .brand-site-quiet-text {
-    color: #b7c3af;
+    color: #667060;
   }
 
   .brand-site-highlight {
-    color: #a6be98;
+    color: #6f8b65;
   }
 
   .brand-workflow-screen {

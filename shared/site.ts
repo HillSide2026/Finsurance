@@ -3,6 +3,8 @@ const homePath = "/";
 const homeUrl = `${canonicalOrigin}${homePath}`;
 const productPath = "/finsure";
 const productUrl = `${canonicalOrigin}${productPath}`;
+const billingSuccessPath = "/billing/success";
+const billingSuccessUrl = `${canonicalOrigin}${billingSuccessPath}`;
 const privacyPolicyPath = "/privacy-policy";
 const privacyPolicyUrl = `${canonicalOrigin}${privacyPolicyPath}`;
 const termsOfServicePath = "/terms-of-service";
@@ -13,6 +15,7 @@ const disclaimerUrl = `${canonicalOrigin}${disclaimerPath}`;
 export type SitePage =
   | "home"
   | "product"
+  | "billingSuccess"
   | "privacyPolicy"
   | "termsOfService"
   | "disclaimer";
@@ -70,6 +73,20 @@ const privacyPolicyPageMetadata: SitePageMetadata = {
     "How FintechLawyer.ca and FinSure handle contact information, product inputs, and privacy-related requests.",
 };
 
+const billingSuccessPageMetadata: SitePageMetadata = {
+  title: "Payment Confirmed | FinSure",
+  description:
+    "Confirm your Stripe Checkout session and continue into FinSure after payment.",
+  canonicalUrl: billingSuccessUrl,
+  openGraphTitle: "Payment Confirmed | FinSure",
+  openGraphDescription:
+    "Confirm your Stripe Checkout session and continue into FinSure after payment.",
+  openGraphUrl: billingSuccessUrl,
+  twitterTitle: "Payment Confirmed | FinSure",
+  twitterDescription:
+    "Confirm your Stripe Checkout session and continue into FinSure after payment.",
+};
+
 const termsOfServicePageMetadata: SitePageMetadata = {
   title: "Terms of Service | FintechLawyer.ca",
   description:
@@ -107,6 +124,8 @@ export function resolveSitePage(pathname: string): SitePage {
   switch (normalizeSitePath(pathname)) {
     case productPath:
       return "product";
+    case billingSuccessPath:
+      return "billingSuccess";
     case privacyPolicyPath:
       return "privacyPolicy";
     case termsOfServicePath:
@@ -122,6 +141,8 @@ export function buildSitePageMetadata(page: SitePage): SitePageMetadata {
   switch (page) {
     case "product":
       return productPageMetadata;
+    case "billingSuccess":
+      return billingSuccessPageMetadata;
     case "privacyPolicy":
       return privacyPolicyPageMetadata;
     case "termsOfService":
@@ -141,6 +162,8 @@ export const siteConfig = {
   homeUrl,
   productPath,
   productUrl,
+  billingSuccessPath,
+  billingSuccessUrl,
   wwwUrl: "https://www.fintechlawyer.ca",
   supportEmail: "hello@fintechlawyer.ca",
   links: {

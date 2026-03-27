@@ -65,6 +65,24 @@ type InternalStripeWebhookEventRecord = {
   payloadHash: string;
 };
 
+type InternalBillingCheckoutSessionRecord = {
+  id: string;
+  checkoutUrl: string | null;
+  sourcePath: string;
+  teamId: string | null;
+  userId: string | null;
+  customerEmail: string | null;
+  clientReferenceId: string | null;
+  status: string | null;
+  paymentStatus: string | null;
+  amountTotal: number | null;
+  currency: string | null;
+  livemode: boolean;
+  createdAt: string;
+  updatedAt: string;
+  completedAt: string | null;
+};
+
 type InternalAuditEventRecord = {
   id: string;
   teamId: string | null;
@@ -85,6 +103,7 @@ type AppStoreData = {
   draftExports: InternalDraftExportRecord[];
   enquiries: InternalProductEnquiryRecord[];
   stripeWebhookEvents: InternalStripeWebhookEventRecord[];
+  billingCheckoutSessions: InternalBillingCheckoutSessionRecord[];
   auditEvents: InternalAuditEventRecord[];
 };
 
@@ -112,7 +131,28 @@ function createEmptyStore(): AppStoreData {
     draftExports: [],
     enquiries: [],
     stripeWebhookEvents: [],
+    billingCheckoutSessions: [],
     auditEvents: [],
+  };
+}
+
+function hydrateStoreData(value: unknown): AppStoreData {
+  const parsed = value as Partial<AppStoreData> | null;
+
+  return {
+    teams: Array.isArray(parsed?.teams) ? parsed.teams : [],
+    users: Array.isArray(parsed?.users) ? parsed.users : [],
+    authSessions: Array.isArray(parsed?.authSessions) ? parsed.authSessions : [],
+    drafts: Array.isArray(parsed?.drafts) ? parsed.drafts : [],
+    draftExports: Array.isArray(parsed?.draftExports) ? parsed.draftExports : [],
+    enquiries: Array.isArray(parsed?.enquiries) ? parsed.enquiries : [],
+    stripeWebhookEvents: Array.isArray(parsed?.stripeWebhookEvents)
+      ? parsed.stripeWebhookEvents
+      : [],
+    billingCheckoutSessions: Array.isArray(parsed?.billingCheckoutSessions)
+      ? parsed.billingCheckoutSessions
+      : [],
+    auditEvents: Array.isArray(parsed?.auditEvents) ? parsed.auditEvents : [],
   };
 }
 
@@ -239,7 +279,7 @@ export class PersistentAppStore {
 
     try {
       const raw = await fs.readFile(this.filePath, "utf8");
-      this.cache = JSON.parse(raw) as AppStoreData;
+      this.cache = hydrateStoreData(JSON.parse(raw));
       return this.cache;
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
@@ -765,6 +805,111 @@ export class PersistentAppStore {
       });
 
       return { duplicate: false };
+    });
+  }
+
+  async recordBillingCheckoutSession(
+    input: {
+      sessionId: string;
+      checkoutUrl: string | null;
+      sourcePath: string;
+      teamId: string | null;
+      userId: string | null;
+      customerEmail: string | null;
+      clientReferenceId: string | null;
+      status: string | null;
+      paymentStatus: string | null;
+      amountTotal: number | null;
+      currency: string | null;
+      livemode: boolean;
+    },
+    ipAddress: string,
+  ): Promise<{ created: boolean }> {
+    return this.update((data) => {
+      const now = new Date().toISOString();
+      const normalizedSourcePath = normalizeText(input.sourcePath) || "/finsure";
+      const normalizedCustomerEmail =
+        input.customerEmail && normalizeText(input.customerEmail).length > 0
+          ? normalizeEmail(input.customerEmail)
+          : null;
+      const existingRecord = data.billingCheckoutSessions.find(
+        (session) => session.id === input.sessionId,
+      );
+
+      if (existingRecord) {
+        existingRecord.checkoutUrl = input.checkoutUrl ?? existingRecord.checkoutUrl;
+        existingRecord.sourcePath = normalizedSourcePath || existingRecord.sourcePath;
+        existingRecord.teamId = input.teamId ?? existingRecord.teamId;
+        existingRecord.userId = input.userId ?? existingRecord.userId;
+        existingRecord.customerEmail = normalizedCustomerEmail ?? existingRecord.customerEmail;
+        existingRecord.clientReferenceId =
+          input.clientReferenceId ?? existingRecord.clientReferenceId;
+        existingRecord.status = input.status ?? existingRecord.status;
+        existingRecord.paymentStatus = input.paymentStatus ?? existingRecord.paymentStatus;
+        existingRecord.amountTotal =
+          typeof input.amountTotal === "number" ? input.amountTotal : existingRecord.amountTotal;
+        existingRecord.currency = input.currency ?? existingRecord.currency;
+        existingRecord.livemode = input.livemode;
+        existingRecord.updatedAt = now;
+        if (
+          !existingRecord.completedAt &&
+          (input.status === "complete" || input.paymentStatus === "paid")
+        ) {
+          existingRecord.completedAt = now;
+        }
+
+        this.appendAuditEvent(data, {
+          teamId: existingRecord.teamId,
+          actorUserId: existingRecord.userId,
+          entityType: "billing",
+          entityId: input.sessionId,
+          action: "checkout_session_updated",
+          ipAddress,
+          metadata: {
+            sourcePath: existingRecord.sourcePath,
+            paymentStatus: existingRecord.paymentStatus ?? "",
+            status: existingRecord.status ?? "",
+          },
+        });
+
+        return { created: false };
+      }
+
+      data.billingCheckoutSessions.push({
+        id: input.sessionId,
+        checkoutUrl: input.checkoutUrl,
+        sourcePath: normalizedSourcePath,
+        teamId: input.teamId,
+        userId: input.userId,
+        customerEmail: normalizedCustomerEmail,
+        clientReferenceId: input.clientReferenceId,
+        status: input.status,
+        paymentStatus: input.paymentStatus,
+        amountTotal: input.amountTotal,
+        currency: input.currency,
+        livemode: input.livemode,
+        createdAt: now,
+        updatedAt: now,
+        completedAt:
+          input.status === "complete" || input.paymentStatus === "paid" ? now : null,
+      });
+
+      this.appendAuditEvent(data, {
+        teamId: input.teamId,
+        actorUserId: input.userId,
+        entityType: "billing",
+        entityId: input.sessionId,
+        action: "checkout_session_recorded",
+        ipAddress,
+        metadata: {
+          sourcePath: normalizedSourcePath,
+          paymentStatus: input.paymentStatus ?? "",
+          status: input.status ?? "",
+          customerEmail: normalizedCustomerEmail ?? "",
+        },
+      });
+
+      return { created: true };
     });
   }
 }

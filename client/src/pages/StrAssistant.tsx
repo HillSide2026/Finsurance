@@ -19,6 +19,7 @@ import {
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
+import type { CreateCheckoutSessionResponse } from "@shared/billing";
 import { siteConfig } from "@shared/site";
 import {
   draftStatusValues,
@@ -423,26 +424,26 @@ function AuthCard({
   return (
     <Card
       id="auth-access"
-      className="brand-site-card border-[rgba(166,190,152,0.16)] text-white shadow-[0_22px_50px_rgba(0,0,0,0.18)]"
+      className="brand-site-card shadow-[0_18px_40px_rgba(31,51,37,0.06)]"
     >
       <CardHeader className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <CardTitle className="text-2xl text-white">
+            <CardTitle className="text-2xl text-[#1B2118]">
               {mode === "register" ? "Create your workspace" : "Sign in to your workspace"}
             </CardTitle>
-            <CardDescription className="mt-2 max-w-xl text-sm leading-7 text-[#F7F1E4]/78">
+            <CardDescription className="mt-2 max-w-xl text-sm leading-7 text-[#596255]">
               Save drafts, reopen active files, and keep review-ready STR work in one protected
               workspace.
             </CardDescription>
           </div>
-          <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 p-1 md:flex">
+          <div className="hidden items-center gap-2 rounded-full border border-[rgba(96,110,89,0.14)] bg-white/70 p-1 md:flex">
             <button
               type="button"
               onClick={() => onModeChange("register")}
               className={cn(
                 "rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                mode === "register" ? "bg-[#6F8B65] text-[#F7F1E4]" : "text-[#F7F1E4]/72",
+                mode === "register" ? "bg-[#6F8B65] text-[#F7F1E4]" : "text-[#596255]",
               )}
             >
               Create workspace
@@ -452,7 +453,7 @@ function AuthCard({
               onClick={() => onModeChange("login")}
               className={cn(
                 "rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                mode === "login" ? "bg-[#6F8B65] text-[#F7F1E4]" : "text-[#F7F1E4]/72",
+                mode === "login" ? "bg-[#6F8B65] text-[#F7F1E4]" : "text-[#596255]",
               )}
             >
               Sign in
@@ -464,7 +465,7 @@ function AuthCard({
         <form className="grid gap-5 md:grid-cols-2" onSubmit={onSubmit}>
           {mode === "register" ? (
             <div className="grid gap-2 md:col-span-2">
-              <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="auth-team-name">
+              <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-team-name">
                 Team name
               </label>
               <Input
@@ -472,13 +473,13 @@ function AuthCard({
                 value={form.teamName}
                 onChange={(event) => onFieldChange("teamName", event.target.value)}
                 placeholder="Levine Law AML Team"
-                className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+                className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
               />
             </div>
           ) : null}
           {mode === "register" ? (
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="auth-name">
+              <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-name">
                 Full name
               </label>
               <Input
@@ -486,13 +487,13 @@ function AuthCard({
                 value={form.name}
                 onChange={(event) => onFieldChange("name", event.target.value)}
                 placeholder="Your name"
-                className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+                className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
               />
             </div>
           ) : null}
           {mode === "register" ? (
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="auth-email">
+              <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-email">
                 Workspace email
               </label>
               <Input
@@ -501,12 +502,12 @@ function AuthCard({
                 value={form.email}
                 onChange={(event) => onFieldChange("email", event.target.value)}
                 placeholder="you@company.com"
-                className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+                className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
               />
             </div>
           ) : null}
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="auth-password">
+            <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-password">
               Password
             </label>
             <Input
@@ -515,12 +516,12 @@ function AuthCard({
               value={form.password}
               onChange={(event) => onFieldChange("password", event.target.value)}
               placeholder="Minimum 8 characters"
-              className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+              className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
             />
           </div>
           {mode === "login" ? (
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="auth-email-login">
+              <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-email-login">
                 Workspace email
               </label>
               <Input
@@ -529,12 +530,12 @@ function AuthCard({
                 value={form.email}
                 onChange={(event) => onFieldChange("email", event.target.value)}
                 placeholder="you@company.com"
-                className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+                className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
               />
             </div>
           ) : null}
           <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
-            <p className="text-xs text-[#BCC7B6]">
+            <p className="text-xs text-[#7A8176]">
               {mode === "register"
                 ? "The first account becomes the workspace owner."
                 : "Use the workspace email and password you registered with."}
@@ -700,6 +701,7 @@ export default function StrAssistant() {
   const [draftStatus, setDraftStatus] = useState<DraftStatus>("draft");
   const [assignedReviewerUserId, setAssignedReviewerUserId] = useState<string | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   const draft = buildStrDraft(intake);
   const selectedPreset = intake.scenarioPresetId
@@ -1127,6 +1129,38 @@ export default function StrAssistant() {
     }
   };
 
+  const startCheckout = async () => {
+    setIsCheckoutLoading(true);
+
+    try {
+      const response = await apiRequest<CreateCheckoutSessionResponse>(
+        "/api/billing/create-checkout-session",
+        {
+          method: "POST",
+          body: {
+            sourcePath: siteConfig.productPath,
+          },
+        },
+      );
+
+      if (!response.session.checkoutUrl) {
+        throw new Error("Stripe Checkout did not return a redirect URL.");
+      }
+
+      window.location.assign(response.session.checkoutUrl);
+    } catch (error) {
+      toast({
+        title: "Checkout unavailable",
+        description: getApiErrorMessage(
+          error,
+          "Stripe Checkout could not be started right now.",
+        ),
+        variant: "destructive",
+      });
+      setIsCheckoutLoading(false);
+    }
+  };
+
   const reviewRiskSignals = () => {
     if (!draft.readiness.canReviewRiskSignals) {
       toast({
@@ -1250,11 +1284,11 @@ export default function StrAssistant() {
 
   if (view === "workspace" && authSession) {
     return (
-      <div className="brand-site-shell min-h-screen px-4 py-8 text-white sm:px-6 lg:px-10">
+      <div className="brand-site-shell min-h-screen px-4 py-8 text-[#1F241D] sm:px-6 lg:px-10">
         <div className="brand-site-frame mx-auto max-w-6xl rounded-[36px] border p-6 backdrop-blur md:p-10">
-          <header className="flex flex-col gap-4 border-b border-white/10 pb-6 md:flex-row md:items-center md:justify-between">
-            <a href={siteConfig.links.start} className="flex items-center gap-3 text-[#F7F1E4]">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-sm font-semibold">
+          <header className="flex flex-col gap-4 border-b border-[rgba(96,110,89,0.14)] pb-6 md:flex-row md:items-center md:justify-between">
+            <a href={siteConfig.links.start} className="flex items-center gap-3 text-[#1F241D]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[rgba(96,110,89,0.14)] bg-white/70 text-sm font-semibold">
                 FS
               </span>
               <span className="text-lg font-semibold tracking-[0.02em]">
@@ -1263,7 +1297,7 @@ export default function StrAssistant() {
             </a>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Badge className="w-fit border-white/10 bg-white/5 px-4 py-2 text-[#F7F1E4]">
+              <Badge className="w-fit border-[rgba(96,110,89,0.14)] bg-white/70 px-4 py-2 text-[#1F241D]">
                 {authSession.team.name}
               </Badge>
               <Button className="rounded-2xl px-6" onClick={beginNewDraft}>
@@ -1290,7 +1324,7 @@ export default function StrAssistant() {
             />
           </main>
 
-          <SiteFooter theme="dark" />
+          <SiteFooter />
         </div>
       </div>
     );
@@ -1298,11 +1332,11 @@ export default function StrAssistant() {
 
   if (view === "landing") {
     return (
-      <div className="brand-site-shell min-h-screen px-4 py-8 text-white sm:px-6 lg:px-10">
+      <div className="brand-site-shell min-h-screen px-4 py-8 text-[#1F241D] sm:px-6 lg:px-10">
         <div className="brand-site-frame mx-auto max-w-6xl rounded-[36px] border p-6 backdrop-blur md:p-10">
-          <header className="flex items-center justify-between border-b border-white/10 pb-6">
-            <a href={siteConfig.links.start} className="flex items-center gap-3 text-[#F7F1E4]">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-sm font-semibold">
+          <header className="flex items-center justify-between border-b border-[rgba(96,110,89,0.14)] pb-6">
+            <a href={siteConfig.links.start} className="flex items-center gap-3 text-[#1F241D]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[rgba(96,110,89,0.14)] bg-white/70 text-sm font-semibold">
                 FS
               </span>
               <span className="text-lg font-semibold tracking-[0.02em]">
@@ -1311,7 +1345,7 @@ export default function StrAssistant() {
             </a>
 
             <div className="flex items-center gap-6">
-              <nav className="hidden items-center gap-6 text-sm text-[#F7F1E4]/78 lg:flex">
+              <nav className="hidden items-center gap-6 text-sm text-[#525B50] lg:flex">
                 <a href={siteConfig.links.product} className="transition-colors hover:text-[#6F8B65]">
                   Product
                 </a>
@@ -1332,6 +1366,12 @@ export default function StrAssistant() {
                   className="transition-colors hover:text-[#6F8B65]"
                 >
                   Expertise
+                </a>
+                <a
+                  href={siteConfig.links.pricing}
+                  className="transition-colors hover:text-[#6F8B65]"
+                >
+                  Pricing
                 </a>
               </nav>
               {authSession ? (
@@ -1357,10 +1397,10 @@ export default function StrAssistant() {
           <main id="start" className="space-y-0">
             <section className="grid gap-8 py-16 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-center">
               <div className="space-y-6">
-                <h1 className="text-5xl leading-[0.95] text-[#F7F1E4] md:text-7xl">
+                <h1 className="text-5xl leading-[0.95] text-[#1B2118] md:text-7xl">
                   Audit-Ready, Always
                 </h1>
-                <p className="max-w-3xl text-lg leading-8 text-[#F7F1E4]/82 md:text-xl">
+                <p className="max-w-3xl text-lg leading-8 text-[#596255] md:text-xl">
                   Generate compliant suspicious transaction reports in under 60 seconds.
                   FinSure guides your team through structured inputs to produce complete,
                   submission-ready reports with no ambiguity.
@@ -1369,6 +1409,14 @@ export default function StrAssistant() {
                   <Button size="lg" className="rounded-2xl px-8" onClick={openWorkflow}>
                     {authSession ? "Start drafting" : "Create account to draft"}
                     <ArrowRight className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="rounded-2xl px-8"
+                  >
+                    <a href={siteConfig.links.pricing}>Purchase access</a>
                   </Button>
                   <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
                     <a href={siteConfig.links.levineLaw} target="_blank" rel="noreferrer">
@@ -1480,8 +1528,8 @@ export default function StrAssistant() {
 
             <section className="py-10">
               {isAuthLoading ? (
-                <Card className="brand-site-card text-white">
-                  <CardContent className="flex items-center gap-3 p-6 text-sm text-[#F7F1E4]/82">
+                <Card className="brand-site-card">
+                  <CardContent className="flex items-center gap-3 p-6 text-sm text-[#596255]">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Loading workspace availability...
                   </CardContent>
@@ -1511,15 +1559,15 @@ export default function StrAssistant() {
             <section id="problem" className="py-16">
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <h2 className="text-3xl text-[#F7F1E4] md:text-4xl">
+                  <h2 className="text-3xl text-[#1B2118] md:text-4xl">
                     The Hidden Risk in Every Suspicious Transaction Report
                   </h2>
                 </div>
                 <div className="grid gap-5 md:grid-cols-3">
                   {homepagePainPoints.map((point) => (
-                    <Card key={point} className="brand-site-card text-white">
+                    <Card key={point} className="brand-site-card">
                       <CardHeader className="pb-3">
-                        <CardTitle className="text-2xl leading-tight">{point}</CardTitle>
+                        <CardTitle className="text-2xl leading-tight text-[#1F241D]">{point}</CardTitle>
                       </CardHeader>
                     </Card>
                   ))}
@@ -1531,14 +1579,14 @@ export default function StrAssistant() {
             <section id="product" className="py-16">
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <h2 className="text-3xl text-[#F7F1E4] md:text-4xl">
+                  <h2 className="text-3xl text-[#1B2118] md:text-4xl">
                     Meet FinSure — Instant Suspicious Transaction Reporting
                   </h2>
                 </div>
                 <div className="grid gap-5 md:grid-cols-2">
                   {homepageBenefits.map((benefit) => (
-                    <Card key={benefit} className="brand-site-card text-white">
-                      <CardContent className="p-6 text-lg leading-8 text-[#F7F1E4]">
+                    <Card key={benefit} className="brand-site-card">
+                      <CardContent className="p-6 text-lg leading-8 text-[#596255]">
                         {benefit}
                       </CardContent>
                     </Card>
@@ -1555,15 +1603,15 @@ export default function StrAssistant() {
 
             <section id="how-it-works" className="py-16">
               <div className="space-y-6">
-                <h2 className="text-3xl text-[#F7F1E4] md:text-4xl">How It Works</h2>
+                <h2 className="text-3xl text-[#1B2118] md:text-4xl">How It Works</h2>
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                   {homepageWorkflow.map((item) => (
-                    <Card key={item.title} className="brand-site-card text-white">
+                    <Card key={item.title} className="brand-site-card">
                       <CardHeader className="pb-3">
                         <item.icon className="h-7 w-7 text-primary" />
-                        <CardTitle className="mt-4 text-2xl leading-tight">{item.title}</CardTitle>
+                        <CardTitle className="mt-4 text-2xl leading-tight text-[#1F241D]">{item.title}</CardTitle>
                       </CardHeader>
-                      <CardContent className="text-sm leading-6 text-[#BCC7B6]">
+                      <CardContent className="text-sm leading-6 text-[#596255]">
                         {item.body}
                       </CardContent>
                     </Card>
@@ -1574,13 +1622,13 @@ export default function StrAssistant() {
 
             <section id="social-proof" className="py-16">
               <div className="space-y-6">
-                <h2 className="text-3xl text-[#F7F1E4] md:text-4xl">
+                <h2 className="text-3xl text-[#1B2118] md:text-4xl">
                   Built by Legal Experts Behind Fintech Compliance
                 </h2>
                 <div className="grid gap-5 md:grid-cols-3">
                   {homepageAuthorityPoints.map((item) => (
-                    <Card key={item} className="brand-site-card text-white">
-                      <CardContent className="p-6 text-lg leading-8 text-[#F7F1E4]">
+                    <Card key={item} className="brand-site-card">
+                      <CardContent className="p-6 text-lg leading-8 text-[#596255]">
                         {item}
                       </CardContent>
                     </Card>
@@ -1590,12 +1638,12 @@ export default function StrAssistant() {
             </section>
 
             <section id="levine-law" className="py-16">
-              <Card className="brand-site-card text-white">
+              <Card className="brand-site-card">
                 <CardHeader className="space-y-3">
-                  <CardTitle className="text-3xl text-white md:text-4xl">
+                  <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">
                     Powered by Real Legal Expertise
                   </CardTitle>
-                  <CardDescription className="max-w-3xl text-base leading-8 text-[#F7F1E4]/82">
+                  <CardDescription className="max-w-3xl text-base leading-8 text-[#596255]">
                     FinSure is built and backed by Levine Law — a firm specializing in fintech,
                     financial regulation, and compliance.
                   </CardDescription>
@@ -1611,13 +1659,66 @@ export default function StrAssistant() {
               </Card>
             </section>
 
-            <section id="early-access" className="py-16">
-              <Card className="brand-site-card text-white">
+            <section id="pricing" className="py-16">
+              <Card className="brand-site-card">
                 <CardHeader className="space-y-3">
-                  <CardTitle className="text-3xl text-white md:text-4xl">
+                  <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#6F8B65]">
+                    Secure Checkout
+                  </div>
+                  <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">
+                    Purchase FinSure access in Stripe
+                  </CardTitle>
+                  <CardDescription className="max-w-3xl text-base leading-8 text-[#596255]">
+                    Stripe Checkout handles the hosted payment flow. If you are already signed in,
+                    the checkout session will reuse your workspace email so the payment can be
+                    matched back to your team faster.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <div className="rounded-3xl border border-[rgba(96,110,89,0.14)] bg-white/70 p-6 text-sm leading-7 text-[#596255]">
+                    <p>
+                      You will be redirected to Stripe to complete payment, then returned to
+                      FinSure on confirmation.
+                    </p>
+                    <p className="mt-3">
+                      Team rollout questions or custom onboarding still go through the update form
+                      below.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      size="lg"
+                      className="rounded-2xl px-8"
+                      onClick={startCheckout}
+                      disabled={isCheckoutLoading}
+                    >
+                      {isCheckoutLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Redirecting to Stripe
+                        </>
+                      ) : (
+                        <>
+                          Continue to payment
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                    <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
+                      <a href={siteConfig.links.earlyAccess}>Need a walkthrough first?</a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            <section id="early-access" className="py-16">
+              <Card className="brand-site-card">
+                <CardHeader className="space-y-3">
+                  <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">
                     Need rollout updates or a team walkthrough?
                   </CardTitle>
-                  <CardDescription className="max-w-3xl text-base leading-8 text-[#F7F1E4]/82">
+                  <CardDescription className="max-w-3xl text-base leading-8 text-[#596255]">
                     FinSure is usable now. If you want product updates, rollout coordination, or a
                     team introduction, leave your details and we will follow up.
                   </CardDescription>
@@ -1625,7 +1726,7 @@ export default function StrAssistant() {
                 <CardContent>
                   <form className="grid gap-5 md:grid-cols-2" onSubmit={requestEarlyAccess}>
                     <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="lead-name">
+                      <label className="text-sm font-medium text-[#1F241D]" htmlFor="lead-name">
                         Name
                       </label>
                       <Input
@@ -1633,11 +1734,11 @@ export default function StrAssistant() {
                         value={leadForm.name}
                         onChange={(event) => updateLeadForm("name", event.target.value)}
                         placeholder="Your name"
-                        className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+                        className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
                       />
                     </div>
                     <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#F7F1E4]" htmlFor="lead-email">
+                      <label className="text-sm font-medium text-[#1F241D]" htmlFor="lead-email">
                         Email
                       </label>
                       <Input
@@ -1646,12 +1747,12 @@ export default function StrAssistant() {
                         value={leadForm.email}
                         onChange={(event) => updateLeadForm("email", event.target.value)}
                         placeholder="you@company.com"
-                        className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+                        className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
                       />
                     </div>
                     <div className="grid gap-2 md:col-span-2">
                       <label
-                        className="text-sm font-medium text-[#F7F1E4]"
+                        className="text-sm font-medium text-[#1F241D]"
                         htmlFor="lead-company"
                       >
                         Company
@@ -1661,7 +1762,7 @@ export default function StrAssistant() {
                         value={leadForm.company}
                         onChange={(event) => updateLeadForm("company", event.target.value)}
                         placeholder="Optional"
-                        className="h-12 rounded-xl border-white/10 bg-[#233526] text-[#F7F1E4] placeholder:text-[#BCC7B6]"
+                        className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
                       />
                     </div>
                     <div className="md:col-span-2">
@@ -1676,7 +1777,7 @@ export default function StrAssistant() {
             </section>
           </main>
 
-          <SiteFooter theme="dark" />
+          <SiteFooter />
         </div>
       </div>
     );
@@ -2274,16 +2375,16 @@ export default function StrAssistant() {
             </div>
 
             <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-              <Card className="border-primary/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(30,41,59,0.98))] text-white shadow-[0_24px_60px_rgba(15,23,42,0.28)]">
+              <Card className="border-border/70 bg-white/92 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
                 <CardHeader>
-                  <CardTitle className="text-white">Intake Progress</CardTitle>
-                  <CardDescription className="text-slate-300">
+                  <CardTitle>Intake Progress</CardTitle>
+                  <CardDescription>
                     Structured fields only. The draft will be assembled from this intake.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm text-slate-200">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <span>
                         {draft.readiness.completedFieldCount} of {draft.readiness.totalRequiredFields} required
                       </span>
@@ -2291,7 +2392,7 @@ export default function StrAssistant() {
                     </div>
                     <Progress
                       value={draft.readiness.progressPercent}
-                      className="h-2.5 bg-white/10"
+                      className="h-2.5 bg-secondary/40"
                     />
                   </div>
 
@@ -2306,18 +2407,18 @@ export default function StrAssistant() {
                   </div>
 
                   <div className="space-y-3">
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-300">
+                    <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
                       Required gaps
                     </p>
                     {draft.missingFields.length === 0 ? (
-                      <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
                         No critical gaps detected.
                       </div>
                     ) : (
                       draft.missingFields.map((field) => (
                         <div
                           key={field}
-                          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100"
+                          className="rounded-2xl border border-border/70 bg-secondary/40 px-4 py-3 text-sm text-foreground"
                         >
                           {field}
                         </div>
@@ -2326,18 +2427,18 @@ export default function StrAssistant() {
                   </div>
 
                   <div className="space-y-3">
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-300">
+                    <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
                       To strengthen the draft
                     </p>
                     {draft.qualityWarnings.length === 0 ? (
-                      <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
                         No input quality warnings detected.
                       </div>
                     ) : (
                       draft.qualityWarnings.map((warning) => (
                         <div
                           key={warning}
-                          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100"
+                          className="rounded-2xl border border-border/70 bg-secondary/40 px-4 py-3 text-sm text-foreground"
                         >
                           {warning}
                         </div>
@@ -2357,7 +2458,7 @@ export default function StrAssistant() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full rounded-2xl border-white/15 bg-transparent text-white hover:bg-white/10"
+                      className="w-full rounded-2xl"
                       onClick={() => setView("landing")}
                     >
                       <ArrowLeft className="h-4 w-4" />
