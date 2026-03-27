@@ -70,6 +70,7 @@ export const siteConfig = {
   supportEmail: "hello@fintechlawyer.ca",
   links: {
     home: homePath,
+    useCases: `${homePath}#use-cases`,
     offerings: `${homePath}#offerings`,
     approach: `${homePath}#approach`,
     contact: `${homePath}#contact`,

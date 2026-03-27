@@ -600,24 +600,24 @@ export default function StrAssistant() {
 
             <div className="flex items-center gap-6">
               <nav className="hidden items-center gap-6 text-sm text-[#F7F1E4]/78 lg:flex">
-                <a href={siteConfig.links.product} className="transition-colors hover:text-[#A6BE98]">
+                <a href={siteConfig.links.product} className="transition-colors hover:text-[#6F8B65]">
                   Product
                 </a>
                 <a
                   href={siteConfig.links.howItWorks}
-                  className="transition-colors hover:text-[#A6BE98]"
+                  className="transition-colors hover:text-[#6F8B65]"
                 >
                   How It Works
                 </a>
                 <a
                   href={siteConfig.links.socialProof}
-                  className="transition-colors hover:text-[#A6BE98]"
+                  className="transition-colors hover:text-[#6F8B65]"
                 >
                   Social Proof
                 </a>
                 <a
                   href={siteConfig.links.expertise}
-                  className="transition-colors hover:text-[#A6BE98]"
+                  className="transition-colors hover:text-[#6F8B65]"
                 >
                   Expertise
                 </a>
@@ -737,7 +737,7 @@ export default function StrAssistant() {
                     <div className="mt-5 space-y-3">
                       {homepageOutputItems.map((item) => (
                         <div key={item} className="flex items-center gap-2 text-xs text-[#F7F1E4]/86">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-[#A6BE98]" />
+                          <CheckCircle2 className="h-3.5 w-3.5 text-[#6F8B65]" />
                           {item}
                         </div>
                       ))}
@@ -769,7 +769,7 @@ export default function StrAssistant() {
                     </Card>
                   ))}
                 </div>
-                <p className="text-lg font-semibold text-[#A6BE98]">FinSure changes that.</p>
+                <p className="text-lg font-semibold text-[#6F8B65]">FinSure changes that.</p>
               </div>
             </section>
 
