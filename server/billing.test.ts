@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createStripeCheckoutSession,
+  retrieveStripeCheckoutSession,
   resolveStripeBillingConfig,
   summarizeStripeCheckoutSession,
 } from "./billing";
@@ -168,4 +169,60 @@ test("createStripeCheckoutSession chooses subscription mode for recurring prices
   assert.equal(body.get("cancel_url"), "http://127.0.0.1:5000/finsure#pricing");
   assert.equal(session.id, "cs_test_created");
   assert.equal(session.mode, "subscription");
+});
+
+test("retrieveStripeCheckoutSession normalizes a confirmed Stripe session", async () => {
+  const fakeFetch: typeof fetch = async (input, init) => {
+    const url = typeof input === "string" ? input : input.url;
+
+    assert.equal(
+      url,
+      "https://api.stripe.com/v1/checkout/sessions/cs_test_confirmed",
+    );
+    assert.equal(init?.method, "GET");
+
+    return new Response(
+      JSON.stringify({
+        id: "cs_test_confirmed",
+        url: "https://checkout.stripe.com/c/pay/cs_test_confirmed",
+        mode: "payment",
+        status: "complete",
+        payment_status: "paid",
+        livemode: false,
+        customer_email: "billing.owner@example.com",
+        client_reference_id: "team:team_123:user:user_456",
+        amount_total: 4900,
+        currency: "cad",
+        metadata: {
+          source_path: "/finsure",
+          team_id: "team_123",
+          user_id: "user_456",
+        },
+      }),
+      {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+        },
+      },
+    );
+  };
+
+  const session = await retrieveStripeCheckoutSession(
+    "cs_test_confirmed",
+    {
+      STRIPE_SECRET_KEY: "sk_test_123",
+      STRIPE_PRICE_ID: "price_123",
+    },
+    fakeFetch,
+  );
+
+  assert.equal(session.id, "cs_test_confirmed");
+  assert.equal(session.status, "complete");
+  assert.equal(session.paymentStatus, "paid");
+  assert.equal(session.customerEmail, "billing.owner@example.com");
+  assert.equal(session.currency, "CAD");
+  assert.equal(session.metadata.source_path, "/finsure");
+  assert.equal(session.metadata.team_id, "team_123");
+  assert.equal(session.metadata.user_id, "user_456");
 });

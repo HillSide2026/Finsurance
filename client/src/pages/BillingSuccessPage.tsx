@@ -43,7 +43,10 @@ export default function BillingSuccessPage() {
     const loadSession = async () => {
       try {
         const response = await apiRequest<CheckoutSessionStatusResponse>(
-          `/api/billing/checkout-session/${encodeURIComponent(sessionId)}`,
+          `/api/billing/checkout-session/${encodeURIComponent(sessionId)}/reconcile`,
+          {
+            method: "POST",
+          },
         );
         if (!isMounted) {
           return;

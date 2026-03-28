@@ -18,9 +18,12 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "HOST=127.0.0.1 PORT=5000 npm run dev",
+    command:
+      "APP_DATA_PATH=/tmp/finsurance-playwright-app-store.json HOST=127.0.0.1 PORT=5000 npm run dev",
     url: "http://127.0.0.1:5000/api/health",
-    reuseExistingServer: !process.env.CI,
+    // Always start the isolated Playwright server so browser tests never reuse
+    // a developer server that points at the live local app store.
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 });

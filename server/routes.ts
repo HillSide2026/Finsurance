@@ -441,6 +441,57 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/billing/checkout-session/:sessionId/reconcile", async (req, res) => {
+    try {
+      const stripeSession = await retrieveStripeCheckoutSession(req.params.sessionId, process.env);
+
+      await store.recordBillingCheckoutSession(
+        {
+          sessionId: stripeSession.id,
+          checkoutUrl: stripeSession.checkoutUrl,
+          sourcePath: stripeSession.metadata.source_path ?? siteConfig.productPath,
+          teamId: stripeSession.metadata.team_id ?? null,
+          userId: stripeSession.metadata.user_id ?? null,
+          customerEmail: stripeSession.customerEmail,
+          clientReferenceId: stripeSession.clientReferenceId,
+          status: stripeSession.status,
+          paymentStatus: stripeSession.paymentStatus,
+          amountTotal: stripeSession.amountTotal,
+          currency: stripeSession.currency,
+          livemode: stripeSession.livemode,
+        },
+        getRequestIpAddress(req),
+      );
+
+      return res.json({
+        ok: true,
+        session: {
+          id: stripeSession.id,
+          checkoutUrl: stripeSession.checkoutUrl,
+          mode: stripeSession.mode,
+          status: stripeSession.status,
+          paymentStatus: stripeSession.paymentStatus,
+          customerEmail: stripeSession.customerEmail,
+          clientReferenceId: stripeSession.clientReferenceId,
+          amountTotal: stripeSession.amountTotal,
+          currency: stripeSession.currency,
+          livemode: stripeSession.livemode,
+        },
+      } satisfies CheckoutSessionStatusResponse);
+    } catch (error) {
+      if (error instanceof StripeBillingError) {
+        return sendApiError(res, error.status, error.message, error.code);
+      }
+
+      return sendApiError(
+        res,
+        502,
+        "Stripe Checkout session reconciliation failed.",
+        "stripe_checkout_reconciliation_error",
+      );
+    }
+  });
+
   app.get("/api/billing/checkout-session/:sessionId", async (req, res) => {
     try {
       const stripeSession = await retrieveStripeCheckoutSession(req.params.sessionId, process.env);

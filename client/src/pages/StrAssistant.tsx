@@ -427,7 +427,7 @@ function AuthCard({
       className="legal-home-card shadow-[0_18px_40px_rgba(31,51,37,0.06)]"
     >
       <CardHeader className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <CardTitle className="text-2xl text-[#1B2118]">
               {mode === "register" ? "Create your workspace" : "Sign in to your workspace"}
@@ -437,12 +437,12 @@ function AuthCard({
               workspace.
             </CardDescription>
           </div>
-          <div className="hidden items-center gap-2 rounded-full border border-[rgba(96,110,89,0.14)] bg-white/70 p-1 md:flex">
+          <div className="flex w-full items-center gap-2 rounded-full border border-[rgba(96,110,89,0.14)] bg-white/70 p-1 md:w-auto">
             <button
               type="button"
               onClick={() => onModeChange("register")}
               className={cn(
-                "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                "flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors md:flex-none",
                 mode === "register" ? "bg-[#6F8B65] text-[#F7F1E4]" : "text-[#596255]",
               )}
             >
@@ -452,7 +452,7 @@ function AuthCard({
               type="button"
               onClick={() => onModeChange("login")}
               className={cn(
-                "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                "flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors md:flex-none",
                 mode === "login" ? "bg-[#6F8B65] text-[#F7F1E4]" : "text-[#596255]",
               )}
             >
@@ -940,11 +940,8 @@ export default function StrAssistant() {
         ...current,
         password: "",
       }));
-
-      if (response.session) {
-        await refreshWorkspace(response.session);
-      }
-
+      setDrafts([]);
+      setReviewers([]);
       setView("workspace");
       toast({
         title: authMode === "register" ? "Workspace created" : "Signed in",
@@ -953,6 +950,20 @@ export default function StrAssistant() {
             ? "Your saved draft workspace is ready."
             : "Your saved draft workspace is now available.",
       });
+
+      if (response.session) {
+        try {
+          await refreshWorkspace(response.session);
+        } catch (error) {
+          toast({
+            title: "Workspace data may be stale",
+            description: getApiErrorMessage(
+              error,
+              "The account action succeeded, but the saved draft list could not be refreshed yet.",
+            ),
+          });
+        }
+      }
     } catch (error) {
       toast({
         title: authMode === "register" ? "Registration failed" : "Sign-in failed",
@@ -1020,6 +1031,7 @@ export default function StrAssistant() {
 
     setIsSavingDraft(true);
     try {
+      const wasExistingDraft = activeDraftId !== null;
       const response = await apiRequest<SaveDraftResponse>("/api/drafts", {
         method: "POST",
         body: {
@@ -1038,12 +1050,23 @@ export default function StrAssistant() {
       setDraftTitle(response.draft.title);
       setDraftStatus(response.draft.status);
       setAssignedReviewerUserId(response.draft.assignedReviewerUserId);
-      await refreshWorkspace();
 
       if (!options?.silent) {
         toast({
-          title: activeDraftId ? "Draft saved" : "Draft created",
+          title: wasExistingDraft ? "Draft saved" : "Draft created",
           description: "The STR draft is now stored in your workspace.",
+        });
+      }
+
+      try {
+        await refreshWorkspace();
+      } catch (error) {
+        toast({
+          title: "Draft saved, but the workspace list may be stale",
+          description: getApiErrorMessage(
+            error,
+            "The draft was saved successfully, but the workspace list could not be refreshed yet.",
+          ),
         });
       }
     } catch (error) {
