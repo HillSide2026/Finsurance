@@ -179,7 +179,11 @@ export default function BillingSuccessPage() {
               )}
 
               <div className="flex flex-wrap gap-3">
-                <Button asChild size="lg" className="rounded-2xl px-8">
+                <Button
+                  asChild
+                  size="lg"
+                  className="rounded-2xl bg-[#E6C989] px-8 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
+                >
                   <a href={returnUrl}>
                     {session?.paymentStatus === "paid" && session?.draftId
                       ? "Return To Export"
@@ -187,7 +191,12 @@ export default function BillingSuccessPage() {
                     <ArrowRight className="h-4 w-4" />
                   </a>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="rounded-2xl border-[rgba(230,201,137,0.5)] bg-[rgba(230,201,137,0.08)] px-8 text-[#E6C989] hover:bg-[rgba(230,201,137,0.14)] hover:text-[#F4F2EC]"
+                >
                   <a href={siteConfig.links.earlyAccess}>Need product help?</a>
                 </Button>
               </div>

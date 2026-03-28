@@ -252,7 +252,7 @@ function FinsureDevicePreview() {
             <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#E6C989]">
               STR Drafting
             </p>
-            <Button className="mt-3 h-11 w-full rounded-2xl bg-[#2F5A42] text-sm font-semibold text-[#F7F1E4] shadow-[0_12px_24px_rgba(230,201,137,0.14)] hover:bg-[#37674d]">
+            <Button className="mt-3 h-11 w-full rounded-2xl bg-[#E6C989] text-sm font-semibold text-[#1F241D] shadow-[0_12px_24px_rgba(230,201,137,0.18)] hover:bg-[#dcbc6f]">
               New Draft
             </Button>
           </div>
@@ -314,7 +314,7 @@ export default function SiteHome() {
 
               <Button
                 asChild
-                className="rounded-xl bg-[#1F4732] px-5 text-[#F6F1E8] shadow-[0_14px_28px_rgba(230,201,137,0.16)] hover:bg-[#244d38] md:px-6"
+                className="rounded-xl bg-[#E6C989] px-5 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f] md:px-6"
               >
                 <a href={siteConfig.links.finsure}>Explore FinSure</a>
               </Button>
@@ -353,7 +353,7 @@ export default function SiteHome() {
               <div className="space-y-5">
                 <div className="inline-flex w-fit items-center rounded-[24px] p-2 legal-home-brand-plaque">
                   <img
-                    src="/fintechlawyer-logo-inverse.png"
+                    src="/fintechlawyer-logo.png"
                     alt="FintechLawyer.ca"
                     className="h-12 w-auto rounded-[18px] md:h-14"
                   />
@@ -379,7 +379,7 @@ export default function SiteHome() {
                   <Button
                     asChild
                     size="lg"
-                    className="rounded-2xl bg-[#F6F1E8] px-8 text-[#1F4732] shadow-[0_14px_28px_rgba(230,201,137,0.14)] hover:bg-[#eee7da]"
+                    className="rounded-2xl bg-[#E6C989] px-8 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
                   >
                     <a href={siteConfig.links.finsure}>
                       Explore FinSure
@@ -390,7 +390,7 @@ export default function SiteHome() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="rounded-2xl border-[rgba(230,201,137,0.34)] bg-[rgba(255,255,255,0.04)] px-8 text-[#F4F2EC] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#F4F2EC]"
+                    className="rounded-2xl border-[rgba(230,201,137,0.5)] bg-[rgba(230,201,137,0.08)] px-8 text-[#E6C989] hover:bg-[rgba(230,201,137,0.14)] hover:text-[#F4F2EC]"
                   >
                     <a href={siteConfig.links.useCases}>
                       Browse Resources
@@ -563,7 +563,7 @@ export default function SiteHome() {
                   <Button
                     asChild
                     size="lg"
-                    className="rounded-2xl bg-[#F6F1E8] px-8 text-[#1F4732] shadow-[0_14px_28px_rgba(230,201,137,0.14)] hover:bg-[#eee7da]"
+                    className="rounded-2xl bg-[#E6C989] px-8 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
                   >
                     <a href={siteConfig.links.finsure}>
                       Explore FinSure
@@ -574,7 +574,7 @@ export default function SiteHome() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="rounded-2xl border-[rgba(230,201,137,0.34)] bg-[rgba(255,255,255,0.04)] px-8 text-[#F4F2EC] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#F4F2EC]"
+                    className="rounded-2xl border-[rgba(230,201,137,0.5)] bg-[rgba(230,201,137,0.08)] px-8 text-[#E6C989] hover:bg-[rgba(230,201,137,0.14)] hover:text-[#F4F2EC]"
                   >
                     <a href={siteConfig.links.product}>
                       Learn More
@@ -655,7 +655,7 @@ export default function SiteHome() {
                 <Button
                   asChild
                   size="lg"
-                  className="rounded-2xl bg-[#1F4732] px-12 text-[#F6F1E8] shadow-[0_18px_32px_rgba(230,201,137,0.16)] hover:bg-[#244d38]"
+                  className="rounded-2xl bg-[#E6C989] px-12 text-[#1F241D] shadow-[0_18px_32px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
                 >
                   <a href={siteConfig.links.finsure}>
                     Explore FinSure

@@ -9,10 +9,10 @@
   --font-mono: "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
 
   --brand-ivory: #f6f1e8;
-  --brand-money-green: #2f5a42;
-  --brand-money-green-soft: #53755f;
-  --brand-deep-green: #1f4732;
-  --brand-deep-green-soft: #224233;
+  --brand-money-green: #1f3d2b;
+  --brand-money-green-soft: #355746;
+  --brand-deep-green: #1f3d2b;
+  --brand-deep-green-soft: #284636;
   --brand-gold: #e6c989;
 
   --background: 38 41% 94%;
@@ -26,9 +26,9 @@
   --popover-foreground: 142 30% 15%;
   --popover-border: 35 26% 80%;
 
-  --primary: 144 39% 20%;
+  --primary: 144 33% 18%;
   --primary-foreground: 38 41% 94%;
-  --primary-border: hsl(144 34% 16%);
+  --primary-border: hsl(144 33% 15%);
 
   --secondary: 40 33% 91%;
   --secondary-foreground: 142 30% 15%;
@@ -48,13 +48,13 @@
 
   --border: 35 20% 78%;
   --input: 35 20% 78%;
-  --ring: 144 39% 20%;
+  --ring: 144 33% 18%;
 
-  --button-outline: hsl(144 25% 33%);
-  --badge-outline: hsl(144 25% 33%);
+  --button-outline: hsl(150 24% 27%);
+  --badge-outline: hsl(150 24% 27%);
 
-  --chart-1: 144 39% 20%;
-  --chart-2: 146 24% 42%;
+  --chart-1: 144 33% 18%;
+  --chart-2: 150 24% 27%;
   --chart-3: 36 47% 56%;
   --chart-4: 40 33% 66%;
   --chart-5: 142 30% 15%;
@@ -62,10 +62,10 @@
   --sidebar: 40 41% 98%;
   --sidebar-foreground: 142 30% 15%;
   --sidebar-border: 35 26% 80%;
-  --sidebar-ring: 144 39% 20%;
-  --sidebar-primary: 144 39% 20%;
+  --sidebar-ring: 144 33% 18%;
+  --sidebar-primary: 144 33% 18%;
   --sidebar-primary-foreground: 38 41% 94%;
-  --sidebar-primary-border: hsl(144 34% 16%);
+  --sidebar-primary-border: hsl(144 33% 15%);
   --sidebar-accent: 40 28% 90%;
   --sidebar-accent-foreground: 142 30% 15%;
   --sidebar-accent-border: hsl(35 18% 78%);
@@ -121,7 +121,7 @@
   .legal-home-shell {
     background:
       radial-gradient(circle at top left, rgba(230, 201, 137, 0.12), transparent 26%),
-      radial-gradient(circle at bottom right, rgba(31, 71, 50, 0.08), transparent 30%),
+      radial-gradient(circle at bottom right, rgba(31, 61, 43, 0.08), transparent 30%),
       #f6f1e8;
     position: relative;
   }
@@ -154,7 +154,7 @@
 
   .legal-home-nav {
     background: rgba(255, 252, 247, 0.96);
-    border-color: rgba(31, 71, 50, 0.08);
+    border-color: rgba(31, 61, 43, 0.08);
     box-shadow:
       0 16px 34px rgba(26, 26, 26, 0.05),
       inset 0 1px 0 rgba(230, 201, 137, 0.18);
@@ -165,7 +165,7 @@
     background:
       radial-gradient(circle at top right, rgba(230, 201, 137, 0.22), transparent 24%),
       radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.08), transparent 28%),
-      linear-gradient(145deg, #173424 0%, #1f4732 54%, #132c20 100%);
+      linear-gradient(145deg, #183224 0%, #1f3d2b 54%, #14281d 100%);
     border-color: rgba(255, 255, 255, 0.08);
     box-shadow: 0 34px 80px rgba(16, 24, 19, 0.24);
   }
@@ -181,7 +181,7 @@
     background:
       radial-gradient(circle at top right, rgba(230, 201, 137, 0.2), transparent 24%),
       radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.05), transparent 28%),
-      linear-gradient(145deg, #173424 0%, #214534 54%, #132d21 100%);
+      linear-gradient(145deg, #183224 0%, #1f3d2b 54%, #14281d 100%);
     border-color: rgba(255, 255, 255, 0.08);
     box-shadow: 0 32px 74px rgba(16, 24, 19, 0.22);
   }
@@ -213,7 +213,7 @@
   .legal-home-device-screen {
     background:
       radial-gradient(circle at top, rgba(230, 201, 137, 0.12), transparent 24%),
-      linear-gradient(180deg, #16211b 0%, #203029 100%);
+      linear-gradient(180deg, #15211a 0%, #1d2d24 100%);
     border: 1px solid rgba(255, 255, 255, 0.07);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
@@ -228,8 +228,8 @@
   }
 
   .legal-home-brand-plaque {
-    background: rgba(255, 252, 245, 0.06);
-    border: 1px solid rgba(230, 201, 137, 0.28);
+    background: rgba(246, 241, 232, 0.96);
+    border: 1px solid rgba(230, 201, 137, 0.32);
     box-shadow: 0 14px 34px rgba(11, 22, 16, 0.18);
   }
 

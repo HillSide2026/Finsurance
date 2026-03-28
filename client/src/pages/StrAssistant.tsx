@@ -1686,7 +1686,10 @@ export default function StrAssistant() {
                 <Badge className="w-fit border-[rgba(96,110,89,0.14)] bg-white/70 px-4 py-2 text-[#1F241D]">
                   {authSession.user.email}
                 </Badge>
-                <Button className="rounded-2xl px-6" onClick={beginNewDraft}>
+                <Button
+                  className="rounded-2xl bg-[#E6C989] px-6 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
+                  onClick={beginNewDraft}
+                >
                   <ShieldCheck className="h-4 w-4" />
                   New draft
                 </Button>
@@ -1757,7 +1760,10 @@ export default function StrAssistant() {
                 </nav>
                 {authSession ? (
                   <div className="flex items-center gap-3">
-                    <Button className="rounded-2xl px-6" onClick={() => setView("workspace")}>
+                    <Button
+                      className="rounded-2xl bg-[#E6C989] px-6 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
+                      onClick={() => setView("workspace")}
+                    >
                       Open saved drafts
                       <ArrowRight className="h-4 w-4" />
                     </Button>
@@ -1768,7 +1774,7 @@ export default function StrAssistant() {
                   </div>
                 ) : (
                   <Button
-                    className="rounded-2xl px-6"
+                    className="rounded-2xl bg-[#E6C989] px-6 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
                     onClick={() => {
                       setAuthMode("login");
                       scrollToElement("auth-access");
@@ -1793,14 +1799,28 @@ export default function StrAssistant() {
                   Report draft you can review, edit, save, and export.
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
-                  <Button size="lg" className="rounded-2xl px-8" onClick={openWorkflow}>
+                  <Button
+                    size="lg"
+                    className="rounded-2xl bg-[#E6C989] px-8 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
+                    onClick={openWorkflow}
+                  >
                     {authSession ? "Start drafting" : "Start drafting now"}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
-                  <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="rounded-2xl border-[rgba(230,201,137,0.5)] bg-[rgba(230,201,137,0.08)] px-8 text-[#E6C989] hover:bg-[rgba(230,201,137,0.14)] hover:text-[#F4F2EC]"
+                  >
                     <a href={siteConfig.links.howItWorks}>See how it works</a>
                   </Button>
-                  <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="rounded-2xl border-[rgba(230,201,137,0.5)] bg-[rgba(230,201,137,0.08)] px-8 text-[#E6C989] hover:bg-[rgba(230,201,137,0.14)] hover:text-[#F4F2EC]"
+                  >
                     <a href={siteConfig.links.levineLaw} target="_blank" rel="noreferrer">
                       Visit Levine Law
                       <ArrowUpRight className="h-4 w-4" />
@@ -1980,7 +2000,11 @@ export default function StrAssistant() {
                   ))}
                 </div>
                 <div>
-                  <Button size="lg" className="rounded-2xl px-8" onClick={openWorkflow}>
+                  <Button
+                    size="lg"
+                    className="rounded-2xl bg-[#E6C989] px-8 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
+                    onClick={openWorkflow}
+                  >
                     Start drafting
                     <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -2036,7 +2060,12 @@ export default function StrAssistant() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="rounded-2xl border-[rgba(230,201,137,0.5)] bg-[rgba(230,201,137,0.08)] px-8 text-[#E6C989] hover:bg-[rgba(230,201,137,0.14)] hover:text-[#F4F2EC]"
+                  >
                     <a href={siteConfig.links.levineLaw} target="_blank" rel="noreferrer">
                       Visit Levine Law
                       <ArrowUpRight className="h-4 w-4" />
