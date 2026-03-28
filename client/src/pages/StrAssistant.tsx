@@ -1733,24 +1733,24 @@ export default function StrAssistant() {
 
               <div className="flex items-center gap-6">
                 <nav className="hidden items-center gap-6 text-sm font-medium text-[#525B50] lg:flex">
-                  <a href={siteConfig.links.product} className="transition-colors hover:text-[#C39A56]">
+                  <a href={siteConfig.links.product} className="transition-colors hover:text-[#E6C989]">
                     Product
                   </a>
                   <a
                     href={siteConfig.links.howItWorks}
-                    className="transition-colors hover:text-[#C39A56]"
+                    className="transition-colors hover:text-[#E6C989]"
                   >
                     How It Works
                   </a>
                   <a
                     href={siteConfig.links.socialProof}
-                    className="transition-colors hover:text-[#C39A56]"
+                    className="transition-colors hover:text-[#E6C989]"
                   >
                     Social Proof
                   </a>
                   <a
                     href={siteConfig.links.expertise}
-                    className="transition-colors hover:text-[#C39A56]"
+                    className="transition-colors hover:text-[#E6C989]"
                   >
                     Expertise
                   </a>

@@ -227,12 +227,12 @@ export default function LegalPage({ page }: LegalPageProps) {
             </a>
 
             <nav className="flex flex-wrap items-center gap-4 text-sm font-medium text-[#525B50] md:gap-6">
-              <a href={siteConfig.links.home} className="transition-colors hover:text-[#C39A56]">
+              <a href={siteConfig.links.home} className="transition-colors hover:text-[#E6C989]">
                 Home
               </a>
               <a
                 href={siteConfig.links.finsure}
-                className="transition-colors hover:text-[#C39A56]"
+                className="transition-colors hover:text-[#E6C989]"
               >
                 FinSure
               </a>
