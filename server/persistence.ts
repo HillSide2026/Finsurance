@@ -1,6 +1,11 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
+import {
+  productFunnelEventTypeValues,
+  type ProductFunnelEventType,
+  type ProductFunnelSummary,
+} from "@shared/analytics";
 import { buildStrDraft, normalizeStrIntake, type StrIntake } from "@shared/str";
 import type {
   AuthSessionSummary,
@@ -88,12 +93,24 @@ type InternalAuditEventRecord = {
   id: string;
   teamId: string | null;
   actorUserId: string | null;
-  entityType: "auth" | "draft" | "enquiry" | "billing";
+  entityType: "auth" | "draft" | "enquiry" | "billing" | "product";
   entityId: string;
   action: string;
   createdAt: string;
   ipAddress: string;
   metadata: Record<string, string>;
+};
+
+type InternalProductFunnelEventRecord = {
+  id: string;
+  flowId: string;
+  eventType: ProductFunnelEventType;
+  sourcePath: string;
+  draftId: string | null;
+  teamId: string | null;
+  userId: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 type AppStoreData = {
@@ -105,6 +122,7 @@ type AppStoreData = {
   enquiries: InternalProductEnquiryRecord[];
   stripeWebhookEvents: InternalStripeWebhookEventRecord[];
   billingCheckoutSessions: InternalBillingCheckoutSessionRecord[];
+  productFunnelEvents: InternalProductFunnelEventRecord[];
   auditEvents: InternalAuditEventRecord[];
 };
 
@@ -142,6 +160,7 @@ function createEmptyStore(): AppStoreData {
     enquiries: [],
     stripeWebhookEvents: [],
     billingCheckoutSessions: [],
+    productFunnelEvents: [],
     auditEvents: [],
   };
 }
@@ -161,6 +180,9 @@ function hydrateStoreData(value: unknown): AppStoreData {
       : [],
     billingCheckoutSessions: Array.isArray(parsed?.billingCheckoutSessions)
       ? parsed.billingCheckoutSessions
+      : [],
+    productFunnelEvents: Array.isArray(parsed?.productFunnelEvents)
+      ? parsed.productFunnelEvents
       : [],
     auditEvents: Array.isArray(parsed?.auditEvents) ? parsed.auditEvents : [],
   };
@@ -266,6 +288,23 @@ function ensureWorkflowStepView(value: string): WorkflowStepView {
   }
 }
 
+function isProductFunnelEventType(value: string): value is ProductFunnelEventType {
+  return productFunnelEventTypeValues.includes(value as ProductFunnelEventType);
+}
+
+function normalizeSourcePath(value: string | null | undefined): string {
+  const normalized = normalizeText(value ?? "");
+  return normalized.startsWith("/") ? normalized : "/finsure";
+}
+
+function formatPercentage(numerator: number, denominator: number): number | null {
+  if (denominator === 0) {
+    return null;
+  }
+
+  return Number(((numerator / denominator) * 100).toFixed(1));
+}
+
 export function resolveAppDataFilePath(env: NodeJS.ProcessEnv = process.env): string {
   const configuredPath = normalizeText(env.APP_DATA_PATH ?? "");
   return configuredPath.length > 0
@@ -353,6 +392,118 @@ export class PersistentAppStore {
       createdAt: new Date().toISOString(),
       ...input,
     });
+  }
+
+  private upsertProductFunnelEvent(
+    data: AppStoreData,
+    input: {
+      eventType: ProductFunnelEventType;
+      flowId: string;
+      sourcePath: string;
+      draftId: string | null;
+      teamId: string | null;
+      userId: string | null;
+    },
+    ipAddress: string,
+  ): { created: boolean } {
+    const existingRecord = data.productFunnelEvents.find(
+      (event) => event.flowId === input.flowId && event.eventType === input.eventType,
+    );
+
+    if (existingRecord) {
+      existingRecord.sourcePath = normalizeSourcePath(input.sourcePath) || existingRecord.sourcePath;
+      existingRecord.draftId = input.draftId ?? existingRecord.draftId;
+      existingRecord.teamId = input.teamId ?? existingRecord.teamId;
+      existingRecord.userId = input.userId ?? existingRecord.userId;
+      existingRecord.updatedAt = new Date().toISOString();
+      return { created: false };
+    }
+
+    const now = new Date().toISOString();
+    const record: InternalProductFunnelEventRecord = {
+      id: makeId("funnel"),
+      flowId: input.flowId,
+      eventType: input.eventType,
+      sourcePath: normalizeSourcePath(input.sourcePath),
+      draftId: input.draftId,
+      teamId: input.teamId,
+      userId: input.userId,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    data.productFunnelEvents.push(record);
+    this.appendAuditEvent(data, {
+      teamId: input.teamId,
+      actorUserId: input.userId,
+      entityType: "product",
+      entityId: record.id,
+      action: input.eventType,
+      ipAddress,
+      metadata: {
+        flowId: input.flowId,
+        draftId: input.draftId ?? "",
+        sourcePath: record.sourcePath,
+      },
+    });
+
+    return { created: true };
+  }
+
+  private attachDraftContextToFunnelEvents(
+    data: AppStoreData,
+    draft: DraftRecord,
+  ) {
+    const matchingEvents = data.productFunnelEvents.filter(
+      (event) => event.flowId === draft.sessionMeta.id,
+    );
+
+    for (const event of matchingEvents) {
+      event.draftId = draft.id;
+      event.teamId = draft.teamId;
+      event.userId = draft.updatedByUserId;
+      event.updatedAt = draft.updatedAt;
+    }
+  }
+
+  private recordPaymentCompletedForDraft(
+    data: AppStoreData,
+    input: {
+      draftId: string | null;
+      teamId: string | null;
+      userId: string | null;
+      sourcePath: string;
+      completedAt: string | null;
+      paymentStatus: string | null;
+      status: string | null;
+    },
+    ipAddress: string,
+  ) {
+    const isPaid =
+      input.completedAt !== null || input.paymentStatus === "paid" || input.status === "complete";
+    if (!isPaid || !input.draftId || !input.teamId) {
+      return;
+    }
+
+    const draft = data.drafts.find(
+      (candidate) => candidate.id === input.draftId && candidate.teamId === input.teamId,
+    );
+    if (!draft) {
+      return;
+    }
+
+    this.upsertProductFunnelEvent(
+      data,
+      {
+        eventType: "payment_completed",
+        flowId: draft.sessionMeta.id,
+        sourcePath: input.sourcePath,
+        draftId: draft.id,
+        teamId: draft.teamId,
+        userId: input.userId ?? draft.updatedByUserId,
+      },
+      ipAddress,
+    );
   }
 
   async getSessionByToken(token: string): Promise<AuthSessionSummary | null> {
@@ -717,6 +868,8 @@ export class PersistentAppStore {
         },
       });
 
+      this.attachDraftContextToFunnelEvents(data, record);
+
       return record;
     });
   }
@@ -793,6 +946,93 @@ export class PersistentAppStore {
     });
   }
 
+  async recordProductFunnelEvent(
+    input: {
+      eventType: ProductFunnelEventType;
+      flowId: string;
+      sourcePath: string;
+      draftId: string | null;
+      teamId: string | null;
+      userId: string | null;
+    },
+    ipAddress: string,
+  ): Promise<{ created: boolean }> {
+    return this.update((data) =>
+      this.upsertProductFunnelEvent(
+        data,
+        {
+          eventType: input.eventType,
+          flowId: normalizeText(input.flowId),
+          sourcePath: normalizeSourcePath(input.sourcePath),
+          draftId: input.draftId,
+          teamId: input.teamId,
+          userId: input.userId,
+        },
+        ipAddress,
+      ),
+    );
+  }
+
+  async getProductFunnelSummary(): Promise<ProductFunnelSummary> {
+    return this.read((data) => {
+      const startedFlows = new Set(
+        data.productFunnelEvents
+          .filter((event) => event.eventType === "str_started")
+          .map((event) => event.flowId),
+      );
+      const completedFlows = new Set(
+        data.productFunnelEvents
+          .filter((event) => event.eventType === "str_completed")
+          .map((event) => event.flowId),
+      );
+      const exportFlows = new Set(
+        data.productFunnelEvents
+          .filter((event) => event.eventType === "export_initiated")
+          .map((event) => event.flowId),
+      );
+      const paymentFlows = new Set(
+        data.productFunnelEvents
+          .filter((event) => event.eventType === "payment_completed")
+          .map((event) => event.flowId),
+      );
+
+      const lastEventAt = data.productFunnelEvents.reduce<string | null>((latest, event) => {
+        if (!latest || Date.parse(event.updatedAt) > Date.parse(latest)) {
+          return event.updatedAt;
+        }
+
+        return latest;
+      }, null);
+
+      return {
+        counts: {
+          strStarted: startedFlows.size,
+          strCompleted: completedFlows.size,
+          exportInitiated: exportFlows.size,
+          paymentCompleted: paymentFlows.size,
+        },
+        rates: {
+          completionFromStarted: formatPercentage(completedFlows.size, startedFlows.size),
+          reachExportFromStarted: formatPercentage(exportFlows.size, startedFlows.size),
+          paymentFromExportInitiated: formatPercentage(paymentFlows.size, exportFlows.size),
+          paymentFromStarted: formatPercentage(paymentFlows.size, startedFlows.size),
+        },
+        dropOffs: {
+          startedWithoutCompletion: Array.from(startedFlows).filter(
+            (flowId) => !completedFlows.has(flowId),
+          ).length,
+          completedWithoutExportInitiated: Array.from(completedFlows).filter(
+            (flowId) => !exportFlows.has(flowId),
+          ).length,
+          exportInitiatedWithoutPayment: Array.from(exportFlows).filter(
+            (flowId) => !paymentFlows.has(flowId),
+          ).length,
+        },
+        lastEventAt,
+      };
+    });
+  }
+
   async recordStripeWebhookEvent(
     input: {
       eventId: string;
@@ -865,7 +1105,7 @@ export class PersistentAppStore {
   ): Promise<{ created: boolean }> {
     return this.update((data) => {
       const now = new Date().toISOString();
-      const normalizedSourcePath = normalizeText(input.sourcePath) || "/finsure";
+      const normalizedSourcePath = normalizeSourcePath(input.sourcePath);
       const normalizedDraftId =
         input.draftId && normalizeText(input.draftId).length > 0 ? normalizeText(input.draftId) : null;
       const normalizedCustomerEmail =
@@ -914,10 +1154,24 @@ export class PersistentAppStore {
           },
         });
 
+        this.recordPaymentCompletedForDraft(
+          data,
+          {
+            draftId: existingRecord.draftId,
+            teamId: existingRecord.teamId,
+            userId: existingRecord.userId,
+            sourcePath: existingRecord.sourcePath,
+            completedAt: existingRecord.completedAt,
+            paymentStatus: existingRecord.paymentStatus,
+            status: existingRecord.status,
+          },
+          ipAddress,
+        );
+
         return { created: false };
       }
 
-      data.billingCheckoutSessions.push({
+      const createdRecord: InternalBillingCheckoutSessionRecord = {
         id: input.sessionId,
         checkoutUrl: input.checkoutUrl,
         sourcePath: normalizedSourcePath,
@@ -935,7 +1189,8 @@ export class PersistentAppStore {
         updatedAt: now,
         completedAt:
           input.status === "complete" || input.paymentStatus === "paid" ? now : null,
-      });
+      };
+      data.billingCheckoutSessions.push(createdRecord);
 
       this.appendAuditEvent(data, {
         teamId: input.teamId,
@@ -952,6 +1207,20 @@ export class PersistentAppStore {
           customerEmail: normalizedCustomerEmail ?? "",
         },
       });
+
+      this.recordPaymentCompletedForDraft(
+        data,
+        {
+          draftId: createdRecord.draftId,
+          teamId: createdRecord.teamId,
+          userId: createdRecord.userId,
+          sourcePath: createdRecord.sourcePath,
+          completedAt: createdRecord.completedAt,
+          paymentStatus: createdRecord.paymentStatus,
+          status: createdRecord.status,
+        },
+        ipAddress,
+      );
 
       return { created: true };
     });

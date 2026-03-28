@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -24,6 +24,10 @@ import type {
   CreateCheckoutSessionResponse,
   DraftExportAccessResponse,
 } from "@shared/billing";
+import type {
+  ProductFunnelEventType,
+  RecordProductFunnelEventRequest,
+} from "@shared/analytics";
 import { siteConfig } from "@shared/site";
 import {
   draftStatusValues,
@@ -742,6 +746,7 @@ export default function StrAssistant() {
   const [isExportUnlocked, setIsExportUnlocked] = useState(false);
   const [paidCheckoutSessionId, setPaidCheckoutSessionId] = useState<string | null>(null);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const trackedFunnelEventsRef = useRef<Set<string>>(new Set());
 
   const draft = buildStrDraft(intake);
   const selectedPreset = intake.scenarioPresetId
@@ -879,6 +884,14 @@ export default function StrAssistant() {
     void loadDraftExportAccess(activeDraftId, { silent: true });
   }, [authSession, activeDraftId]);
 
+  useEffect(() => {
+    if (view !== "output" || narrativeText.trim().length === 0) {
+      return;
+    }
+
+    void recordProductFunnelEvent("str_completed");
+  }, [activeDraftId, narrativeText, session.id, view]);
+
   const updateIntake = <K extends keyof StrIntake>(key: K, value: StrIntake[K]) => {
     setIntake((current) => ({ ...current, [key]: value }));
   };
@@ -994,8 +1007,51 @@ export default function StrAssistant() {
     }
   };
 
+  const recordProductFunnelEvent = async (
+    eventType: ProductFunnelEventType,
+    options?: { flowId?: string; draftId?: string | null },
+  ) => {
+    const flowId = (options?.flowId ?? session.id).trim();
+    if (flowId.length === 0) {
+      return;
+    }
+
+    const eventKey = `${eventType}:${flowId}`;
+    if (trackedFunnelEventsRef.current.has(eventKey)) {
+      return;
+    }
+
+    trackedFunnelEventsRef.current.add(eventKey);
+
+    try {
+      const payload: RecordProductFunnelEventRequest = {
+        eventType,
+        flowId,
+        draftId: options?.draftId ?? activeDraftId ?? undefined,
+        sourcePath: siteConfig.productPath,
+      };
+
+      const response = await fetch("/api/analytics/events", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+
+      if (!response.ok) {
+        throw new Error("The analytics event could not be recorded.");
+      }
+    } catch {
+      trackedFunnelEventsRef.current.delete(eventKey);
+    }
+  };
+
   const beginNewDraft = () => {
-    setSession(createSessionMeta());
+    const nextSession = createSessionMeta();
+    setSession(nextSession);
     setIntake(createEmptyStrIntake());
     setNarrativeText("");
     setActiveDraftId(null);
@@ -1005,6 +1061,10 @@ export default function StrAssistant() {
     setLastSavedDraftUpdatedAt(null);
     setLastSavedDraftSnapshot(null);
     setView("intake");
+    void recordProductFunnelEvent("str_started", {
+      flowId: nextSession.id,
+      draftId: null,
+    });
   };
 
   const openWorkflow = () => {
@@ -1021,7 +1081,8 @@ export default function StrAssistant() {
   };
 
   const resetFlow = () => {
-    setSession(createSessionMeta());
+    const nextSession = createSessionMeta();
+    setSession(nextSession);
     setIntake(createEmptyStrIntake());
     setNarrativeText("");
     setActiveDraftId(null);
@@ -1032,6 +1093,12 @@ export default function StrAssistant() {
     setLastSavedDraftUpdatedAt(null);
     setLastSavedDraftSnapshot(null);
     setView(authSession ? "workspace" : "intake");
+    if (!authSession) {
+      void recordProductFunnelEvent("str_started", {
+        flowId: nextSession.id,
+        draftId: null,
+      });
+    }
   };
 
   const handleAuthSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -1360,6 +1427,8 @@ export default function StrAssistant() {
     if (!isWorkflowView(view)) {
       return;
     }
+
+    void recordProductFunnelEvent("export_initiated");
 
     if (!authSession) {
       routeToAuthGate(

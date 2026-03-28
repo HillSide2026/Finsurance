@@ -1,6 +1,12 @@
 import type { Express, Request, Response } from "express";
 import type { Server } from "http";
 import type {
+  ProductFunnelSummaryResponse,
+  RecordProductFunnelEventRequest,
+  RecordProductFunnelEventResponse,
+} from "@shared/analytics";
+import { productFunnelEventTypeValues } from "@shared/analytics";
+import type {
   CheckoutSessionStatusResponse,
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
@@ -41,6 +47,10 @@ function sendApiError(res: Response, status: number, message: string, code: stri
 
 function isValidEmail(value: string): boolean {
   return /\S+@\S+\.\S+/.test(value);
+}
+
+function isProductFunnelEventType(value: string): value is (typeof productFunnelEventTypeValues)[number] {
+  return productFunnelEventTypeValues.includes(value as (typeof productFunnelEventTypeValues)[number]);
 }
 
 function readRawRequestBody(req: Request): string | Buffer | null {
@@ -209,6 +219,64 @@ export async function registerRoutes(
 
     clearSessionCookie(res);
     res.json({ ok: true });
+  });
+
+  app.post("/api/analytics/events", async (req, res) => {
+    const body = (req.body ?? {}) as Partial<RecordProductFunnelEventRequest>;
+    const eventType = typeof body.eventType === "string" ? body.eventType.trim() : "";
+    const flowId = typeof body.flowId === "string" ? body.flowId.trim() : "";
+    const sourcePath =
+      typeof body.sourcePath === "string" && body.sourcePath.trim().startsWith("/")
+        ? body.sourcePath.trim()
+        : siteConfig.productPath;
+    const currentSession = await resolveSession(store, req);
+
+    if (!isProductFunnelEventType(eventType)) {
+      return sendApiError(res, 400, "A valid analytics event type is required.", "invalid_event_type");
+    }
+
+    if (flowId.length === 0) {
+      return sendApiError(res, 400, "A flow id is required.", "missing_flow_id");
+    }
+
+    let draftId: string | null = null;
+    if (typeof body.draftId === "string" && body.draftId.trim().length > 0 && currentSession) {
+      const draft = await store.getDraftSnapshot(currentSession.team.id, body.draftId.trim());
+      if (draft) {
+        draftId = draft.id;
+      }
+    }
+
+    const result = await store.recordProductFunnelEvent(
+      {
+        eventType,
+        flowId,
+        sourcePath,
+        draftId,
+        teamId: currentSession?.team.id ?? null,
+        userId: currentSession?.user.id ?? null,
+      },
+      getRequestIpAddress(req),
+    );
+
+    res.status(result.created ? 201 : 200).json({
+      ok: true,
+      recorded: true,
+      duplicate: !result.created,
+    } satisfies RecordProductFunnelEventResponse);
+  });
+
+  app.get("/api/analytics/funnel", async (req, res) => {
+    const session = await requireSession(store, req, res);
+    if (!session) {
+      return;
+    }
+
+    const summary = await store.getProductFunnelSummary();
+    res.json({
+      ok: true,
+      summary,
+    } satisfies ProductFunnelSummaryResponse);
   });
 
   app.get("/api/workspace", async (req, res) => {
@@ -438,6 +506,18 @@ export async function registerRoutes(
     }
 
     const clientReferenceId = `team:${currentSession.team.id}:user:${currentSession.user.id}:draft:${draft.id}`;
+
+    await store.recordProductFunnelEvent(
+      {
+        eventType: "export_initiated",
+        flowId: draft.sessionMeta.id,
+        sourcePath,
+        draftId: draft.id,
+        teamId: currentSession.team.id,
+        userId: currentSession.user.id,
+      },
+      getRequestIpAddress(req),
+    );
 
     try {
       const stripeSession = await createStripeCheckoutSession(

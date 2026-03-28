@@ -445,3 +445,181 @@ test("persistent store records and updates Stripe checkout sessions", async (t) 
   assert.equal(exportAccess.unlocked, true);
   assert.equal(exportAccess.paidCheckoutSessionId, "cs_test_456");
 });
+
+test("persistent store summarizes product funnel milestones without double-counting flows", async (t) => {
+  const { filePath, store, cleanup } = await createTempStore();
+  t.after(async () => {
+    await cleanup();
+  });
+
+  const sourcePath = "/finsure";
+  const flowStartedOnly = "STR-FLOW-001";
+  const flowCompletedOnly = "STR-FLOW-002";
+  const flowPaid = "STR-FLOW-003";
+
+  const firstStart = await store.recordProductFunnelEvent(
+    {
+      eventType: "str_started",
+      flowId: flowStartedOnly,
+      sourcePath,
+      draftId: null,
+      teamId: null,
+      userId: null,
+    },
+    "127.0.0.1",
+  );
+  assert.equal(firstStart.created, true);
+
+  const duplicateStart = await store.recordProductFunnelEvent(
+    {
+      eventType: "str_started",
+      flowId: flowStartedOnly,
+      sourcePath,
+      draftId: null,
+      teamId: null,
+      userId: null,
+    },
+    "127.0.0.1",
+  );
+  assert.equal(duplicateStart.created, false);
+
+  await store.recordProductFunnelEvent(
+    {
+      eventType: "str_started",
+      flowId: flowCompletedOnly,
+      sourcePath,
+      draftId: null,
+      teamId: null,
+      userId: null,
+    },
+    "127.0.0.1",
+  );
+  await store.recordProductFunnelEvent(
+    {
+      eventType: "str_completed",
+      flowId: flowCompletedOnly,
+      sourcePath,
+      draftId: null,
+      teamId: null,
+      userId: null,
+    },
+    "127.0.0.1",
+  );
+
+  await store.recordProductFunnelEvent(
+    {
+      eventType: "str_started",
+      flowId: flowPaid,
+      sourcePath,
+      draftId: null,
+      teamId: null,
+      userId: null,
+    },
+    "127.0.0.1",
+  );
+  await store.recordProductFunnelEvent(
+    {
+      eventType: "str_completed",
+      flowId: flowPaid,
+      sourcePath,
+      draftId: null,
+      teamId: null,
+      userId: null,
+    },
+    "127.0.0.1",
+  );
+  await store.recordProductFunnelEvent(
+    {
+      eventType: "export_initiated",
+      flowId: flowPaid,
+      sourcePath,
+      draftId: null,
+      teamId: null,
+      userId: null,
+    },
+    "127.0.0.1",
+  );
+
+  const summary = await store.registerOwnerAccount({
+    teamName: "Observability Team",
+    name: "Observability Owner",
+    email: "observability.owner@example.com",
+    password: "Password123",
+  });
+
+  const paidDraft = await store.saveDraft(
+    summary.team.id,
+    summary.user.id,
+    {
+      title: "Tracked paid flow",
+      status: "draft",
+      assignedReviewerUserId: null,
+      lastWorkflowView: "output",
+      sessionMeta: {
+        id: flowPaid,
+        timestamp: new Date("2026-03-27T13:00:00.000Z").toISOString(),
+      },
+      intake: createEmptyStrIntake(),
+      narrativeText: "Tracked payment narrative",
+    },
+    "127.0.0.1",
+  );
+
+  await store.recordBillingCheckoutSession(
+    {
+      sessionId: "cs_funnel_123",
+      checkoutUrl: "https://checkout.stripe.com/c/pay/cs_funnel_123",
+      sourcePath,
+      draftId: paidDraft.id,
+      teamId: summary.team.id,
+      userId: summary.user.id,
+      customerEmail: summary.user.email,
+      clientReferenceId: `team:${summary.team.id}:user:${summary.user.id}:draft:${paidDraft.id}`,
+      status: "complete",
+      paymentStatus: "paid",
+      amountTotal: 900,
+      currency: "CAD",
+      livemode: false,
+    },
+    "127.0.0.1",
+  );
+
+  const funnel = await store.getProductFunnelSummary();
+  assert.deepEqual(funnel.counts, {
+    strStarted: 3,
+    strCompleted: 2,
+    exportInitiated: 1,
+    paymentCompleted: 1,
+  });
+  assert.deepEqual(funnel.dropOffs, {
+    startedWithoutCompletion: 1,
+    completedWithoutExportInitiated: 1,
+    exportInitiatedWithoutPayment: 0,
+  });
+  assert.equal(funnel.rates.completionFromStarted, 66.7);
+  assert.equal(funnel.rates.reachExportFromStarted, 33.3);
+  assert.equal(funnel.rates.paymentFromExportInitiated, 100);
+  assert.equal(funnel.rates.paymentFromStarted, 33.3);
+  assert.ok(funnel.lastEventAt);
+
+  const persisted = JSON.parse(await readFile(filePath, "utf8")) as {
+    productFunnelEvents?: Array<{
+      eventType: string;
+      flowId: string;
+      draftId: string | null;
+      teamId: string | null;
+    }>;
+  };
+
+  const paidStartEvent = persisted.productFunnelEvents?.find(
+    (event) => event.eventType === "str_started" && event.flowId === flowPaid,
+  );
+  assert.equal(paidStartEvent?.draftId, paidDraft.id);
+  assert.equal(paidStartEvent?.teamId, summary.team.id);
+
+  const paymentCompletedEvent = persisted.productFunnelEvents?.find(
+    (event) => event.eventType === "payment_completed" && event.flowId === flowPaid,
+  );
+  assert.equal(paymentCompletedEvent?.draftId, paidDraft.id);
+  assert.equal(paymentCompletedEvent?.teamId, summary.team.id);
+});
