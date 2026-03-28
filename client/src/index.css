@@ -8,35 +8,35 @@
   --font-display: "Montserrat", sans-serif;
   --font-mono: "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
 
-  --brand-ivory: #f7f1e4;
-  --brand-money-green: #6f8b65;
-  --brand-money-green-soft: #6f8b65;
-  --brand-deep-green: #1f3325;
-  --brand-deep-green-soft: #273b2e;
-  --brand-gold: #e6c989;
+  --brand-ivory: #f6f1e8;
+  --brand-money-green: #2f5a42;
+  --brand-money-green-soft: #53755f;
+  --brand-deep-green: #1f4732;
+  --brand-deep-green-soft: #224233;
+  --brand-gold: #c39a56;
 
-  --background: 41 54% 93%;
-  --foreground: 138 24% 16%;
+  --background: 38 41% 94%;
+  --foreground: 142 30% 15%;
 
-  --card: 41 42% 97%;
-  --card-foreground: 138 24% 16%;
-  --card-border: 103 14% 80%;
+  --card: 40 41% 98%;
+  --card-foreground: 142 30% 15%;
+  --card-border: 35 26% 80%;
 
-  --popover: 41 42% 97%;
-  --popover-foreground: 138 24% 16%;
-  --popover-border: 103 14% 80%;
+  --popover: 40 41% 98%;
+  --popover-foreground: 142 30% 15%;
+  --popover-border: 35 26% 80%;
 
-  --primary: 104 16% 47%;
-  --primary-foreground: 41 54% 93%;
-  --primary-border: hsl(104 19% 37%);
+  --primary: 144 39% 20%;
+  --primary-foreground: 38 41% 94%;
+  --primary-border: hsl(144 34% 16%);
 
-  --secondary: 94 22% 90%;
-  --secondary-foreground: 138 24% 16%;
-  --secondary-border: hsl(103 13% 77%);
+  --secondary: 40 33% 91%;
+  --secondary-foreground: 142 30% 15%;
+  --secondary-border: hsl(35 22% 76%);
 
-  --muted: 94 17% 89%;
-  --muted-foreground: 102 11% 43%;
-  --muted-border: hsl(102 12% 76%);
+  --muted: 40 28% 90%;
+  --muted-foreground: 98 5% 42%;
+  --muted-border: hsl(35 18% 78%);
 
   --accent: 104 16% 47%;
   --accent-foreground: 41 54% 93%;
@@ -46,29 +46,29 @@
   --destructive-foreground: 0 0% 100%;
   --destructive-border: hsl(0 76% 44%);
 
-  --border: 103 13% 77%;
-  --input: 103 13% 77%;
-  --ring: 104 16% 47%;
+  --border: 35 20% 78%;
+  --input: 35 20% 78%;
+  --ring: 144 39% 20%;
 
-  --button-outline: hsl(102 14% 46%);
-  --badge-outline: hsl(102 14% 46%);
+  --button-outline: hsl(144 25% 33%);
+  --badge-outline: hsl(144 25% 33%);
 
-  --chart-1: 104 16% 47%;
-  --chart-2: 104 16% 47%;
-  --chart-3: 41 65% 72%;
-  --chart-4: 102 14% 46%;
-  --chart-5: 138 24% 16%;
+  --chart-1: 144 39% 20%;
+  --chart-2: 146 24% 42%;
+  --chart-3: 36 47% 56%;
+  --chart-4: 40 33% 66%;
+  --chart-5: 142 30% 15%;
 
-  --sidebar: 41 42% 97%;
-  --sidebar-foreground: 138 24% 16%;
-  --sidebar-border: 103 14% 80%;
-  --sidebar-ring: 104 16% 47%;
-  --sidebar-primary: 104 16% 47%;
-  --sidebar-primary-foreground: 41 54% 93%;
-  --sidebar-primary-border: hsl(104 19% 37%);
-  --sidebar-accent: 94 17% 89%;
-  --sidebar-accent-foreground: 138 24% 16%;
-  --sidebar-accent-border: hsl(102 12% 76%);
+  --sidebar: 40 41% 98%;
+  --sidebar-foreground: 142 30% 15%;
+  --sidebar-border: 35 26% 80%;
+  --sidebar-ring: 144 39% 20%;
+  --sidebar-primary: 144 39% 20%;
+  --sidebar-primary-foreground: 38 41% 94%;
+  --sidebar-primary-border: hsl(144 34% 16%);
+  --sidebar-accent: 40 28% 90%;
+  --sidebar-accent-foreground: 142 30% 15%;
+  --sidebar-accent-border: hsl(35 18% 78%);
 
   --radius: 1rem;
 }
@@ -119,7 +119,10 @@
   }
 
   .legal-home-shell {
-    background: #f4f2ec;
+    background:
+      radial-gradient(circle at top left, rgba(195, 154, 86, 0.12), transparent 26%),
+      radial-gradient(circle at bottom right, rgba(31, 71, 50, 0.08), transparent 30%),
+      #f6f1e8;
     position: relative;
   }
 
@@ -136,88 +139,98 @@
   }
 
   .legal-home-panel {
-    background: rgba(255, 255, 255, 0.92);
-    border-color: rgba(26, 26, 26, 0.08);
+    background: rgba(255, 252, 247, 0.92);
+    border-color: rgba(35, 49, 38, 0.08);
     box-shadow: 0 18px 40px rgba(26, 26, 26, 0.05);
     backdrop-filter: blur(12px);
     position: relative;
   }
 
   .legal-home-card {
-    background: #ffffff;
-    border-color: rgba(26, 26, 26, 0.1);
-    box-shadow: 0 12px 26px rgba(26, 26, 26, 0.04);
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(195, 154, 86, 0.16);
+    box-shadow: 0 14px 30px rgba(26, 26, 26, 0.05);
   }
 
   .legal-home-nav {
-    background: rgba(244, 242, 236, 0.94);
-    border-color: rgba(26, 26, 26, 0.08);
-    box-shadow: 0 14px 32px rgba(26, 26, 26, 0.05);
+    background: rgba(255, 252, 247, 0.96);
+    border-color: rgba(31, 71, 50, 0.08);
+    box-shadow:
+      0 16px 34px rgba(26, 26, 26, 0.05),
+      inset 0 1px 0 rgba(195, 154, 86, 0.18);
     backdrop-filter: blur(12px);
   }
 
   .legal-home-hero-panel {
     background:
-      radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 24%),
-      linear-gradient(145deg, #1f3d2b 0%, #254934 56%, #1a3425 100%);
+      radial-gradient(circle at top right, rgba(195, 154, 86, 0.22), transparent 24%),
+      radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.08), transparent 28%),
+      linear-gradient(145deg, #173424 0%, #1f4732 54%, #132c20 100%);
     border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 30px 72px rgba(16, 24, 19, 0.22);
+    box-shadow: 0 34px 80px rgba(16, 24, 19, 0.24);
   }
 
   .legal-home-panel-alt {
-    background: rgba(244, 242, 236, 0.88);
-    border-color: rgba(26, 26, 26, 0.08);
+    background: rgba(255, 255, 255, 0.76);
+    border-color: rgba(35, 49, 38, 0.08);
     box-shadow: 0 16px 34px rgba(26, 26, 26, 0.04);
     position: relative;
   }
 
   .legal-home-feature-panel {
     background:
-      radial-gradient(circle at top right, rgba(255, 255, 255, 0.06), transparent 24%),
-      linear-gradient(145deg, #1f3d2b 0%, #244632 54%, #1b3526 100%);
+      radial-gradient(circle at top right, rgba(195, 154, 86, 0.2), transparent 24%),
+      radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.05), transparent 28%),
+      linear-gradient(145deg, #173424 0%, #214534 54%, #132d21 100%);
     border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 28px 68px rgba(16, 24, 19, 0.2);
+    box-shadow: 0 32px 74px rgba(16, 24, 19, 0.22);
   }
 
   .legal-home-feature-card {
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(26, 26, 26, 0.08);
-    box-shadow: 0 12px 24px rgba(16, 24, 19, 0.08);
+    background: rgba(255, 251, 245, 0.94);
+    border: 1px solid rgba(195, 154, 86, 0.18);
+    box-shadow: 0 14px 28px rgba(16, 24, 19, 0.09);
   }
 
   .legal-home-soft-chip {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    color: #f4f2ec;
+    background: rgba(255, 248, 235, 0.08);
+    border: 1px solid rgba(195, 154, 86, 0.32);
+    color: #f2d7a0;
   }
 
   .legal-home-proof-pill {
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #d8e2d6;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(195, 154, 86, 0.22);
+    color: #efe5cb;
   }
 
   .legal-home-device-frame {
-    background: linear-gradient(180deg, #222222 0%, #111111 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.28);
+    background: linear-gradient(180deg, #1c221f 0%, #0d1210 100%);
+    border: 1px solid rgba(195, 154, 86, 0.18);
+    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.3);
   }
 
   .legal-home-device-screen {
     background:
-      radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 24%),
-      linear-gradient(180deg, #171c19 0%, #202723 100%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+      radial-gradient(circle at top, rgba(195, 154, 86, 0.12), transparent 24%),
+      linear-gradient(180deg, #16211b 0%, #203029 100%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
 
   .legal-home-device-card {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(195, 154, 86, 0.16);
   }
 
   .legal-home-muted {
     color: #6b6b6b;
+  }
+
+  .legal-home-brand-plaque {
+    background: rgba(255, 252, 245, 0.06);
+    border: 1px solid rgba(195, 154, 86, 0.28);
+    box-shadow: 0 14px 34px rgba(11, 22, 16, 0.18);
   }
 
   .brand-site-frame {

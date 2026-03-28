@@ -44,7 +44,7 @@ export function SiteFooter({ theme = "light", className }: SiteFooterProps) {
               key={link.label}
               href={link.href}
               className={cn(
-                "transition-colors hover:text-[#6F8B65]",
+                "transition-colors hover:text-[#C39A56]",
                 isDark ? "text-[#F7F1E4]" : "text-[#1F241D]",
               )}
             >

@@ -1678,7 +1678,7 @@ export default function StrAssistant() {
                 <img
                   src="/fintechlawyer-logo.png"
                   alt="FintechLawyer.ca"
-                  className="h-12 w-auto md:h-14"
+                  className="h-11 w-auto md:h-12"
                 />
               </a>
 
@@ -1727,30 +1727,30 @@ export default function StrAssistant() {
                 <img
                   src="/fintechlawyer-logo.png"
                   alt="FintechLawyer.ca"
-                  className="h-12 w-auto md:h-14"
+                  className="h-11 w-auto md:h-12"
                 />
               </a>
 
               <div className="flex items-center gap-6">
                 <nav className="hidden items-center gap-6 text-sm font-medium text-[#525B50] lg:flex">
-                  <a href={siteConfig.links.product} className="transition-colors hover:text-[#6F8B65]">
+                  <a href={siteConfig.links.product} className="transition-colors hover:text-[#C39A56]">
                     Product
                   </a>
                   <a
                     href={siteConfig.links.howItWorks}
-                    className="transition-colors hover:text-[#6F8B65]"
+                    className="transition-colors hover:text-[#C39A56]"
                   >
                     How It Works
                   </a>
                   <a
                     href={siteConfig.links.socialProof}
-                    className="transition-colors hover:text-[#6F8B65]"
+                    className="transition-colors hover:text-[#C39A56]"
                   >
                     Social Proof
                   </a>
                   <a
                     href={siteConfig.links.expertise}
-                    className="transition-colors hover:text-[#6F8B65]"
+                    className="transition-colors hover:text-[#C39A56]"
                   >
                     Expertise
                   </a>

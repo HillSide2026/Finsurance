@@ -226,7 +226,7 @@ function FinsureDevicePreview() {
 
   return (
     <div className="relative mx-auto w-full max-w-[360px] lg:mx-0 lg:justify-self-end">
-      <div className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.24em] text-[#D9E2D6] lg:text-left">
+      <div className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.24em] text-[#E4C98F] lg:text-left">
         FinSure Interface
       </div>
       <div className="absolute inset-x-10 top-16 h-48 rounded-full bg-[radial-gradient(circle,_rgba(255,255,255,0.1),_transparent_70%)] blur-3xl" />
@@ -237,22 +237,22 @@ function FinsureDevicePreview() {
             <p className="text-sm font-semibold tracking-[0.02em] text-[#F7F1E4]">
               FinSure
             </p>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5">
-              <ScanSearch className="h-3.5 w-3.5 text-[#A6BE98]" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(195,154,86,0.28)] bg-white/5">
+              <ScanSearch className="h-3.5 w-3.5 text-[#E4C98F]" />
             </div>
           </div>
 
           <div className="mt-4">
-            <span className="rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.08)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#F4F2EC]">
+            <span className="rounded-full border border-[rgba(195,154,86,0.26)] bg-[rgba(255,255,255,0.08)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#F3D8A2]">
               Live now
             </span>
           </div>
 
           <div className="legal-home-device-card mt-4 rounded-[24px] p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#A6BE98]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#E4C98F]">
               STR Drafting
             </p>
-            <Button className="mt-3 h-11 w-full rounded-2xl bg-[#6F8B65] text-sm font-semibold text-[#F7F1E4] shadow-[0_12px_24px_rgba(17,25,18,0.28)] hover:bg-[#7d9774]">
+            <Button className="mt-3 h-11 w-full rounded-2xl bg-[#2F5A42] text-sm font-semibold text-[#F7F1E4] shadow-[0_12px_24px_rgba(195,154,86,0.14)] hover:bg-[#37674d]">
               New Draft
             </Button>
           </div>
@@ -264,7 +264,7 @@ function FinsureDevicePreview() {
                 className="legal-home-device-card flex items-center justify-between gap-4 rounded-[20px] px-4 py-3"
               >
                 <p className="text-sm font-medium text-[#F7F1E4]">{row.title}</p>
-                <p className="text-xs text-right leading-5 text-[#D2DEE0]">{row.detail}</p>
+                <p className="text-xs text-right leading-5 text-[#D8DDD8]">{row.detail}</p>
               </div>
             ))}
           </div>
@@ -292,7 +292,7 @@ export default function SiteHome() {
               <img
                 src="/fintechlawyer-logo.png"
                 alt="FintechLawyer.ca"
-                className="h-12 w-auto md:h-14"
+                className="h-11 w-auto md:h-12"
               />
             </a>
 
@@ -305,7 +305,7 @@ export default function SiteHome() {
                   <a
                     key={item.label}
                     href={item.href}
-                    className="transition-colors hover:text-[#1F3D2B]"
+                    className="transition-colors hover:text-[#C39A56]"
                   >
                     {item.label}
                   </a>
@@ -314,7 +314,7 @@ export default function SiteHome() {
 
               <Button
                 asChild
-                className="rounded-xl bg-[#1F3D2B] px-5 text-[#F4F2EC] shadow-[0_12px_24px_rgba(31,61,43,0.2)] hover:bg-[#244632] md:px-6"
+                className="rounded-xl bg-[#1F4732] px-5 text-[#F6F1E8] shadow-[0_14px_28px_rgba(195,154,86,0.16)] hover:bg-[#244d38] md:px-6"
               >
                 <a href={siteConfig.links.finsure}>Explore FinSure</a>
               </Button>
@@ -338,7 +338,7 @@ export default function SiteHome() {
                   key={item.label}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-sm text-[#1A1A1A] transition-colors hover:text-[#1F3D2B]"
+                  className="text-sm text-[#1A1A1A] transition-colors hover:text-[#C39A56]"
                 >
                   {item.label}
                 </a>
@@ -351,6 +351,13 @@ export default function SiteHome() {
           <section className="legal-home-hero-panel overflow-hidden rounded-[40px] border px-6 py-10 md:px-10 md:py-12">
             <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_420px] lg:items-center">
               <div className="space-y-5">
+                <div className="inline-flex w-fit items-center rounded-[24px] p-2 legal-home-brand-plaque">
+                  <img
+                    src="/fintechlawyer-logo-inverse.png"
+                    alt="FintechLawyer.ca"
+                    className="h-12 w-auto rounded-[18px] md:h-14"
+                  />
+                </div>
                 <div className="inline-flex items-center gap-3 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] legal-home-soft-chip">
                   CANADIAN FINTECH COUNSEL + TOOLS
                 </div>
@@ -372,7 +379,7 @@ export default function SiteHome() {
                   <Button
                     asChild
                     size="lg"
-                    className="rounded-2xl bg-[#F4F2EC] px-8 text-[#1F3D2B] hover:bg-[#e8e4dc]"
+                    className="rounded-2xl bg-[#F6F1E8] px-8 text-[#1F4732] shadow-[0_14px_28px_rgba(195,154,86,0.14)] hover:bg-[#eee7da]"
                   >
                     <a href={siteConfig.links.finsure}>
                       Explore FinSure
@@ -383,7 +390,7 @@ export default function SiteHome() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="rounded-2xl border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.04)] px-8 text-[#F4F2EC] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#F4F2EC]"
+                    className="rounded-2xl border-[rgba(195,154,86,0.34)] bg-[rgba(255,255,255,0.04)] px-8 text-[#F4F2EC] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#F4F2EC]"
                   >
                     <a href={siteConfig.links.useCases}>
                       Browse Resources
@@ -403,7 +410,7 @@ export default function SiteHome() {
                   ))}
                 </div>
 
-                <div className="max-w-2xl rounded-[28px] border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] p-5 text-sm leading-7 text-[#D5DED2]">
+                <div className="max-w-2xl rounded-[28px] border border-[rgba(195,154,86,0.22)] bg-[rgba(255,255,255,0.05)] p-5 text-sm leading-7 text-[#D9E1D7]">
                   Designed for operators who need legal framing, usable workflows, and outputs
                   that feel ready for the next step, not like a generic compliance demo.
                 </div>
@@ -419,7 +426,7 @@ export default function SiteHome() {
           >
             <div className="mx-auto max-w-6xl">
               <div className="mx-auto max-w-2xl space-y-4 text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1F3D2B]">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9D7A38]">
                   Use Cases
                 </p>
                 <h2 className="text-4xl text-[#1B2118] md:text-5xl">
@@ -436,7 +443,7 @@ export default function SiteHome() {
                   <a
                     key={card.title}
                     href={card.href}
-                    className="legal-home-card flex cursor-pointer flex-col justify-between rounded-[28px] border p-6 transition-transform transition-shadow transition-colors hover:-translate-y-1 hover:border-[rgba(111,139,101,0.34)] hover:shadow-[0_18px_34px_rgba(31,51,37,0.08)]"
+                    className="legal-home-card flex cursor-pointer flex-col justify-between rounded-[28px] border p-6 transition-transform transition-shadow transition-colors hover:-translate-y-1 hover:border-[rgba(195,154,86,0.36)] hover:shadow-[0_18px_34px_rgba(31,51,37,0.08)]"
                   >
                     <div>
                       <h3 className="text-2xl font-semibold leading-tight text-[#1F241D]">
@@ -445,7 +452,7 @@ export default function SiteHome() {
                       <ul className="mt-5 space-y-3 text-sm leading-6 text-[#6B6B6B]">
                         {card.bullets.map((bullet) => (
                           <li key={bullet} className="flex gap-3">
-                            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#1F3D2B]" />
+                            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#C39A56]" />
                             <span>{bullet}</span>
                           </li>
                         ))}
@@ -466,7 +473,7 @@ export default function SiteHome() {
           >
             <div className="mx-auto max-w-6xl">
               <div className="mx-auto max-w-3xl space-y-4 text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1F3D2B]">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9D7A38]">
                   Platform Overview
                 </p>
                 <h2 className="text-4xl text-[#1B2118] md:text-5xl">
@@ -485,7 +492,7 @@ export default function SiteHome() {
                     key={pillar.number}
                     className="legal-home-card flex h-full flex-col rounded-[30px] border p-6"
                   >
-                    <p className="text-sm font-semibold tracking-[0.2em] text-[#1F3D2B]">
+                    <p className="text-sm font-semibold tracking-[0.2em] text-[#9D7A38]">
                       {pillar.number}
                     </p>
                     <h3 className="mt-5 text-3xl text-[#1F241D]">{pillar.title}</h3>
@@ -493,14 +500,14 @@ export default function SiteHome() {
                     <ul className="mt-5 space-y-3 text-sm leading-6 text-[#6B6B6B]">
                       {pillar.bullets.map((bullet) => (
                         <li key={bullet} className="flex gap-3">
-                          <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#1F3D2B]" />
+                          <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#C39A56]" />
                           <span>{bullet}</span>
                         </li>
                       ))}
                     </ul>
                     <a
                       href={pillar.href}
-                      className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#1F241D] transition-colors hover:text-[#1F3D2B]"
+                      className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#1F241D] transition-colors hover:text-[#C39A56]"
                     >
                       {pillar.cta}
                       <ArrowRight className="h-4 w-4" />
@@ -515,7 +522,7 @@ export default function SiteHome() {
             <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center">
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#D4DED2]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E4C98F]">
                     Featured Tool
                   </p>
                   <h2 className="text-4xl text-[#F4F2EC] md:text-5xl">FinSure</h2>
@@ -526,7 +533,7 @@ export default function SiteHome() {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#B7C5B8]">
+                  <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#E4C98F]">
                     Currently Featured
                   </p>
                   <h3 className="text-3xl text-[#F4F2EC]">{siteConfig.productName}</h3>
@@ -556,7 +563,7 @@ export default function SiteHome() {
                   <Button
                     asChild
                     size="lg"
-                    className="rounded-2xl bg-[#F4F2EC] px-8 text-[#1F3D2B] hover:bg-[#e8e4dc]"
+                    className="rounded-2xl bg-[#F6F1E8] px-8 text-[#1F4732] shadow-[0_14px_28px_rgba(195,154,86,0.14)] hover:bg-[#eee7da]"
                   >
                     <a href={siteConfig.links.finsure}>
                       Explore FinSure
@@ -567,7 +574,7 @@ export default function SiteHome() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="rounded-2xl border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.04)] px-8 text-[#F4F2EC] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#F4F2EC]"
+                    className="rounded-2xl border-[rgba(195,154,86,0.34)] bg-[rgba(255,255,255,0.04)] px-8 text-[#F4F2EC] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#F4F2EC]"
                   >
                     <a href={siteConfig.links.product}>
                       Learn More
@@ -591,7 +598,7 @@ export default function SiteHome() {
           >
             <div className="mx-auto max-w-6xl">
               <div className="mx-auto max-w-2xl space-y-4 text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1F3D2B]">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9D7A38]">
                   Validation
                 </p>
                 <h2 className="text-4xl text-[#1B2118] md:text-5xl">
@@ -610,7 +617,7 @@ export default function SiteHome() {
                   >
                     <p className="text-xs text-[#7A8176]">{card.role}</p>
                     <p className="mt-4 text-lg leading-8 text-[#1F241D]">"{card.quote}"</p>
-                    <p className="mt-6 text-sm font-semibold text-[#1F3D2B]">{card.tag}</p>
+                    <p className="mt-6 text-sm font-semibold text-[#9D7A38]">{card.tag}</p>
                   </article>
                 ))}
               </div>
@@ -619,7 +626,7 @@ export default function SiteHome() {
                 {validationTags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-[rgba(26,26,26,0.08)] bg-white px-4 py-2 text-sm text-[#6B6B6B]"
+                    className="rounded-full border border-[rgba(195,154,86,0.22)] bg-white px-4 py-2 text-sm text-[#6B6B6B]"
                   >
                     {tag}
                   </span>
@@ -633,7 +640,7 @@ export default function SiteHome() {
             className="legal-home-panel rounded-[36px] border bg-white px-6 py-24 md:px-10 md:py-28"
           >
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1F3D2B]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9D7A38]">
                 START HERE
               </p>
               <h2 className="mt-4 text-[2.5rem] leading-tight text-[#1B2118] md:text-[3.25rem]">
@@ -648,7 +655,7 @@ export default function SiteHome() {
                 <Button
                   asChild
                   size="lg"
-                  className="rounded-2xl bg-[#1F3D2B] px-12 text-[#F4F2EC] shadow-[0_18px_32px_rgba(31,61,43,0.16)] hover:bg-[#244632]"
+                  className="rounded-2xl bg-[#1F4732] px-12 text-[#F6F1E8] shadow-[0_18px_32px_rgba(195,154,86,0.16)] hover:bg-[#244d38]"
                 >
                   <a href={siteConfig.links.finsure}>
                     Explore FinSure
