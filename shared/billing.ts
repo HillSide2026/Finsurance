@@ -24,11 +24,13 @@ export type BillingPaymentStatus = (typeof billingPaymentStatusValues)[number];
 
 export type CreateCheckoutSessionRequest = {
   sourcePath?: string;
+  draftId?: string;
 };
 
 export type BillingCheckoutSessionSummary = {
   id: string;
   checkoutUrl: string | null;
+  draftId: string | null;
   mode: BillingCheckoutMode;
   status: BillingCheckoutStatus;
   paymentStatus: BillingPaymentStatus;
@@ -47,4 +49,13 @@ export type CreateCheckoutSessionResponse = {
 export type CheckoutSessionStatusResponse = {
   ok: true;
   session: BillingCheckoutSessionSummary;
+};
+
+export type DraftExportAccessResponse = {
+  ok: true;
+  access: {
+    draftId: string;
+    unlocked: boolean;
+    paidCheckoutSessionId: string | null;
+  };
 };

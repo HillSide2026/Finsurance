@@ -4,6 +4,7 @@ import type {
   CheckoutSessionStatusResponse,
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
+  DraftExportAccessResponse,
 } from "@shared/billing";
 import { siteConfig } from "@shared/site";
 import { createEmptyStrIntake, type StrIntake } from "@shared/str";
@@ -329,6 +330,16 @@ export async function registerRoutes(
       return sendApiError(res, 400, "A valid export format is required.", "invalid_export");
     }
 
+    const access = await store.getDraftExportAccess(session.team.id, req.params.draftId);
+    if (!access.unlocked) {
+      return sendApiError(
+        res,
+        402,
+        "Payment is required before exporting this STR.",
+        "payment_required",
+      );
+    }
+
     const draft = await store.recordDraftExport(
       session.team.id,
       session.user.id,
@@ -344,6 +355,28 @@ export async function registerRoutes(
       ok: true,
       draft,
     });
+  });
+
+  app.get("/api/drafts/:draftId/export-access", async (req, res) => {
+    const session = await requireSession(store, req, res);
+    if (!session) {
+      return;
+    }
+
+    const draft = await store.getDraftSnapshot(session.team.id, req.params.draftId);
+    if (!draft) {
+      return sendApiError(res, 404, "Draft not found.", "draft_not_found");
+    }
+
+    const access = await store.getDraftExportAccess(session.team.id, draft.id);
+    res.json({
+      ok: true,
+      access: {
+        draftId: draft.id,
+        unlocked: access.unlocked,
+        paidCheckoutSessionId: access.paidCheckoutSessionId,
+      },
+    } satisfies DraftExportAccessResponse);
   });
 
   app.post("/api/enquiries", async (req, res) => {
@@ -379,10 +412,32 @@ export async function registerRoutes(
       typeof body.sourcePath === "string" && body.sourcePath.trim().startsWith("/")
         ? body.sourcePath.trim()
         : siteConfig.productPath;
-    const currentSession = await resolveSession(store, req);
-    const clientReferenceId = currentSession
-      ? `team:${currentSession.team.id}:user:${currentSession.user.id}`
-      : null;
+    const draftId = typeof body.draftId === "string" ? body.draftId.trim() : "";
+    const currentSession = await requireSession(store, req, res);
+    if (!currentSession) {
+      return;
+    }
+
+    if (draftId.length === 0) {
+      return sendApiError(res, 400, "A draft id is required before checkout.", "missing_draft_id");
+    }
+
+    const draft = await store.getDraftSnapshot(currentSession.team.id, draftId);
+    if (!draft) {
+      return sendApiError(res, 404, "Draft not found.", "draft_not_found");
+    }
+
+    const exportAccess = await store.getDraftExportAccess(currentSession.team.id, draft.id);
+    if (exportAccess.unlocked) {
+      return sendApiError(
+        res,
+        409,
+        "This STR is already unlocked for export.",
+        "already_unlocked",
+      );
+    }
+
+    const clientReferenceId = `team:${currentSession.team.id}:user:${currentSession.user.id}:draft:${draft.id}`;
 
     try {
       const stripeSession = await createStripeCheckoutSession(
@@ -397,6 +452,7 @@ export async function registerRoutes(
               ? {
                   team_id: currentSession.team.id,
                   user_id: currentSession.user.id,
+                  draft_id: draft.id,
                 }
               : {}),
           },
@@ -409,6 +465,7 @@ export async function registerRoutes(
           sessionId: stripeSession.id,
           checkoutUrl: stripeSession.checkoutUrl,
           sourcePath,
+          draftId: stripeSession.draftId ?? draft.id,
           teamId: currentSession?.team.id ?? null,
           userId: currentSession?.user.id ?? null,
           customerEmail: stripeSession.customerEmail ?? currentSession?.user.email ?? null,
@@ -427,6 +484,7 @@ export async function registerRoutes(
         session: {
           id: stripeSession.id,
           checkoutUrl: stripeSession.checkoutUrl,
+          draftId: stripeSession.draftId,
           mode: stripeSession.mode,
           status: stripeSession.status,
           paymentStatus: stripeSession.paymentStatus,
@@ -460,6 +518,7 @@ export async function registerRoutes(
           sessionId: stripeSession.id,
           checkoutUrl: stripeSession.checkoutUrl,
           sourcePath: stripeSession.metadata.source_path ?? siteConfig.productPath,
+          draftId: stripeSession.draftId ?? stripeSession.metadata.draft_id ?? null,
           teamId: stripeSession.metadata.team_id ?? null,
           userId: stripeSession.metadata.user_id ?? null,
           customerEmail: stripeSession.customerEmail,
@@ -478,6 +537,7 @@ export async function registerRoutes(
         session: {
           id: stripeSession.id,
           checkoutUrl: stripeSession.checkoutUrl,
+          draftId: stripeSession.draftId,
           mode: stripeSession.mode,
           status: stripeSession.status,
           paymentStatus: stripeSession.paymentStatus,
@@ -511,6 +571,7 @@ export async function registerRoutes(
         session: {
           id: stripeSession.id,
           checkoutUrl: stripeSession.checkoutUrl,
+          draftId: stripeSession.draftId,
           mode: stripeSession.mode,
           status: stripeSession.status,
           paymentStatus: stripeSession.paymentStatus,
@@ -575,6 +636,7 @@ export async function registerRoutes(
             sessionId: checkoutSession.id,
             checkoutUrl: checkoutSession.checkoutUrl,
             sourcePath: checkoutSession.metadata.source_path ?? siteConfig.productPath,
+            draftId: checkoutSession.draftId ?? checkoutSession.metadata.draft_id ?? null,
             teamId: checkoutSession.metadata.team_id ?? null,
             userId: checkoutSession.metadata.user_id ?? null,
             customerEmail: checkoutSession.customerEmail,

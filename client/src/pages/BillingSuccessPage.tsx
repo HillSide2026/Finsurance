@@ -9,6 +9,18 @@ import { apiRequest } from "@/lib/api";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
+function buildReturnToExportUrl(session: BillingCheckoutSessionSummary | null): string {
+  if (!session?.draftId) {
+    return siteConfig.links.finsure;
+  }
+
+  const params = new URLSearchParams({
+    draft_id: session.draftId,
+    checkout_session_id: session.id,
+  });
+  return `${siteConfig.links.finsure}?${params.toString()}`;
+}
+
 function formatAmount(session: BillingCheckoutSessionSummary | null): string | null {
   if (!session || typeof session.amountTotal !== "number" || !session.currency) {
     return null;
@@ -73,7 +85,22 @@ export default function BillingSuccessPage() {
     };
   }, [sessionId]);
 
+  useEffect(() => {
+    if (session?.paymentStatus !== "paid" || !session.draftId) {
+      return;
+    }
+
+    const redirectTimer = window.setTimeout(() => {
+      window.location.replace(buildReturnToExportUrl(session));
+    }, 800);
+
+    return () => {
+      window.clearTimeout(redirectTimer);
+    };
+  }, [session]);
+
   const amountLabel = formatAmount(session);
+  const returnUrl = buildReturnToExportUrl(session);
   const title =
     session?.paymentStatus === "paid"
       ? "Payment received"
@@ -82,7 +109,9 @@ export default function BillingSuccessPage() {
         : "Checkout complete";
   const description =
     session?.paymentStatus === "paid"
-      ? "Stripe confirmed the payment. You can head back into FinSure and continue from there."
+      ? session?.draftId
+        ? "Stripe confirmed the payment. Returning you to your draft so export is unlocked immediately."
+        : "Stripe confirmed the payment. You can head back into FinSure and continue from there."
       : loadState === "error"
         ? errorMessage ??
           "The session returned from Stripe, but the payment status could not be confirmed yet."
@@ -137,6 +166,7 @@ export default function BillingSuccessPage() {
               {sessionId ? (
                 <div className="rounded-3xl border border-[rgba(96,110,89,0.14)] bg-white/70 p-5 text-sm text-[#596255]">
                   <div>Session ID: {sessionId}</div>
+                  {session?.draftId ? <div className="mt-2">Draft ID: {session.draftId}</div> : null}
                   {session?.customerEmail ? <div className="mt-2">Customer email: {session.customerEmail}</div> : null}
                   {amountLabel ? <div className="mt-2">Amount: {amountLabel}</div> : null}
                   {session?.status ? <div className="mt-2">Checkout status: {session.status}</div> : null}
@@ -150,8 +180,10 @@ export default function BillingSuccessPage() {
 
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg" className="rounded-2xl px-8">
-                  <a href={siteConfig.links.finsure}>
-                    Open FinSure
+                  <a href={returnUrl}>
+                    {session?.paymentStatus === "paid" && session?.draftId
+                      ? "Return To Export"
+                      : "Open FinSure"}
                     <ArrowRight className="h-4 w-4" />
                   </a>
                 </Button>

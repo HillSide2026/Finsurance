@@ -57,6 +57,7 @@ test("summarizeStripeCheckoutSession extracts customer and payment status detail
     metadata: {
       source_path: "/finsure",
       team_id: "team_123",
+      draft_id: "draft_789",
     },
   });
 
@@ -65,6 +66,7 @@ test("summarizeStripeCheckoutSession extracts customer and payment status detail
   assert.equal(summary.status, "complete");
   assert.equal(summary.paymentStatus, "paid");
   assert.equal(summary.customerEmail, "billing@example.com");
+  assert.equal(summary.draftId, "draft_789");
   assert.equal(summary.currency, "CAD");
   assert.equal(summary.metadata.source_path, "/finsure");
 });
@@ -122,9 +124,10 @@ test("createStripeCheckoutSession chooses subscription mode for recurring prices
         client_reference_id: "team:team_123:user:user_456",
         amount_total: 4900,
         currency: "cad",
-        metadata: {
-          source_path: "/finsure",
-        },
+      metadata: {
+        source_path: "/finsure",
+        draft_id: "draft_789",
+      },
       }),
       {
         status: 200,
@@ -193,11 +196,12 @@ test("retrieveStripeCheckoutSession normalizes a confirmed Stripe session", asyn
         client_reference_id: "team:team_123:user:user_456",
         amount_total: 4900,
         currency: "cad",
-        metadata: {
-          source_path: "/finsure",
-          team_id: "team_123",
-          user_id: "user_456",
-        },
+      metadata: {
+        source_path: "/finsure",
+        team_id: "team_123",
+        user_id: "user_456",
+        draft_id: "draft_789",
+      },
       }),
       {
         status: 200,
@@ -221,6 +225,7 @@ test("retrieveStripeCheckoutSession normalizes a confirmed Stripe session", asyn
   assert.equal(session.status, "complete");
   assert.equal(session.paymentStatus, "paid");
   assert.equal(session.customerEmail, "billing.owner@example.com");
+  assert.equal(session.draftId, "draft_789");
   assert.equal(session.currency, "CAD");
   assert.equal(session.metadata.source_path, "/finsure");
   assert.equal(session.metadata.team_id, "team_123");

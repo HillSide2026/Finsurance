@@ -19,7 +19,11 @@ import {
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
-import type { CreateCheckoutSessionResponse } from "@shared/billing";
+import type {
+  CheckoutSessionStatusResponse,
+  CreateCheckoutSessionResponse,
+  DraftExportAccessResponse,
+} from "@shared/billing";
 import { siteConfig } from "@shared/site";
 import {
   draftStatusValues,
@@ -95,6 +99,7 @@ import { ApiError, apiRequest } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 type View = "landing" | "workspace" | "intake" | "review" | "narrative" | "output";
+type WorkflowView = Exclude<View, "landing" | "workspace">;
 type SessionMeta = WorkspaceSessionMeta;
 
 type LeadFormState = {
@@ -112,7 +117,12 @@ type AuthFormState = {
   password: string;
 };
 
-const steps: Array<{ view: Exclude<View, "landing" | "workspace">; label: string }> = [
+type PendingAuthIntent = {
+  action: "resume" | "save" | "export";
+  returnView: WorkflowView;
+};
+
+const steps: Array<{ view: WorkflowView; label: string }> = [
   { view: "intake", label: "Intake" },
   { view: "review", label: "Risk Signals" },
   { view: "narrative", label: "Narrative" },
@@ -232,9 +242,7 @@ function formatTimestamp(value: string): string {
   }).format(new Date(value));
 }
 
-function isWorkflowView(
-  view: View,
-): view is Exclude<View, "landing" | "workspace"> {
+function isWorkflowView(view: View): view is WorkflowView {
   return view === "intake" || view === "review" || view === "narrative" || view === "output";
 }
 
@@ -457,8 +465,8 @@ function AuthCard({
               {mode === "register" ? "Create your account" : "Sign in"}
             </CardTitle>
             <CardDescription className="mt-2 max-w-xl text-sm leading-7 text-[#596255]">
-              Create an account to save drafts, reopen them later, and keep your STR work in one
-              place.
+              Create an account only when you want to save drafts, reopen them later, or export
+              the finished STR.
             </CardDescription>
           </div>
           <div className="flex w-full items-center gap-2 rounded-full border border-[rgba(96,110,89,0.14)] bg-white/70 p-1 md:w-auto">
@@ -561,7 +569,7 @@ function AuthCard({
           <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
             <p className="text-xs text-[#7A8176]">
               {mode === "register"
-                ? "This account lets you save drafts and reopen them later."
+                ? "You can draft first. Create an account only when you are ready to save or export."
                 : "Use the email and password you registered with."}
             </p>
             <Button type="submit" size="lg" className="rounded-2xl px-8" disabled={isSubmitting}>
@@ -726,9 +734,13 @@ export default function StrAssistant() {
   const [draftTitle, setDraftTitle] = useState("");
   const [draftStatus, setDraftStatus] = useState<DraftStatus>("draft");
   const [assignedReviewerUserId, setAssignedReviewerUserId] = useState<string | null>(null);
+  const [pendingAuthIntent, setPendingAuthIntent] = useState<PendingAuthIntent | null>(null);
   const [lastSavedDraftUpdatedAt, setLastSavedDraftUpdatedAt] = useState<string | null>(null);
   const [lastSavedDraftSnapshot, setLastSavedDraftSnapshot] = useState<string | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isExportAccessLoading, setIsExportAccessLoading] = useState(false);
+  const [isExportUnlocked, setIsExportUnlocked] = useState(false);
+  const [paidCheckoutSessionId, setPaidCheckoutSessionId] = useState<string | null>(null);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   const draft = buildStrDraft(intake);
@@ -772,6 +784,62 @@ export default function StrAssistant() {
         if (response.session) {
           setView("workspace");
           await refreshWorkspace(response.session);
+
+          const params = new URLSearchParams(window.location.search);
+          const returnedDraftId = params.get("draft_id");
+          const returnedCheckoutSessionId = params.get("checkout_session_id");
+
+          if (returnedDraftId && returnedCheckoutSessionId) {
+            try {
+              const billingResponse = await apiRequest<CheckoutSessionStatusResponse>(
+                `/api/billing/checkout-session/${encodeURIComponent(returnedCheckoutSessionId)}/reconcile`,
+                {
+                  method: "POST",
+                },
+              );
+
+              if (!isMounted) {
+                return;
+              }
+
+              await openSavedDraft(returnedDraftId, {
+                silent: true,
+                viewOverride: "output",
+              });
+              await loadDraftExportAccess(returnedDraftId, {
+                silent: true,
+                sessionOverride: response.session,
+              });
+              replaceProductUrl();
+
+              toast({
+                title:
+                  billingResponse.session.paymentStatus === "paid"
+                    ? "Export unlocked"
+                    : "Payment still pending",
+                description:
+                  billingResponse.session.paymentStatus === "paid"
+                    ? "Payment confirmed. Your STR is ready to export."
+                    : "The payment status has not cleared yet. Check again in a moment.",
+                variant:
+                  billingResponse.session.paymentStatus === "paid" ? "default" : "destructive",
+              });
+            } catch (error) {
+              if (!isMounted) {
+                return;
+              }
+
+              replaceProductUrl();
+              toast({
+                title: "Payment confirmation failed",
+                description: getApiErrorMessage(
+                  error,
+                  "The payment confirmation could not be completed right now.",
+                ),
+                variant: "destructive",
+              });
+            }
+          }
         }
       } catch (error) {
         if (!isMounted) {
@@ -799,6 +867,17 @@ export default function StrAssistant() {
       isMounted = false;
     };
   }, [toast]);
+
+  useEffect(() => {
+    if (!authSession || !activeDraftId) {
+      setIsExportUnlocked(false);
+      setPaidCheckoutSessionId(null);
+      setIsExportAccessLoading(false);
+      return;
+    }
+
+    void loadDraftExportAccess(activeDraftId, { silent: true });
+  }, [authSession, activeDraftId]);
 
   const updateIntake = <K extends keyof StrIntake>(key: K, value: StrIntake[K]) => {
     setIntake((current) => ({ ...current, [key]: value }));
@@ -857,6 +936,64 @@ export default function StrAssistant() {
     }
   };
 
+  const routeToAuthGate = (intent: PendingAuthIntent, mode: AuthMode, title: string, description: string) => {
+    setPendingAuthIntent(intent);
+    setAuthMode(mode);
+    setView("landing");
+    window.requestAnimationFrame(() => {
+      scrollToElement("auth-access");
+    });
+    toast({
+      title,
+      description,
+    });
+  };
+
+  const replaceProductUrl = () => {
+    window.history.replaceState({}, "", siteConfig.productPath);
+  };
+
+  const loadDraftExportAccess = async (
+    draftId: string,
+    options?: { silent?: boolean; sessionOverride?: AuthSessionSummary | null },
+  ): Promise<{ unlocked: boolean; paidCheckoutSessionId: string | null } | null> => {
+    const currentSession = options?.sessionOverride ?? authSession;
+    if (!currentSession) {
+      setIsExportUnlocked(false);
+      setPaidCheckoutSessionId(null);
+      return null;
+    }
+
+    setIsExportAccessLoading(true);
+    try {
+      const response = await apiRequest<DraftExportAccessResponse>(
+        `/api/drafts/${encodeURIComponent(draftId)}/export-access`,
+      );
+      setIsExportUnlocked(response.access.unlocked);
+      setPaidCheckoutSessionId(response.access.paidCheckoutSessionId);
+      return {
+        unlocked: response.access.unlocked,
+        paidCheckoutSessionId: response.access.paidCheckoutSessionId,
+      };
+    } catch (error) {
+      setIsExportUnlocked(false);
+      setPaidCheckoutSessionId(null);
+      if (!options?.silent) {
+        toast({
+          title: "Export status unavailable",
+          description: getApiErrorMessage(
+            error,
+            "The export access status could not be confirmed right now.",
+          ),
+          variant: "destructive",
+        });
+      }
+      return null;
+    } finally {
+      setIsExportAccessLoading(false);
+    }
+  };
+
   const beginNewDraft = () => {
     setSession(createSessionMeta());
     setIntake(createEmptyStrIntake());
@@ -871,38 +1008,12 @@ export default function StrAssistant() {
   };
 
   const openWorkflow = () => {
-    if (!authSession) {
-      setAuthMode("register");
-      scrollToElement("auth-access");
-      toast({
-        title: "Create your account first",
-        description: "Sign in or create an account to save drafts and access the drafting flow.",
-      });
-      return;
-    }
-
     beginNewDraft();
   };
 
   const applyPreset = (presetId: string) => {
-    if (!authSession) {
-      setAuthMode("register");
-      scrollToElement("auth-access");
-      toast({
-        title: "Create your account first",
-        description: "Sign in or create an account to open a preset and save drafts.",
-      });
-      return;
-    }
-
-    setSession(createSessionMeta());
+    beginNewDraft();
     setIntake(createIntakeFromPreset(presetId));
-    setNarrativeText("");
-    setActiveDraftId(null);
-    setDraftTitle("");
-    setDraftStatus("draft");
-    setAssignedReviewerUserId(null);
-    setView("intake");
     toast({
       title: "Scenario preset applied",
       description: "You can edit any of the structured details before generating the draft.",
@@ -917,14 +1028,16 @@ export default function StrAssistant() {
     setDraftTitle("");
     setDraftStatus("draft");
     setAssignedReviewerUserId(null);
+    setPendingAuthIntent(null);
     setLastSavedDraftUpdatedAt(null);
     setLastSavedDraftSnapshot(null);
-    setView(authSession ? "workspace" : "landing");
+    setView(authSession ? "workspace" : "intake");
   };
 
   const handleAuthSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const currentPendingAuthIntent = pendingAuthIntent;
     setIsAuthSubmitting(true);
     try {
       let response: AuthSessionResponse;
@@ -987,14 +1100,8 @@ export default function StrAssistant() {
       }));
       setDrafts([]);
       setReviewers([]);
-      setView("workspace");
-      toast({
-        title: authMode === "register" ? "Account created" : "Signed in",
-        description:
-          authMode === "register"
-            ? "Your saved drafts are ready."
-            : "Your saved drafts are ready.",
-      });
+      setPendingAuthIntent(null);
+      setView(currentPendingAuthIntent?.returnView ?? "workspace");
 
       if (response.session) {
         try {
@@ -1009,6 +1116,21 @@ export default function StrAssistant() {
           });
         }
       }
+
+      if (currentPendingAuthIntent?.action === "save") {
+        await saveCurrentDraft({
+          bypassAuthCheck: true,
+          workflowViewOverride: currentPendingAuthIntent.returnView,
+        });
+        return;
+      }
+
+      toast({
+        title: authMode === "register" ? "Account created" : "Signed in",
+        description: currentPendingAuthIntent
+          ? "Save and export are now available for this draft."
+          : "Your saved drafts are ready.",
+      });
     } catch (error) {
       toast({
         title: authMode === "register" ? "Registration failed" : "Sign-in failed",
@@ -1038,6 +1160,7 @@ export default function StrAssistant() {
       setDraftTitle("");
       setDraftStatus("draft");
       setAssignedReviewerUserId(null);
+      setPendingAuthIntent(null);
       setLastSavedDraftUpdatedAt(null);
       setLastSavedDraftSnapshot(null);
       setSession(createSessionMeta());
@@ -1047,7 +1170,10 @@ export default function StrAssistant() {
     }
   };
 
-  const openSavedDraft = async (draftId: string) => {
+  const openSavedDraft = async (
+    draftId: string,
+    options?: { silent?: boolean; viewOverride?: WorkflowView },
+  ) => {
     try {
       const response = await apiRequest<{ ok: true; draft: DraftRecord }>(`/api/drafts/${draftId}`);
       setActiveDraftId(response.draft.id);
@@ -1059,11 +1185,13 @@ export default function StrAssistant() {
       setNarrativeText(response.draft.narrativeText);
       setLastSavedDraftUpdatedAt(response.draft.updatedAt);
       setLastSavedDraftSnapshot(buildDraftRecordSnapshot(response.draft));
-      setView(response.draft.lastWorkflowView);
-      toast({
-        title: "Draft opened",
-        description: "The saved draft is back in the workflow.",
-      });
+      setView(options?.viewOverride ?? response.draft.lastWorkflowView);
+      if (!options?.silent) {
+        toast({
+          title: "Draft opened",
+          description: "The saved draft is back in the workflow.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Draft unavailable",
@@ -1073,9 +1201,31 @@ export default function StrAssistant() {
     }
   };
 
-  const saveCurrentDraft = async (options?: { status?: DraftStatus; silent?: boolean }) => {
-    if (!authSession || !isWorkflowView(view)) {
-      return;
+  const saveCurrentDraft = async (options?: {
+    status?: DraftStatus;
+    silent?: boolean;
+    bypassAuthCheck?: boolean;
+    workflowViewOverride?: WorkflowView;
+  }): Promise<DraftRecord | null> => {
+    const currentWorkflowView = options?.workflowViewOverride ?? view;
+
+    if (!options?.bypassAuthCheck && !authSession) {
+      if (isWorkflowView(view)) {
+        routeToAuthGate(
+          {
+            action: "save",
+            returnView: view,
+          },
+          "register",
+          "Create an account to save",
+          "You can draft without an account. Create one only when you are ready to save this STR.",
+        );
+      }
+      return null;
+    }
+
+    if (!isWorkflowView(currentWorkflowView)) {
+      return null;
     }
 
     setIsSavingDraft(true);
@@ -1089,7 +1239,7 @@ export default function StrAssistant() {
           title: draftTitle,
           status: options?.status ?? draftStatus,
           assignedReviewerUserId,
-          lastWorkflowView: getDraftSaveView(view),
+          lastWorkflowView: getDraftSaveView(currentWorkflowView),
           sessionMeta: session,
           intake,
           narrativeText,
@@ -1121,12 +1271,14 @@ export default function StrAssistant() {
           ),
         });
       }
+      return response.draft;
     } catch (error) {
       toast({
         title: "Save failed",
         description: getApiErrorMessage(error, "The draft could not be saved."),
         variant: "destructive",
       });
+      return null;
     } finally {
       setIsSavingDraft(false);
     }
@@ -1205,15 +1357,51 @@ export default function StrAssistant() {
   };
 
   const startCheckout = async () => {
+    if (!isWorkflowView(view)) {
+      return;
+    }
+
+    if (!authSession) {
+      routeToAuthGate(
+        {
+          action: "export",
+          returnView: view,
+        },
+        "register",
+        "Create an account to export",
+        "Preview is free. Create an account only when you are ready to export this STR.",
+      );
+      return;
+    }
+
     setIsCheckoutLoading(true);
 
     try {
+      const savedDraft = await saveCurrentDraft({
+        silent: true,
+        bypassAuthCheck: true,
+        workflowViewOverride: view,
+      });
+      if (!savedDraft) {
+        throw new Error("The latest draft could not be saved before checkout.");
+      }
+
+      const exportAccess = await loadDraftExportAccess(savedDraft.id, { silent: true });
+      if (exportAccess?.unlocked) {
+        toast({
+          title: "Export already unlocked",
+          description: "Payment has already been confirmed for this STR. You can export it now.",
+        });
+        return;
+      }
+
       const response = await apiRequest<CreateCheckoutSessionResponse>(
         "/api/billing/create-checkout-session",
         {
           method: "POST",
           body: {
             sourcePath: siteConfig.productPath,
+            draftId: savedDraft.id,
           },
         },
       );
@@ -1224,6 +1412,15 @@ export default function StrAssistant() {
 
       window.location.assign(response.session.checkoutUrl);
     } catch (error) {
+      if (error instanceof ApiError && error.code === "already_unlocked") {
+        setIsExportUnlocked(true);
+        toast({
+          title: "Export already unlocked",
+          description: "Payment has already been confirmed for this STR. You can export it now.",
+        });
+        return;
+      }
+
       toast({
         title: "Checkout unavailable",
         description: getApiErrorMessage(
@@ -1232,6 +1429,7 @@ export default function StrAssistant() {
         ),
         variant: "destructive",
       });
+    } finally {
       setIsCheckoutLoading(false);
     }
   };
@@ -1258,6 +1456,26 @@ export default function StrAssistant() {
     setView("review");
   };
 
+  const attemptSilentSaveBeforeExport = async () => {
+    if (!authSession || !isWorkflowView(view)) {
+      return;
+    }
+
+    const savedDraft = await saveCurrentDraft({
+      silent: true,
+      bypassAuthCheck: true,
+      workflowViewOverride: view,
+    });
+
+    if (!savedDraft) {
+      toast({
+        title: "Draft not re-saved before export",
+        description:
+          "The latest changes could not be saved back to your account. Export will continue with the visible draft.",
+      });
+    }
+  };
+
   const buildNarrativeDraft = () => {
     if (!draft.readiness.canGenerate) {
       toast({
@@ -1278,6 +1496,11 @@ export default function StrAssistant() {
   };
 
   const copyNarrative = async () => {
+    if (!isExportUnlocked) {
+      await startCheckout();
+      return;
+    }
+
     if (narrativeText.trim().length === 0) {
       toast({
         title: "No draft to copy",
@@ -1288,8 +1511,9 @@ export default function StrAssistant() {
     }
 
     try {
+      await attemptSilentSaveBeforeExport();
       await navigator.clipboard.writeText(narrativeText);
-      await recordExport("narrative");
+      void recordExport("narrative");
       toast({
         title: "Narrative copied",
         description: "The STR draft is on your clipboard.",
@@ -1304,6 +1528,11 @@ export default function StrAssistant() {
   };
 
   const downloadNarrative = () => {
+    if (!isExportUnlocked) {
+      void startCheckout();
+      return;
+    }
+
     if (narrativeText.trim().length === 0) {
       toast({
         title: "No draft to download",
@@ -1313,11 +1542,17 @@ export default function StrAssistant() {
       return;
     }
 
+    void attemptSilentSaveBeforeExport();
     downloadTextFile(`${session.id.toLowerCase()}-str-narrative.txt`, narrativeText);
     void recordExport("narrative");
   };
 
   const copyDraftPackage = async () => {
+    if (!isExportUnlocked) {
+      await startCheckout();
+      return;
+    }
+
     if (fullDraftPackageText.trim().length === 0) {
       toast({
         title: "No package to copy",
@@ -1328,8 +1563,9 @@ export default function StrAssistant() {
     }
 
     try {
+      await attemptSilentSaveBeforeExport();
       await navigator.clipboard.writeText(fullDraftPackageText);
-      await recordExport("package");
+      void recordExport("package");
       toast({
         title: "Draft package copied",
         description: "The full STR package is on your clipboard.",
@@ -1344,6 +1580,11 @@ export default function StrAssistant() {
   };
 
   const downloadDraftPackage = () => {
+    if (!isExportUnlocked) {
+      void startCheckout();
+      return;
+    }
+
     if (fullDraftPackageText.trim().length === 0) {
       toast({
         title: "No package to download",
@@ -1353,6 +1594,7 @@ export default function StrAssistant() {
       return;
     }
 
+    void attemptSilentSaveBeforeExport();
     downloadTextFile(`${session.id.toLowerCase()}-str-package.txt`, fullDraftPackageText);
     void recordExport("package");
   };
@@ -1443,12 +1685,6 @@ export default function StrAssistant() {
                   >
                     Expertise
                   </a>
-                  <a
-                    href={siteConfig.links.pricing}
-                    className="transition-colors hover:text-[#6F8B65]"
-                  >
-                    Checkout
-                  </a>
                 </nav>
                 {authSession ? (
                   <div className="flex items-center gap-3">
@@ -1465,11 +1701,11 @@ export default function StrAssistant() {
                   <Button
                     className="rounded-2xl px-6"
                     onClick={() => {
-                      setAuthMode("register");
+                      setAuthMode("login");
                       scrollToElement("auth-access");
                     }}
                   >
-                    Create account
+                    Sign in
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 )}
@@ -1489,7 +1725,7 @@ export default function StrAssistant() {
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button size="lg" className="rounded-2xl px-8" onClick={openWorkflow}>
-                    {authSession ? "Start drafting" : "Create account to start"}
+                    {authSession ? "Start drafting" : "Start drafting now"}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                   <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
@@ -1502,6 +1738,11 @@ export default function StrAssistant() {
                     </a>
                   </Button>
                 </div>
+                {!authSession ? (
+                  <p className="text-sm text-[#687164]">
+                    No login required until you want to save or export.
+                  </p>
+                ) : null}
               </div>
 
               <div className="hidden lg:block">
@@ -1740,51 +1981,30 @@ export default function StrAssistant() {
               <Card className="legal-home-card">
                 <CardHeader className="space-y-3">
                   <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#6F8B65]">
-                    Stripe Checkout
+                    Export first
                   </div>
                   <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">
-                    Hosted payment flow
+                    Preview the full STR before payment
                   </CardTitle>
                   <CardDescription className="max-w-3xl text-base leading-8 text-[#596255]">
-                    Stripe handles the hosted payment flow and returns you to FinSure after
-                    confirmation. If you are already signed in, the checkout session can reuse
-                    your account email.
+                    FinSure shows the full draft before any payment prompt. Stripe Checkout only
+                    appears when you decide to export the STR.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <div className="rounded-3xl border border-[rgba(96,110,89,0.14)] bg-white/70 p-6 text-sm leading-7 text-[#596255]">
                     <p>
-                      You will be redirected to Stripe to complete payment, then returned to
-                      FinSure on confirmation.
+                      Generate the draft, review it in full, and only then choose whether to pay
+                      for export.
                     </p>
                     <p className="mt-3">
                       Questions about the product or the payment flow can go through the form
                       below.
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-3">
-                    <Button
-                      size="lg"
-                      className="rounded-2xl px-8"
-                      onClick={startCheckout}
-                      disabled={isCheckoutLoading}
-                    >
-                      {isCheckoutLoading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Redirecting to Stripe
-                        </>
-                      ) : (
-                        <>
-                          Open Stripe checkout
-                          <ArrowRight className="h-4 w-4" />
-                        </>
-                      )}
-                    </Button>
-                    <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
-                      <a href={siteConfig.links.earlyAccess}>Have a question first?</a>
-                    </Button>
-                  </div>
+                  <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
+                    <a href={siteConfig.links.earlyAccess}>Have a question first?</a>
+                  </Button>
                 </CardContent>
               </Card>
             </section>
@@ -1911,22 +2131,53 @@ export default function StrAssistant() {
                     </>
                   )
                 ) : (
-                  "This draft is still unsaved until you save it to your account."
+                  authSession
+                    ? "This draft is still unsaved until you save it to your account."
+                    : "Drafting as a guest. Sign in only when you want to save or export."
                 )}
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button variant="outline" className="rounded-2xl" onClick={() => setView("workspace")}>
-                <FolderOpen className="h-4 w-4" />
-                Saved drafts
-              </Button>
+              {authSession ? (
+                <Button
+                  variant="outline"
+                  className="rounded-2xl"
+                  onClick={() => setView("workspace")}
+                >
+                  <FolderOpen className="h-4 w-4" />
+                  Saved drafts
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="rounded-2xl"
+                  onClick={() =>
+                    routeToAuthGate(
+                      {
+                        action: "resume",
+                        returnView: isWorkflowView(view) ? view : "intake",
+                      },
+                      "login",
+                      "Sign in to save or export",
+                      "You can keep drafting without an account. Sign in only when you are ready to save or export this STR.",
+                    )
+                  }
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  Sign in
+                </Button>
+              )}
               <Button
                 className="rounded-2xl"
                 onClick={() => void saveCurrentDraft()}
                 disabled={isSavingDraft}
               >
                 {isSavingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {activeDraftId ? "Save draft" : "Create draft"}
+                {authSession
+                  ? activeDraftId
+                    ? "Save draft"
+                    : "Save to account"
+                  : "Sign in to save"}
               </Button>
               <Button variant="outline" className="rounded-2xl" onClick={resetFlow}>
                 <RefreshCcw className="h-4 w-4" />
@@ -1937,6 +2188,13 @@ export default function StrAssistant() {
               </Badge>
             </div>
           </div>
+
+          {!authSession ? (
+            <div className="rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3 text-sm text-primary">
+              You can go all the way to the full STR output without an account. Sign in only when
+              you want to save or export.
+            </div>
+          ) : null}
 
           <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px]">
             <div className="grid gap-2">
@@ -2877,31 +3135,66 @@ export default function StrAssistant() {
                   submission remain with the reporting entity.
                 </div>
 
+                <div
+                  className={cn(
+                    "rounded-2xl border px-4 py-3 text-sm",
+                    isExportUnlocked
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                      : "border-primary/15 bg-primary/5 text-primary",
+                  )}
+                >
+                  {isExportUnlocked
+                    ? "Payment confirmed. This STR is ready to download."
+                    : "Preview the full draft now. Payment only starts when you choose to export it."}
+                </div>
+
                 <div className="flex flex-wrap gap-3">
-                  <Button className="rounded-2xl" onClick={copyDraftPackage}>
-                    <Copy className="h-4 w-4" />
-                    Copy Full Package
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="rounded-2xl"
-                    onClick={downloadDraftPackage}
-                  >
-                    <Download className="h-4 w-4" />
-                    Download Full Package
-                  </Button>
-                  <Button variant="outline" className="rounded-2xl" onClick={copyNarrative}>
-                    <Copy className="h-4 w-4" />
-                    Copy Narrative Only
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="rounded-2xl"
-                    onClick={downloadNarrative}
-                  >
-                    <Download className="h-4 w-4" />
-                    Download Narrative Only
-                  </Button>
+                  {isExportUnlocked ? (
+                    <>
+                      <Button className="rounded-2xl" onClick={copyDraftPackage}>
+                        <Copy className="h-4 w-4" />
+                        Copy Full Package
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="rounded-2xl"
+                        onClick={downloadDraftPackage}
+                      >
+                        <Download className="h-4 w-4" />
+                        Download Full Package
+                      </Button>
+                      <Button variant="outline" className="rounded-2xl" onClick={copyNarrative}>
+                        <Copy className="h-4 w-4" />
+                        Copy Narrative Only
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="rounded-2xl"
+                        onClick={downloadNarrative}
+                      >
+                        <Download className="h-4 w-4" />
+                        Download Narrative Only
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      className="rounded-2xl"
+                      onClick={() => void startCheckout()}
+                      disabled={isCheckoutLoading || isExportAccessLoading}
+                    >
+                      {isCheckoutLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Redirecting to payment
+                        </>
+                      ) : (
+                        <>
+                          Export STR - $9
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     className="rounded-2xl"

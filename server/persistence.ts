@@ -69,6 +69,7 @@ type InternalBillingCheckoutSessionRecord = {
   id: string;
   checkoutUrl: string | null;
   sourcePath: string;
+  draftId: string | null;
   teamId: string | null;
   userId: string | null;
   customerEmail: string | null;
@@ -617,6 +618,16 @@ export class PersistentAppStore {
     });
   }
 
+  async getDraftSnapshot(teamId: string, draftId: string): Promise<DraftRecord | null> {
+    return this.read((data) => {
+      const draft = data.drafts.find(
+        (candidate) => candidate.id === draftId && candidate.teamId === teamId,
+      );
+
+      return draft ? cloneValue(draft) : null;
+    });
+  }
+
   async saveDraft(
     teamId: string,
     actorUserId: string,
@@ -839,6 +850,7 @@ export class PersistentAppStore {
       sessionId: string;
       checkoutUrl: string | null;
       sourcePath: string;
+      draftId: string | null;
       teamId: string | null;
       userId: string | null;
       customerEmail: string | null;
@@ -854,6 +866,8 @@ export class PersistentAppStore {
     return this.update((data) => {
       const now = new Date().toISOString();
       const normalizedSourcePath = normalizeText(input.sourcePath) || "/finsure";
+      const normalizedDraftId =
+        input.draftId && normalizeText(input.draftId).length > 0 ? normalizeText(input.draftId) : null;
       const normalizedCustomerEmail =
         input.customerEmail && normalizeText(input.customerEmail).length > 0
           ? normalizeEmail(input.customerEmail)
@@ -865,6 +879,7 @@ export class PersistentAppStore {
       if (existingRecord) {
         existingRecord.checkoutUrl = input.checkoutUrl ?? existingRecord.checkoutUrl;
         existingRecord.sourcePath = normalizedSourcePath || existingRecord.sourcePath;
+        existingRecord.draftId = normalizedDraftId ?? existingRecord.draftId;
         existingRecord.teamId = input.teamId ?? existingRecord.teamId;
         existingRecord.userId = input.userId ?? existingRecord.userId;
         existingRecord.customerEmail = normalizedCustomerEmail ?? existingRecord.customerEmail;
@@ -893,6 +908,7 @@ export class PersistentAppStore {
           ipAddress,
           metadata: {
             sourcePath: existingRecord.sourcePath,
+            draftId: existingRecord.draftId ?? "",
             paymentStatus: existingRecord.paymentStatus ?? "",
             status: existingRecord.status ?? "",
           },
@@ -905,6 +921,7 @@ export class PersistentAppStore {
         id: input.sessionId,
         checkoutUrl: input.checkoutUrl,
         sourcePath: normalizedSourcePath,
+        draftId: normalizedDraftId,
         teamId: input.teamId,
         userId: input.userId,
         customerEmail: normalizedCustomerEmail,
@@ -929,6 +946,7 @@ export class PersistentAppStore {
         ipAddress,
         metadata: {
           sourcePath: normalizedSourcePath,
+          draftId: normalizedDraftId ?? "",
           paymentStatus: input.paymentStatus ?? "",
           status: input.status ?? "",
           customerEmail: normalizedCustomerEmail ?? "",
@@ -936,6 +954,29 @@ export class PersistentAppStore {
       });
 
       return { created: true };
+    });
+  }
+
+  async getDraftExportAccess(
+    teamId: string,
+    draftId: string,
+  ): Promise<{ unlocked: boolean; paidCheckoutSessionId: string | null }> {
+    return this.read((data) => {
+      const matchingPaidSessions = data.billingCheckoutSessions
+        .filter(
+          (session) =>
+            session.teamId === teamId &&
+            session.draftId === draftId &&
+            (session.completedAt !== null ||
+              session.status === "complete" ||
+              session.paymentStatus === "paid"),
+        )
+        .sort((left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt));
+
+      return {
+        unlocked: matchingPaidSessions.length > 0,
+        paidCheckoutSessionId: matchingPaidSessions[0]?.id ?? null,
+      };
     });
   }
 }

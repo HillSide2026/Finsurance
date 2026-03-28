@@ -359,11 +359,30 @@ test("persistent store records and updates Stripe checkout sessions", async (t) 
     password: "Password123",
   });
 
+  const exportDraft = await store.saveDraft(
+    summary.team.id,
+    summary.user.id,
+    {
+      title: "Export access test",
+      status: "draft",
+      assignedReviewerUserId: null,
+      lastWorkflowView: "output",
+      sessionMeta: {
+        id: "STR-BILLING-001",
+        timestamp: new Date("2026-03-27T12:00:00.000Z").toISOString(),
+      },
+      intake: createEmptyStrIntake(),
+      narrativeText: "Billing draft narrative",
+    },
+    "127.0.0.1",
+  );
+
   const createdRecord = await store.recordBillingCheckoutSession(
     {
       sessionId: "cs_test_456",
       checkoutUrl: "https://checkout.stripe.com/c/pay/cs_test_456",
       sourcePath: "/finsure",
+      draftId: exportDraft.id,
       teamId: summary.team.id,
       userId: summary.user.id,
       customerEmail: summary.user.email,
@@ -383,6 +402,7 @@ test("persistent store records and updates Stripe checkout sessions", async (t) 
       sessionId: "cs_test_456",
       checkoutUrl: null,
       sourcePath: "/finsure",
+      draftId: exportDraft.id,
       teamId: null,
       userId: null,
       customerEmail: "billing.owner@example.com",
@@ -400,6 +420,7 @@ test("persistent store records and updates Stripe checkout sessions", async (t) 
   const persisted = JSON.parse(await readFile(filePath, "utf8")) as {
     billingCheckoutSessions?: Array<{
       id: string;
+      draftId: string | null;
       teamId: string | null;
       userId: string | null;
       status: string | null;
@@ -412,10 +433,15 @@ test("persistent store records and updates Stripe checkout sessions", async (t) 
   const sessionRecord = persisted.billingCheckoutSessions?.find(
     (candidate) => candidate.id === "cs_test_456",
   );
+  assert.equal(sessionRecord?.draftId, exportDraft.id);
   assert.equal(sessionRecord?.teamId, summary.team.id);
   assert.equal(sessionRecord?.userId, summary.user.id);
   assert.equal(sessionRecord?.status, "complete");
   assert.equal(sessionRecord?.paymentStatus, "paid");
   assert.equal(sessionRecord?.customerEmail, "billing.owner@example.com");
   assert.ok(sessionRecord?.completedAt);
+
+  const exportAccess = await store.getDraftExportAccess(summary.team.id, exportDraft.id);
+  assert.equal(exportAccess.unlocked, true);
+  assert.equal(exportAccess.paidCheckoutSessionId, "cs_test_456");
 });

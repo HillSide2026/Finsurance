@@ -199,6 +199,10 @@ export function summarizeStripeCheckoutSession(
   return {
     id: session.id,
     checkoutUrl: typeof session.url === "string" && session.url.trim().length > 0 ? session.url : null,
+    draftId:
+      typeof session.metadata?.draft_id === "string" && session.metadata.draft_id.trim().length > 0
+        ? session.metadata.draft_id.trim()
+        : null,
     mode: normalizeCheckoutMode(session.mode),
     status: normalizeCheckoutStatus(session.status),
     paymentStatus: normalizePaymentStatus(session.payment_status),

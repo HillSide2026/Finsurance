@@ -3,7 +3,6 @@ import { expect, test, type Page } from "@playwright/test";
 async function registerWorkspace(page: Page, suffix: string) {
   const authForm = page.locator("#auth-access form");
 
-  await page.getByRole("button", { name: "Create account to start" }).click();
   await authForm.getByLabel("Organization").fill(`Guidance Team ${suffix}`);
   await authForm.getByLabel("Full name").fill("Guidance Operator");
   await authForm.getByLabel("Email").fill(`guidance-${suffix}@example.com`);
