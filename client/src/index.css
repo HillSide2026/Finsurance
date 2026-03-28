@@ -119,74 +119,105 @@
   }
 
   .legal-home-shell {
-    background: #f7f1e4;
+    background: #f4f2ec;
     position: relative;
   }
 
   .legal-home-shell::before {
-    content: none;
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(rgba(15, 22, 17, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 22, 17, 0.02) 1px, transparent 1px);
+    background-size: 96px 96px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.26), transparent 72%);
   }
 
   .legal-home-panel {
-    background: rgba(255, 252, 245, 0.72);
-    border-color: rgba(96, 110, 89, 0.16);
-    box-shadow: 0 16px 40px rgba(31, 51, 37, 0.06);
-    backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(26, 26, 26, 0.08);
+    box-shadow: 0 18px 40px rgba(26, 26, 26, 0.05);
+    backdrop-filter: blur(12px);
     position: relative;
   }
 
   .legal-home-card {
-    background: rgba(255, 255, 255, 0.58);
-    border-color: rgba(96, 110, 89, 0.14);
-    box-shadow: 0 14px 30px rgba(31, 51, 37, 0.05);
+    background: #ffffff;
+    border-color: rgba(26, 26, 26, 0.1);
+    box-shadow: 0 12px 26px rgba(26, 26, 26, 0.04);
   }
 
   .legal-home-nav {
-    background: rgba(255, 252, 245, 0.72);
-    border-color: rgba(96, 110, 89, 0.16);
-    box-shadow: 0 16px 40px rgba(31, 51, 37, 0.06);
-    backdrop-filter: blur(16px);
+    background: rgba(244, 242, 236, 0.94);
+    border-color: rgba(26, 26, 26, 0.08);
+    box-shadow: 0 14px 32px rgba(26, 26, 26, 0.05);
+    backdrop-filter: blur(12px);
   }
 
   .legal-home-hero-panel {
-    background: rgba(255, 252, 245, 0.72);
-    border-color: rgba(96, 110, 89, 0.16);
-    box-shadow: 0 16px 40px rgba(31, 51, 37, 0.06);
+    background:
+      radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 24%),
+      linear-gradient(145deg, #1f3d2b 0%, #254934 56%, #1a3425 100%);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 30px 72px rgba(16, 24, 19, 0.22);
+  }
+
+  .legal-home-panel-alt {
+    background: rgba(244, 242, 236, 0.88);
+    border-color: rgba(26, 26, 26, 0.08);
+    box-shadow: 0 16px 34px rgba(26, 26, 26, 0.04);
+    position: relative;
+  }
+
+  .legal-home-feature-panel {
+    background:
+      radial-gradient(circle at top right, rgba(255, 255, 255, 0.06), transparent 24%),
+      linear-gradient(145deg, #1f3d2b 0%, #244632 54%, #1b3526 100%);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 28px 68px rgba(16, 24, 19, 0.2);
+  }
+
+  .legal-home-feature-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(26, 26, 26, 0.08);
+    box-shadow: 0 12px 24px rgba(16, 24, 19, 0.08);
   }
 
   .legal-home-soft-chip {
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(111, 139, 101, 0.18);
-    color: #6f8b65;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #f4f2ec;
   }
 
   .legal-home-proof-pill {
-    background: rgba(255, 255, 255, 0.55);
-    border: 1px solid rgba(96, 110, 89, 0.14);
-    color: #596255;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #d8e2d6;
   }
 
   .legal-home-device-frame {
-    background: linear-gradient(180deg, #151515 0%, #050505 100%);
-    border: 1px solid rgba(247, 241, 228, 0.12);
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.32);
+    background: linear-gradient(180deg, #222222 0%, #111111 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.28);
   }
 
   .legal-home-device-screen {
     background:
-      radial-gradient(circle at top, rgba(111, 139, 101, 0.16), transparent 34%),
-      linear-gradient(180deg, #19261c 0%, #223526 100%);
-    border: 1px solid rgba(247, 241, 228, 0.08);
+      radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 24%),
+      linear-gradient(180deg, #171c19 0%, #202723 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
 
   .legal-home-device-card {
-    background: rgba(247, 241, 228, 0.06);
-    border: 1px solid rgba(247, 241, 228, 0.08);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .legal-home-muted {
-    color: #6f776c;
+    color: #6b6b6b;
   }
 
   .brand-site-frame {
