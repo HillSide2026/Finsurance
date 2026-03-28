@@ -226,9 +226,6 @@ function FinsureDevicePreview() {
 
   return (
     <div className="relative mx-auto w-full max-w-[360px] lg:mx-0 lg:justify-self-end">
-      <div className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.24em] text-[#E6C989] lg:text-left">
-        FinSure Interface
-      </div>
       <div className="absolute inset-x-10 top-16 h-48 rounded-full bg-[radial-gradient(circle,_rgba(255,255,255,0.1),_transparent_70%)] blur-3xl" />
       <div className="legal-home-device-frame relative rounded-[44px] border border-white/10 p-[10px] shadow-[0_36px_100px_rgba(0,0,0,0.42)] lg:hover:-translate-y-1">
         <div className="absolute left-1/2 top-[10px] h-6 w-28 -translate-x-1/2 rounded-b-[18px] bg-[#040404]" />
@@ -290,7 +287,7 @@ export default function SiteHome() {
               className="shrink-0 flex items-center"
             >
               <img
-                src="/fintechlawyer-logo.png"
+                src="/fintechlawyer-logo-white.png"
                 alt="FintechLawyer.ca"
                 className="h-11 w-auto md:h-12"
               />
@@ -351,27 +348,17 @@ export default function SiteHome() {
           <section className="legal-home-hero-panel overflow-hidden rounded-[40px] border px-6 py-10 md:px-10 md:py-12">
             <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_420px] lg:items-center">
               <div className="space-y-5">
-                <div className="inline-flex w-fit items-center rounded-[24px] p-2 legal-home-brand-plaque">
-                  <img
-                    src="/fintechlawyer-logo.png"
-                    alt="FintechLawyer.ca"
-                    className="h-12 w-auto rounded-[18px] md:h-14"
-                  />
-                </div>
-                <div className="inline-flex items-center gap-3 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] legal-home-soft-chip">
-                  CANADIAN FINTECH COUNSEL + TOOLS
-                </div>
                 <div className="space-y-4">
                   <h1 className="max-w-4xl text-5xl leading-[0.92] text-[#F4F2EC] md:text-7xl">
                     Canadian FinTech Infrastructure and Tools
                   </h1>
                   <p className="max-w-2xl text-lg leading-8 text-[#D9E2D6] md:text-xl">
-                    Legal information, compliance systems, and productized tools for
-                    regulated fintech operators in Canada.
+                    Legal guidance, compliance systems, and tools for regulated fintech
+                    operators in Canada.
                   </p>
                   <p className="max-w-xl text-sm leading-6 text-[#B7C3B7] md:text-base">
-                    Start with FinSure for STR drafting, then move into the legal and
-                    operational guidance that supports real-world AML work.
+                    Start with FinSure for STR drafting, then move into our enterprise
+                    systems that support real-world AML work.
                   </p>
                 </div>
 

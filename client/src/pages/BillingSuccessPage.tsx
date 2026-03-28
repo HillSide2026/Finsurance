@@ -124,7 +124,7 @@ export default function BillingSuccessPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <a href={siteConfig.links.home} className="flex items-center">
               <img
-                src="/fintechlawyer-logo.png"
+                src="/fintechlawyer-logo-white.png"
                 alt="FintechLawyer.ca"
                 className="h-11 w-auto md:h-12"
               />
