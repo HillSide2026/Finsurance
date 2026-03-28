@@ -2,9 +2,15 @@ services:
   - type: web
     name: fintechlawyer-ca
     runtime: node
+    disk:
+      name: app-data
+      mountPath: /var/data
+      sizeGB: 5
     buildCommand: npm ci && npm run build
     startCommand: npm run start
     healthCheckPath: /api/health
     envVars:
       - key: APP_BASE_URL
         value: https://fintechlawyer.ca
+      - key: APP_DATA_PATH
+        value: /var/data/app-store.json

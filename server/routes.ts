@@ -15,7 +15,7 @@ import {
   summarizeStripeCheckoutSession,
 } from "./billing";
 import { buildApiErrorResponse, buildHealthResponse } from "./http";
-import { PersistentAppStore } from "./persistence";
+import { DraftConflictError, PersistentAppStore } from "./persistence";
 import {
   StripeWebhookVerificationError,
   verifyStripeWebhookEvent,
@@ -263,6 +263,8 @@ export async function registerRoutes(
 
     const request: SaveDraftRequest = {
       draftId: typeof body.draftId === "string" ? body.draftId : undefined,
+      expectedUpdatedAt:
+        typeof body.expectedUpdatedAt === "string" ? body.expectedUpdatedAt : undefined,
       title: typeof body.title === "string" ? body.title : "",
       status:
         body.status === "in_review" ||
@@ -294,17 +296,25 @@ export async function registerRoutes(
       narrativeText: typeof body.narrativeText === "string" ? body.narrativeText : "",
     };
 
-    const draft = await store.saveDraft(
-      session.team.id,
-      session.user.id,
-      request,
-      getRequestIpAddress(req),
-    );
+    try {
+      const draft = await store.saveDraft(
+        session.team.id,
+        session.user.id,
+        request,
+        getRequestIpAddress(req),
+      );
 
-    res.status(request.draftId ? 200 : 201).json({
-      ok: true,
-      draft,
-    });
+      res.status(request.draftId ? 200 : 201).json({
+        ok: true,
+        draft,
+      });
+    } catch (error) {
+      if (error instanceof DraftConflictError) {
+        return sendApiError(res, 409, error.message, error.code);
+      }
+
+      throw error;
+    }
   });
 
   app.post("/api/drafts/:draftId/export", async (req, res) => {

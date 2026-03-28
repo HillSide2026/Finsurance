@@ -23,7 +23,7 @@ const legalDocuments: Record<LegalPageKey, LegalDocument> = {
     title: "Privacy Policy",
     intro:
       "This Privacy Policy explains how FintechLawyer.ca and FinSure handle information submitted through the site and the current MVP workflow.",
-    lastUpdated: "March 26, 2026",
+    lastUpdated: "March 27, 2026",
     sections: [
       {
         title: "Scope",
@@ -40,7 +40,7 @@ const legalDocuments: Record<LegalPageKey, LegalDocument> = {
         bullets: [
           "Name, email address, company details, and any message content you choose to send.",
           "Information included in a mailto request or other direct email communication sent to hello@fintechlawyer.ca.",
-          "FinSure drafting inputs and outputs used during an active browser session.",
+          "FinSure account details, saved draft content, session records, enquiry records, and Stripe checkout status records generated through the product.",
         ],
       },
       {
@@ -50,15 +50,16 @@ const legalDocuments: Record<LegalPageKey, LegalDocument> = {
         ],
         bullets: [
           "Responding to product, legal, or compliance-related inquiries.",
-          "Reviewing requests for walkthroughs, updates, or potential engagement discussions.",
+          "Responding to product update requests, demo requests, or potential engagement discussions.",
           "Operating, troubleshooting, and improving the site and product workflow.",
+          "Saving and restoring account sessions, drafts, and payment confirmation records.",
         ],
       },
       {
         title: "FinSure MVP Data Handling",
         paragraphs: [
-          "Based on the current MVP implementation, FinSure drafting inputs and outputs are generated in-session in your browser and are not automatically transmitted to us through the application flow.",
-          "If you choose to contact us by email, the information included in that communication will be processed through your email provider and ours.",
+          "The current FinSure MVP is not browser-only. When you create an account, sign in, save a draft, submit an enquiry, or return from Stripe Checkout, information is transmitted to the application and stored in the file-backed system currently used by the product.",
+          "Saved drafts and related operational records are retained in that application store so they can be reopened later. If you choose to contact us by email, the information included in that communication will also be processed through your email provider and ours.",
         ],
       },
       {
@@ -93,7 +94,7 @@ const legalDocuments: Record<LegalPageKey, LegalDocument> = {
     title: "Terms of Service",
     intro:
       "These Terms govern your use of FintechLawyer.ca and the FinSure workflow unless separate written engagement terms apply.",
-    lastUpdated: "March 26, 2026",
+    lastUpdated: "March 27, 2026",
     sections: [
       {
         title: "Acceptance and Scope",
@@ -161,7 +162,7 @@ const legalDocuments: Record<LegalPageKey, LegalDocument> = {
     title: "Disclaimer",
     intro:
       "This Disclaimer applies to FintechLawyer.ca, FinSure, and related materials made available through the platform.",
-    lastUpdated: "March 26, 2026",
+    lastUpdated: "March 27, 2026",
     sections: [
       {
         title: "General Information Only",

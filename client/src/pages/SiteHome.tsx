@@ -38,7 +38,7 @@ type ValidationCard = {
 
 const proofPoints = [
   "Built by Levine Law",
-  "Designed for regulated fintech teams",
+  "Designed for regulated fintech operators",
   "Counsel, compliance, and tools in one platform",
 ] as const;
 
@@ -75,7 +75,7 @@ const useCaseCards: UseCaseCard[] = [
     href: buildUseCaseHref("aml-compliance-operations"),
   },
   {
-    title: "Product & Infrastructure Teams",
+    title: "Product & Infrastructure",
     bullets: [
       "Payment flow and ledger structuring",
       "Regulatory exposure mapping (RPAA / PCMLTFA)",
@@ -178,7 +178,7 @@ const validationCards: ValidationCard[] = [
   {
     role: "Operations — Crypto Platform",
     quote:
-      "Helps standardize how we approach reporting and documentation across the team.",
+      "Helps standardize how we approach reporting and documentation across the workflow.",
     tag: "Crypto / MSB",
   },
   {
@@ -188,7 +188,7 @@ const validationCards: ValidationCard[] = [
   },
 ] as const;
 
-const validationTags = ["Payments", "Crypto", "MSB", "Compliance Teams"] as const;
+const validationTags = ["Payments", "Crypto", "MSB", "Compliance"] as const;
 
 const headerLinks = [
   { label: "Offerings", href: siteConfig.links.offerings },
@@ -213,7 +213,7 @@ const approachSteps = [
     number: "03",
     title: "Ship usable outputs",
     body:
-      "Templates, tools, and drafting systems give the team something durable to run instead of re-solving the same issue from scratch.",
+      "Templates, tools, and drafting systems give operators something durable to run instead of re-solving the same issue from scratch.",
   },
 ] as const;
 
@@ -359,8 +359,8 @@ export default function SiteHome() {
                     Canadian FinTech Infrastructure and Tools
                   </h1>
                   <p className="max-w-2xl text-lg leading-8 text-[#596255] md:text-xl">
-                    Legal information, compliance systems, and productized tools for teams
-                    operating in regulated fintech environments in Canada.
+                    Legal information, compliance systems, and productized tools for regulated
+                    fintech operators in Canada.
                   </p>
                   <p className="max-w-xl text-sm leading-6 text-[#737B70] md:text-base">
                     Start with FinSure for STR drafting, then explore resources and
@@ -465,8 +465,8 @@ export default function SiteHome() {
                 </h2>
                 <p className="max-w-[640px] text-base leading-7 text-[#596255]">
                   FintechLawyer.ca brings together legal information, compliance
-                  infrastructure, and productized tools for teams operating in regulated
-                  fintech environments in Canada.
+                  infrastructure, and productized tools for regulated fintech operators in
+                  Canada.
                 </p>
               </div>
 
@@ -522,7 +522,7 @@ export default function SiteHome() {
                   </p>
                   <h3 className="text-3xl text-[#1F241D]">{siteConfig.productName}</h3>
                   <p className="text-lg text-[#1F241D]">
-                    Structured STR drafting for Canadian AML teams.
+                    Structured STR drafting for Canadian AML workflows.
                   </p>
                   <p className="max-w-2xl text-base leading-7 text-[#596255]">
                     FinSure is a guided interface for drafting suspicious transaction reports
@@ -579,11 +579,10 @@ export default function SiteHome() {
                   Validation
                 </p>
                 <h2 className="text-4xl text-[#1B2118] md:text-5xl">
-                  Used by FinTech and Compliance Teams
+                  Used across FinTech and Compliance Workflows
                 </h2>
                 <p className="max-w-[600px] text-base leading-7 text-[#596255]">
-                  Applied across payments, crypto, and AML workflows by teams operating in
-                  regulated environments.
+                  Applied across payments, crypto, and AML workflows in regulated environments.
                 </p>
               </div>
 

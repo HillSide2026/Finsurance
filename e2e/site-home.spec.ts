@@ -22,6 +22,6 @@ test("root homepage loads and exposes legal pages", async ({ page }) => {
     .click();
   await expect(page).toHaveURL(/\/finsure$/);
   await expect(
-    page.getByRole("heading", { name: "Audit-Ready, Always" }),
+    page.getByRole("heading", { name: "Generate an STR draft faster" }),
   ).toBeVisible();
 });

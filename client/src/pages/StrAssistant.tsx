@@ -173,10 +173,10 @@ const homepagePainPoints = [
 ] as const;
 
 const homepageBenefits = [
-  "Generate compliant STRs in under 60 seconds",
-  "Structured inputs eliminate omissions and errors",
-  "Consistent, audit-ready documentation every time",
-  "Reduce reliance on manual processes and legal review delays",
+  "Build an STR draft in under 60 seconds",
+  "Structured inputs reduce omissions and errors",
+  "Deterministic signals keep the draft grounded in the facts you provide",
+  "Move from fact pattern to editable output faster",
 ] as const;
 
 const homepageWorkflow = [
@@ -187,18 +187,18 @@ const homepageWorkflow = [
   },
   {
     icon: FileText,
-    title: "FinSure structures a complete suspicious transaction report",
-    body: "The workflow assembles the report from the fact pattern you provide.",
+    title: "FinSure assembles a structured STR draft",
+    body: "The workflow turns the fact pattern you provide into editable report language.",
   },
   {
     icon: ShieldAlert,
-    title: "Review and finalize with confidence",
-    body: "Check the signals, narrative, and gaps before moving ahead.",
+    title: "Review the draft before you act",
+    body: "Check the signals, narrative, and missing details before deciding what to do next.",
   },
   {
     icon: ArrowRight,
-    title: "Export and submit immediately",
-    body: "Move from structured intake to usable output without extra friction.",
+    title: "Export and continue your workflow",
+    body: "Move from structured intake to a usable draft package without extra friction.",
   },
 ] as const;
 
@@ -209,10 +209,10 @@ const homepageAuthorityPoints = [
 ] as const;
 
 const homepageOutputItems = [
-  "Guided transaction details",
-  "Suspicion indicators",
+  "Structured intake",
+  "Risk signals",
   "Draft narrative",
-  "Review-ready output",
+  "Export package",
 ] as const;
 
 function createSessionMeta(): SessionMeta {
@@ -268,6 +268,30 @@ function downloadTextFile(fileName: string, content: string) {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+function buildDraftSaveSnapshot(input: {
+  title: string;
+  status: DraftStatus;
+  assignedReviewerUserId: string | null;
+  lastWorkflowView: WorkflowStepView;
+  sessionMeta: WorkspaceSessionMeta;
+  intake: StrIntake;
+  narrativeText: string;
+}): string {
+  return JSON.stringify(input);
+}
+
+function buildDraftRecordSnapshot(record: DraftRecord): string {
+  return buildDraftSaveSnapshot({
+    title: record.title,
+    status: record.status,
+    assignedReviewerUserId: record.assignedReviewerUserId,
+    lastWorkflowView: record.lastWorkflowView,
+    sessionMeta: record.sessionMeta,
+    intake: record.intake,
+    narrativeText: record.narrativeText,
+  });
 }
 
 function Stepper({ currentView }: { currentView: Exclude<View, "landing"> }) {
@@ -430,11 +454,11 @@ function AuthCard({
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <CardTitle className="text-2xl text-[#1B2118]">
-              {mode === "register" ? "Create your workspace" : "Sign in to your workspace"}
+              {mode === "register" ? "Create your account" : "Sign in"}
             </CardTitle>
             <CardDescription className="mt-2 max-w-xl text-sm leading-7 text-[#596255]">
-              Save drafts, reopen active files, and keep review-ready STR work in one protected
-              workspace.
+              Create an account to save drafts, reopen them later, and keep your STR work in one
+              place.
             </CardDescription>
           </div>
           <div className="flex w-full items-center gap-2 rounded-full border border-[rgba(96,110,89,0.14)] bg-white/70 p-1 md:w-auto">
@@ -446,7 +470,7 @@ function AuthCard({
                 mode === "register" ? "bg-[#6F8B65] text-[#F7F1E4]" : "text-[#596255]",
               )}
             >
-              Create workspace
+              Create account
             </button>
             <button
               type="button"
@@ -466,13 +490,13 @@ function AuthCard({
           {mode === "register" ? (
             <div className="grid gap-2 md:col-span-2">
               <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-team-name">
-                Team name
+                Organization
               </label>
               <Input
                 id="auth-team-name"
                 value={form.teamName}
                 onChange={(event) => onFieldChange("teamName", event.target.value)}
-                placeholder="Levine Law AML Team"
+                placeholder="Your company or practice"
                 className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
               />
             </div>
@@ -494,7 +518,7 @@ function AuthCard({
           {mode === "register" ? (
             <div className="grid gap-2">
               <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-email">
-                Workspace email
+                Email
               </label>
               <Input
                 id="auth-email"
@@ -522,7 +546,7 @@ function AuthCard({
           {mode === "login" ? (
             <div className="grid gap-2">
               <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-email-login">
-                Workspace email
+                Email
               </label>
               <Input
                 id="auth-email-login"
@@ -537,8 +561,8 @@ function AuthCard({
           <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
             <p className="text-xs text-[#7A8176]">
               {mode === "register"
-                ? "The first account becomes the workspace owner."
-                : "Use the workspace email and password you registered with."}
+                ? "This account lets you save drafts and reopen them later."
+                : "Use the email and password you registered with."}
             </p>
             <Button type="submit" size="lg" className="rounded-2xl px-8" disabled={isSubmitting}>
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
@@ -576,14 +600,14 @@ function WorkspaceCard({
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Saved Draft Workspace
+              Saved drafts
             </p>
             <h2 className="text-3xl font-semibold tracking-tight text-primary">
-              Your active STR files
+              Your STR drafts
             </h2>
             <CardDescription className="max-w-2xl text-base leading-7">
-              Signed in as {session.user.name} at {session.team.name}. Save drafts, reopen them,
-              and move files through review-ready states.
+              Signed in as {session.user.name}. Save drafts, reopen them, and continue where you
+              left off.
             </CardDescription>
           </div>
           {showActions ? (
@@ -603,21 +627,23 @@ function WorkspaceCard({
       <CardContent className="space-y-5">
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-[24px] border border-border/70 bg-secondary/35 p-5">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Open drafts</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Saved drafts</p>
             <p className="mt-3 text-3xl font-semibold text-foreground">{drafts.length}</p>
           </div>
           <div className="rounded-[24px] border border-border/70 bg-secondary/35 p-5">
             <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              Reviewers available
+              In progress
             </p>
-            <p className="mt-3 text-3xl font-semibold text-foreground">{reviewers.length}</p>
+            <p className="mt-3 text-3xl font-semibold text-foreground">
+              {drafts.filter((draft) => draft.status === "draft" || draft.status === "in_review").length}
+            </p>
           </div>
           <div className="rounded-[24px] border border-border/70 bg-secondary/35 p-5">
             <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              Workspace role
+              Ready for filing
             </p>
-            <p className="mt-3 text-3xl font-semibold text-foreground capitalize">
-              {session.user.role}
+            <p className="mt-3 text-3xl font-semibold text-foreground">
+              {drafts.filter((draft) => draft.status === "ready_for_filing").length}
             </p>
           </div>
         </div>
@@ -652,7 +678,7 @@ function WorkspaceCard({
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Updated {formatTimestamp(draft.updatedAt)} by {draft.createdByName}
+                    Updated {formatTimestamp(draft.updatedAt)}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Readiness: {draft.readinessStatus.replace(/_/g, " ")}. Suspicion level:{" "}
@@ -700,6 +726,8 @@ export default function StrAssistant() {
   const [draftTitle, setDraftTitle] = useState("");
   const [draftStatus, setDraftStatus] = useState<DraftStatus>("draft");
   const [assignedReviewerUserId, setAssignedReviewerUserId] = useState<string | null>(null);
+  const [lastSavedDraftUpdatedAt, setLastSavedDraftUpdatedAt] = useState<string | null>(null);
+  const [lastSavedDraftSnapshot, setLastSavedDraftSnapshot] = useState<string | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
@@ -715,6 +743,19 @@ export default function StrAssistant() {
     sessionTimestamp: session.timestamp,
     narrativeText,
   });
+  const currentDraftSaveSnapshot = buildDraftSaveSnapshot({
+    title: draftTitle,
+    status: draftStatus,
+    assignedReviewerUserId,
+    lastWorkflowView: getDraftSaveView(view),
+    sessionMeta: session,
+    intake,
+    narrativeText,
+  });
+  const hasUnsavedChanges =
+    activeDraftId !== null &&
+    lastSavedDraftSnapshot !== null &&
+    lastSavedDraftSnapshot !== currentDraftSaveSnapshot;
 
   useEffect(() => {
     let isMounted = true;
@@ -738,10 +779,10 @@ export default function StrAssistant() {
         }
 
         toast({
-          title: "Workspace unavailable",
+          title: "Saved drafts unavailable",
           description: getApiErrorMessage(
             error,
-            "The saved draft workspace could not be loaded right now.",
+            "The saved draft list could not be loaded right now.",
           ),
           variant: "destructive",
         });
@@ -824,6 +865,8 @@ export default function StrAssistant() {
     setDraftTitle("");
     setDraftStatus("draft");
     setAssignedReviewerUserId(null);
+    setLastSavedDraftUpdatedAt(null);
+    setLastSavedDraftSnapshot(null);
     setView("intake");
   };
 
@@ -832,7 +875,7 @@ export default function StrAssistant() {
       setAuthMode("register");
       scrollToElement("auth-access");
       toast({
-        title: "Create your workspace first",
+        title: "Create your account first",
         description: "Sign in or create an account to save drafts and access the drafting flow.",
       });
       return;
@@ -846,8 +889,8 @@ export default function StrAssistant() {
       setAuthMode("register");
       scrollToElement("auth-access");
       toast({
-        title: "Create your workspace first",
-        description: "Preset-driven drafting opens inside a protected workspace.",
+        title: "Create your account first",
+        description: "Sign in or create an account to open a preset and save drafts.",
       });
       return;
     }
@@ -874,6 +917,8 @@ export default function StrAssistant() {
     setDraftTitle("");
     setDraftStatus("draft");
     setAssignedReviewerUserId(null);
+    setLastSavedDraftUpdatedAt(null);
+    setLastSavedDraftSnapshot(null);
     setView(authSession ? "workspace" : "landing");
   };
 
@@ -894,8 +939,8 @@ export default function StrAssistant() {
 
         if (payload.teamName.length === 0 || payload.name.length === 0) {
           toast({
-            title: "Add team and name",
-            description: "Team name and full name are required to create the workspace.",
+            title: "Add organization and name",
+            description: "Organization and full name are required to create the account.",
             variant: "destructive",
           });
           return;
@@ -923,7 +968,7 @@ export default function StrAssistant() {
         if (!payload.email.includes("@") || payload.password.length < 8) {
           toast({
             title: "Check your sign-in details",
-            description: "Use the workspace email and password you registered with.",
+            description: "Use the email and password you registered with.",
             variant: "destructive",
           });
           return;
@@ -944,11 +989,11 @@ export default function StrAssistant() {
       setReviewers([]);
       setView("workspace");
       toast({
-        title: authMode === "register" ? "Workspace created" : "Signed in",
+        title: authMode === "register" ? "Account created" : "Signed in",
         description:
           authMode === "register"
-            ? "Your saved draft workspace is ready."
-            : "Your saved draft workspace is now available.",
+            ? "Your saved drafts are ready."
+            : "Your saved drafts are ready.",
       });
 
       if (response.session) {
@@ -956,7 +1001,7 @@ export default function StrAssistant() {
           await refreshWorkspace(response.session);
         } catch (error) {
           toast({
-            title: "Workspace data may be stale",
+            title: "Saved draft list may be stale",
             description: getApiErrorMessage(
               error,
               "The account action succeeded, but the saved draft list could not be refreshed yet.",
@@ -970,8 +1015,8 @@ export default function StrAssistant() {
         description: getApiErrorMessage(
           error,
           authMode === "register"
-            ? "The workspace could not be created."
-            : "The workspace could not be opened.",
+            ? "The account could not be created."
+            : "The account could not be opened.",
         ),
         variant: "destructive",
       });
@@ -993,6 +1038,8 @@ export default function StrAssistant() {
       setDraftTitle("");
       setDraftStatus("draft");
       setAssignedReviewerUserId(null);
+      setLastSavedDraftUpdatedAt(null);
+      setLastSavedDraftSnapshot(null);
       setSession(createSessionMeta());
       setIntake(createEmptyStrIntake());
       setNarrativeText("");
@@ -1010,6 +1057,8 @@ export default function StrAssistant() {
       setSession(response.draft.sessionMeta);
       setIntake(response.draft.intake);
       setNarrativeText(response.draft.narrativeText);
+      setLastSavedDraftUpdatedAt(response.draft.updatedAt);
+      setLastSavedDraftSnapshot(buildDraftRecordSnapshot(response.draft));
       setView(response.draft.lastWorkflowView);
       toast({
         title: "Draft opened",
@@ -1036,6 +1085,7 @@ export default function StrAssistant() {
         method: "POST",
         body: {
           draftId: activeDraftId ?? undefined,
+          expectedUpdatedAt: activeDraftId ? lastSavedDraftUpdatedAt ?? undefined : undefined,
           title: draftTitle,
           status: options?.status ?? draftStatus,
           assignedReviewerUserId,
@@ -1050,11 +1100,13 @@ export default function StrAssistant() {
       setDraftTitle(response.draft.title);
       setDraftStatus(response.draft.status);
       setAssignedReviewerUserId(response.draft.assignedReviewerUserId);
+      setLastSavedDraftUpdatedAt(response.draft.updatedAt);
+      setLastSavedDraftSnapshot(buildDraftRecordSnapshot(response.draft));
 
       if (!options?.silent) {
         toast({
           title: wasExistingDraft ? "Draft saved" : "Draft created",
-          description: "The STR draft is now stored in your workspace.",
+          description: "The STR draft is now saved to your account.",
         });
       }
 
@@ -1062,10 +1114,10 @@ export default function StrAssistant() {
         await refreshWorkspace();
       } catch (error) {
         toast({
-          title: "Draft saved, but the workspace list may be stale",
+          title: "Draft saved, but the saved draft list may be stale",
           description: getApiErrorMessage(
             error,
-            "The draft was saved successfully, but the workspace list could not be refreshed yet.",
+            "The draft was saved successfully, but the saved draft list could not be refreshed yet.",
           ),
         });
       }
@@ -1111,7 +1163,7 @@ export default function StrAssistant() {
       toast({
         title: "Add name and email",
         description:
-          "Name and email are enough for product updates or a walkthrough request. Company is optional.",
+          "Name and email are enough for product updates or a demo request. Company is optional.",
         variant: "destructive",
       });
       return;
@@ -1141,7 +1193,7 @@ export default function StrAssistant() {
       });
       toast({
         title: "Request received",
-        description: "Your walkthrough or rollout request has been saved.",
+        description: "Your follow-up request has been saved.",
       });
     } catch (error) {
       toast({
@@ -1321,7 +1373,7 @@ export default function StrAssistant() {
 
               <div className="flex flex-wrap items-center gap-3">
                 <Badge className="w-fit border-[rgba(96,110,89,0.14)] bg-white/70 px-4 py-2 text-[#1F241D]">
-                  {authSession.team.name}
+                  {authSession.user.email}
                 </Badge>
                 <Button className="rounded-2xl px-6" onClick={beginNewDraft}>
                   <ShieldCheck className="h-4 w-4" />
@@ -1395,13 +1447,13 @@ export default function StrAssistant() {
                     href={siteConfig.links.pricing}
                     className="transition-colors hover:text-[#6F8B65]"
                   >
-                    Pricing
+                    Checkout
                   </a>
                 </nav>
                 {authSession ? (
                   <div className="flex items-center gap-3">
                     <Button className="rounded-2xl px-6" onClick={() => setView("workspace")}>
-                      Open workspace
+                      Open saved drafts
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                     <Button variant="outline" className="rounded-2xl px-6" onClick={handleSignOut}>
@@ -1410,8 +1462,14 @@ export default function StrAssistant() {
                     </Button>
                   </div>
                 ) : (
-                  <Button className="rounded-2xl px-6" onClick={() => scrollToElement("auth-access")}>
-                    Access workspace
+                  <Button
+                    className="rounded-2xl px-6"
+                    onClick={() => {
+                      setAuthMode("register");
+                      scrollToElement("auth-access");
+                    }}
+                  >
+                    Create account
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 )}
@@ -1423,25 +1481,19 @@ export default function StrAssistant() {
             <section className="grid gap-8 py-16 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-center">
               <div className="space-y-6">
                 <h1 className="text-5xl leading-[0.95] text-[#1B2118] md:text-7xl">
-                  Audit-Ready, Always
+                  Generate an STR draft faster
                 </h1>
                 <p className="max-w-3xl text-lg leading-8 text-[#596255] md:text-xl">
-                  Generate compliant suspicious transaction reports in under 60 seconds.
-                  FinSure guides your team through structured inputs to produce complete,
-                  submission-ready reports with no ambiguity.
+                  FinSure guides you through structured inputs to build a Suspicious Transaction
+                  Report draft you can review, edit, save, and export.
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button size="lg" className="rounded-2xl px-8" onClick={openWorkflow}>
-                    {authSession ? "Start drafting" : "Create account to draft"}
+                    {authSession ? "Start drafting" : "Create account to start"}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
-                  <Button
-                    asChild
-                    size="lg"
-                    variant="outline"
-                    className="rounded-2xl px-8"
-                  >
-                    <a href={siteConfig.links.pricing}>Purchase access</a>
+                  <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
+                    <a href={siteConfig.links.howItWorks}>See how it works</a>
                   </Button>
                   <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
                     <a href={siteConfig.links.levineLaw} target="_blank" rel="noreferrer">
@@ -1556,7 +1608,7 @@ export default function StrAssistant() {
                 <Card className="legal-home-card">
                   <CardContent className="flex items-center gap-3 p-6 text-sm text-[#596255]">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Loading workspace availability...
+                    Loading account access...
                   </CardContent>
                 </Card>
               ) : authSession ? (
@@ -1605,7 +1657,7 @@ export default function StrAssistant() {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <h2 className="text-3xl text-[#1B2118] md:text-4xl">
-                    Meet FinSure — Instant Suspicious Transaction Reporting
+                    Meet FinSure — Guided STR Drafting
                   </h2>
                 </div>
                 <div className="grid gap-5 md:grid-cols-2">
@@ -1688,15 +1740,15 @@ export default function StrAssistant() {
               <Card className="legal-home-card">
                 <CardHeader className="space-y-3">
                   <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#6F8B65]">
-                    Secure Checkout
+                    Stripe Checkout
                   </div>
                   <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">
-                    Purchase FinSure access in Stripe
+                    Hosted payment flow
                   </CardTitle>
                   <CardDescription className="max-w-3xl text-base leading-8 text-[#596255]">
-                    Stripe Checkout handles the hosted payment flow. If you are already signed in,
-                    the checkout session will reuse your workspace email so the payment can be
-                    matched back to your team faster.
+                    Stripe handles the hosted payment flow and returns you to FinSure after
+                    confirmation. If you are already signed in, the checkout session can reuse
+                    your account email.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5">
@@ -1706,7 +1758,7 @@ export default function StrAssistant() {
                       FinSure on confirmation.
                     </p>
                     <p className="mt-3">
-                      Team rollout questions or custom onboarding still go through the update form
+                      Questions about the product or the payment flow can go through the form
                       below.
                     </p>
                   </div>
@@ -1724,13 +1776,13 @@ export default function StrAssistant() {
                         </>
                       ) : (
                         <>
-                          Continue to payment
+                          Open Stripe checkout
                           <ArrowRight className="h-4 w-4" />
                         </>
                       )}
                     </Button>
                     <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
-                      <a href={siteConfig.links.earlyAccess}>Need a walkthrough first?</a>
+                      <a href={siteConfig.links.earlyAccess}>Have a question first?</a>
                     </Button>
                   </div>
                 </CardContent>
@@ -1741,11 +1793,11 @@ export default function StrAssistant() {
               <Card className="legal-home-card">
                 <CardHeader className="space-y-3">
                   <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">
-                    Need rollout updates or a team walkthrough?
+                    Want product updates or a demo?
                   </CardTitle>
                   <CardDescription className="max-w-3xl text-base leading-8 text-[#596255]">
-                    FinSure is usable now. If you want product updates, rollout coordination, or a
-                    team introduction, leave your details and we will follow up.
+                    FinSure is live. If you want product updates, a demo, or help deciding whether
+                    it fits your workflow, leave your details and we will follow up.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1842,15 +1894,31 @@ export default function StrAssistant() {
                 FINTRAC STR triage in a one-minute drafting flow.
               </h1>
               <p className="mt-3 text-sm text-muted-foreground">
-                {activeDraftId
-                  ? `Saved draft: ${draftTitle || "Untitled draft"}`
-                  : "This draft is still unsaved until you create it in the workspace."}
+                {activeDraftId ? (
+                  hasUnsavedChanges ? (
+                    <>
+                      Unsaved changes in {draftTitle || "Untitled draft"}.
+                      {lastSavedDraftUpdatedAt
+                        ? ` Last saved ${formatTimestamp(lastSavedDraftUpdatedAt)}.`
+                        : ""}
+                    </>
+                  ) : (
+                    <>
+                      Saved draft: {draftTitle || "Untitled draft"}.
+                      {lastSavedDraftUpdatedAt
+                        ? ` Last saved ${formatTimestamp(lastSavedDraftUpdatedAt)}.`
+                        : ""}
+                    </>
+                  )
+                ) : (
+                  "This draft is still unsaved until you save it to your account."
+                )}
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Button variant="outline" className="rounded-2xl" onClick={() => setView("workspace")}>
                 <FolderOpen className="h-4 w-4" />
-                Workspace
+                Saved drafts
               </Button>
               <Button
                 className="rounded-2xl"
@@ -1870,7 +1938,7 @@ export default function StrAssistant() {
             </div>
           </div>
 
-          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_220px]">
+          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px]">
             <div className="grid gap-2">
               <label className="text-sm font-medium text-foreground" htmlFor="draft-title">
                 Draft title
@@ -1896,27 +1964,6 @@ export default function StrAssistant() {
                   {draftStatusValues.map((status) => (
                     <SelectItem key={status} value={status}>
                       {draftStatusLabels[status]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Reviewer</label>
-              <Select
-                value={assignedReviewerUserId ?? "unassigned"}
-                onValueChange={(value) =>
-                  setAssignedReviewerUserId(value === "unassigned" ? null : value)
-                }
-              >
-                <SelectTrigger className="h-11 rounded-2xl border-border/70 bg-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                  {reviewers.map((reviewer) => (
-                    <SelectItem key={reviewer.id} value={reviewer.id}>
-                      {reviewer.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

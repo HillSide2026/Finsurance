@@ -32,31 +32,31 @@ export type SitePageMetadata = {
 };
 
 const homePageMetadata: SitePageMetadata = {
-  title: "FintechLawyer.ca | Counsel for FinTech Teams",
+  title: "FintechLawyer.ca | Counsel for FinTech Operators",
   description:
-    "FintechLawyer.ca combines counsel, compliance systems, and productized tools for regulated fintech teams navigating AML, payments, and launch risk.",
+    "FintechLawyer.ca combines counsel, compliance systems, and productized tools for regulated fintech operators navigating AML, payments, and launch risk.",
   canonicalUrl: homeUrl,
-  openGraphTitle: "FintechLawyer.ca | Counsel for FinTech Teams",
+  openGraphTitle: "FintechLawyer.ca | Counsel for FinTech Operators",
   openGraphDescription:
-    "Counsel, compliance systems, and productized tools for regulated fintech teams.",
+    "Counsel, compliance systems, and productized tools for regulated fintech operators.",
   openGraphUrl: homeUrl,
-  twitterTitle: "FintechLawyer.ca | Counsel for FinTech Teams",
+  twitterTitle: "FintechLawyer.ca | Counsel for FinTech Operators",
   twitterDescription:
-    "Counsel, compliance systems, and productized tools for regulated fintech teams.",
+    "Counsel, compliance systems, and productized tools for regulated fintech operators.",
 };
 
 const productPageMetadata: SitePageMetadata = {
   title: "FinSure | Suspicious transaction drafting",
   description:
-    "FinSure generates Suspicious Transaction Report drafts so your team can review and submit faster.",
+    "FinSure helps you generate Suspicious Transaction Report drafts faster.",
   canonicalUrl: productUrl,
   openGraphTitle: "FinSure | Suspicious transaction drafting",
   openGraphDescription:
-    "FinSure generates Suspicious Transaction Report drafts so your team can review and submit faster.",
+    "FinSure helps you generate Suspicious Transaction Report drafts faster.",
   openGraphUrl: productUrl,
   twitterTitle: "FinSure | Suspicious transaction drafting",
   twitterDescription:
-    "FinSure generates Suspicious Transaction Report drafts so your team can review and submit faster.",
+    "FinSure helps you generate Suspicious Transaction Report drafts faster.",
 };
 
 const privacyPolicyPageMetadata: SitePageMetadata = {

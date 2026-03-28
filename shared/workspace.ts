@@ -105,6 +105,7 @@ export type DraftListResponse = {
 
 export type SaveDraftRequest = {
   draftId?: string;
+  expectedUpdatedAt?: string;
   title: string;
   status: DraftStatus;
   assignedReviewerUserId: string | null;

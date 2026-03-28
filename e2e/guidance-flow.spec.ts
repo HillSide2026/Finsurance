@@ -1,16 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
 
 async function registerWorkspace(page: Page, suffix: string) {
-  await page.getByRole("button", { name: "Create account to draft" }).click();
-  await page.getByLabel("Team name").fill(`Guidance Team ${suffix}`);
-  await page.getByLabel("Full name").fill("Guidance Operator");
-  await page.getByLabel("Workspace email").fill(`guidance-${suffix}@example.com`);
-  await page.getByLabel("Password").fill("Password123");
-  await page
-    .locator("#auth-access form")
-    .getByRole("button", { name: "Create account" })
-    .click();
-  await expect(page.getByRole("heading", { name: "Your active STR files" })).toBeVisible();
+  const authForm = page.locator("#auth-access form");
+
+  await page.getByRole("button", { name: "Create account to start" }).click();
+  await authForm.getByLabel("Organization").fill(`Guidance Team ${suffix}`);
+  await authForm.getByLabel("Full name").fill("Guidance Operator");
+  await authForm.getByLabel("Email").fill(`guidance-${suffix}@example.com`);
+  await authForm.getByLabel("Password").fill("Password123");
+  await authForm.getByRole("button", { name: "Create account" }).click();
+  await expect(page.getByRole("heading", { name: "Your STR drafts" })).toBeVisible();
 }
 
 test("authenticated low-information flow stays in guidance-only mode", async ({ page }) => {
@@ -19,7 +18,7 @@ test("authenticated low-information flow stays in guidance-only mode", async ({ 
   await page.goto("/finsure");
 
   await expect(
-    page.getByRole("heading", { name: "Audit-Ready, Always" }),
+    page.getByRole("heading", { name: "Generate an STR draft faster" }),
   ).toBeVisible();
 
   await registerWorkspace(page, suffix);

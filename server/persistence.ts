@@ -122,6 +122,15 @@ type SessionContext = {
 const sessionDurationMs = 1000 * 60 * 60 * 24 * 30;
 const scryptKeyLength = 64;
 
+export class DraftConflictError extends Error {
+  readonly code = "draft_conflict";
+
+  constructor(message: string) {
+    super(message);
+    this.name = "DraftConflictError";
+  }
+}
+
 function createEmptyStore(): AppStoreData {
   return {
     teams: [],
@@ -295,7 +304,17 @@ export class PersistentAppStore {
 
   private async persist(data: AppStoreData): Promise<void> {
     await fs.mkdir(path.dirname(this.filePath), { recursive: true });
-    await fs.writeFile(this.filePath, JSON.stringify(data, null, 2), "utf8");
+    const tempFilePath = `${this.filePath}.${process.pid}.${crypto.randomUUID()}.tmp`;
+    const fileHandle = await fs.open(tempFilePath, "w");
+
+    try {
+      await fileHandle.writeFile(JSON.stringify(data, null, 2), "utf8");
+      await fileHandle.sync();
+    } finally {
+      await fileHandle.close();
+    }
+
+    await fs.rename(tempFilePath, this.filePath);
   }
 
   private async read<T>(reader: (data: AppStoreData) => T | Promise<T>): Promise<T> {
@@ -308,9 +327,11 @@ export class PersistentAppStore {
     writer: (data: AppStoreData) => T | Promise<T>,
   ): Promise<T> {
     const operation = this.writeQueue.then(async () => {
-      const data = await this.ensureLoaded();
-      const result = await writer(data);
-      await this.persist(data);
+      const currentData = await this.ensureLoaded();
+      const nextData = cloneValue(currentData);
+      const result = await writer(nextData);
+      await this.persist(nextData);
+      this.cache = nextData;
       return cloneValue(result);
     });
 
@@ -630,6 +651,13 @@ export class PersistentAppStore {
         : undefined;
 
       if (record) {
+        const expectedUpdatedAt = normalizeText(request.expectedUpdatedAt ?? "");
+        if (expectedUpdatedAt.length === 0 || record.updatedAt !== expectedUpdatedAt) {
+          throw new DraftConflictError(
+            "This draft changed since your last saved version. Reopen it before saving again to avoid overwriting newer data.",
+          );
+        }
+
         record.title = title;
         record.status = status;
         record.assignedReviewerUserId = reviewerId;
@@ -699,8 +727,6 @@ export class PersistentAppStore {
 
       const now = new Date().toISOString();
       draft.lastExportedAt = now;
-      draft.updatedAt = now;
-      draft.updatedByUserId = actorUserId;
       data.draftExports.push({
         id: makeId("export"),
         teamId,

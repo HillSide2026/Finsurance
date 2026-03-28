@@ -156,7 +156,7 @@ export default function BillingSuccessPage() {
                   </a>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
-                  <a href={siteConfig.links.earlyAccess}>Need rollout help?</a>
+                  <a href={siteConfig.links.earlyAccess}>Need product help?</a>
                 </Button>
               </div>
             </CardContent>
