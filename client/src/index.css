@@ -120,9 +120,8 @@
 
   .legal-home-shell {
     background:
-      radial-gradient(circle at top left, rgba(230, 201, 137, 0.12), transparent 26%),
-      radial-gradient(circle at bottom right, rgba(31, 61, 43, 0.08), transparent 30%),
-      #f6f1e8;
+      radial-gradient(circle at top left, rgba(230, 201, 137, 0.05), transparent 24%),
+      linear-gradient(180deg, #f4f3ee 0%, #eceae4 100%);
     position: relative;
   }
 
@@ -132,95 +131,81 @@
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(rgba(15, 22, 17, 0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(15, 22, 17, 0.02) 1px, transparent 1px);
-    background-size: 96px 96px;
-    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.26), transparent 72%);
+      linear-gradient(rgba(15, 22, 17, 0.012) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 22, 17, 0.012) 1px, transparent 1px);
+    background-size: 88px 88px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 74%);
   }
 
   .legal-home-panel {
-    background: rgba(255, 252, 247, 0.92);
-    border-color: rgba(35, 49, 38, 0.08);
-    box-shadow: 0 18px 40px rgba(26, 26, 26, 0.05);
-    backdrop-filter: blur(12px);
+    background: rgba(248, 247, 242, 0.98);
+    border-color: rgba(35, 49, 38, 0.1);
+    box-shadow: 0 10px 24px rgba(26, 26, 26, 0.04);
     position: relative;
   }
 
   .legal-home-card {
-    background: rgba(255, 255, 255, 0.96);
-    border-color: rgba(195, 154, 86, 0.16);
-    box-shadow: 0 14px 30px rgba(26, 26, 26, 0.05);
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(42, 53, 46, 0.12);
+    box-shadow: 0 6px 18px rgba(16, 24, 19, 0.04);
   }
 
   .legal-home-nav {
-    background: rgba(255, 252, 247, 0.96);
-    border-color: rgba(31, 61, 43, 0.08);
-    box-shadow:
-      0 16px 34px rgba(26, 26, 26, 0.05),
-      inset 0 1px 0 rgba(230, 201, 137, 0.18);
-    backdrop-filter: blur(12px);
+    background: transparent;
+    border-color: rgba(31, 61, 43, 0.12);
+    box-shadow: none;
   }
 
   .legal-home-hero-panel {
     background:
-      radial-gradient(circle at top right, rgba(230, 201, 137, 0.22), transparent 24%),
-      radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.08), transparent 28%),
-      linear-gradient(145deg, #183224 0%, #1f3d2b 54%, #14281d 100%);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 34px 80px rgba(16, 24, 19, 0.24);
+      linear-gradient(145deg, rgba(43, 49, 46, 0.98) 0%, rgba(29, 35, 33, 0.98) 100%);
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 18px 36px rgba(16, 24, 19, 0.16);
   }
 
   .legal-home-panel-alt {
-    background: rgba(255, 255, 255, 0.76);
-    border-color: rgba(35, 49, 38, 0.08);
-    box-shadow: 0 16px 34px rgba(26, 26, 26, 0.04);
+    background: rgba(241, 239, 233, 0.98);
+    border-color: rgba(35, 49, 38, 0.09);
+    box-shadow: 0 8px 18px rgba(26, 26, 26, 0.035);
     position: relative;
   }
 
   .legal-home-feature-panel {
     background:
-      radial-gradient(circle at top right, rgba(230, 201, 137, 0.2), transparent 24%),
-      radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.05), transparent 28%),
-      linear-gradient(145deg, #183224 0%, #1f3d2b 54%, #14281d 100%);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 32px 74px rgba(16, 24, 19, 0.22);
+      linear-gradient(180deg, rgba(39, 45, 42, 0.98) 0%, rgba(26, 31, 29, 0.98) 100%);
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 18px 34px rgba(16, 24, 19, 0.16);
   }
 
   .legal-home-feature-card {
-    background: rgba(255, 251, 245, 0.94);
-    border: 1px solid rgba(230, 201, 137, 0.18);
-    box-shadow: 0 14px 28px rgba(16, 24, 19, 0.09);
+    background: rgba(250, 248, 243, 0.98);
+    border: 1px solid rgba(120, 132, 124, 0.2);
+    box-shadow: 0 6px 14px rgba(16, 24, 19, 0.08);
   }
 
-  .legal-home-soft-chip {
-    background: rgba(255, 248, 235, 0.08);
-    border: 1px solid rgba(230, 201, 137, 0.32);
-    color: #f4dfa7;
+  .legal-home-workspace-frame {
+    background: #1c211f;
+    border-color: rgba(61, 70, 66, 0.92);
+    box-shadow: 0 20px 38px rgba(14, 21, 18, 0.2);
   }
 
-  .legal-home-proof-pill {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(230, 201, 137, 0.22);
-    color: #efe5cb;
+  .legal-home-workspace-shell {
+    background: #fbfaf6;
+    border-color: rgba(74, 84, 79, 0.2);
   }
 
-  .legal-home-device-frame {
-    background: linear-gradient(180deg, #1c221f 0%, #0d1210 100%);
-    border: 1px solid rgba(230, 201, 137, 0.18);
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.3);
+  .legal-home-workspace-sidebar {
+    background: #202623;
+    border-right: 1px solid rgba(97, 108, 102, 0.5);
   }
 
-  .legal-home-device-screen {
-    background:
-      radial-gradient(circle at top, rgba(230, 201, 137, 0.12), transparent 24%),
-      linear-gradient(180deg, #15211a 0%, #1d2d24 100%);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  .legal-home-workspace-main {
+    background: #fcfbf8;
   }
 
-  .legal-home-device-card {
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(230, 201, 137, 0.16);
+  .legal-home-workspace-aside {
+    background: #f1efe9;
+    border-left: 1px solid rgba(74, 84, 79, 0.12);
   }
 
   .legal-home-muted {
