@@ -9,16 +9,19 @@ test("root homepage loads and exposes legal pages", async ({ page }) => {
     /fintechlawyer-logo-rectangle\.png$/,
   );
   await expect(
+    page.locator("header").first().getByRole("link", { name: "Industries", exact: true }),
+  ).toBeVisible();
+  await expect(
     page.locator("header").first().getByRole("link", { name: "Services", exact: true }),
   ).toBeVisible();
   await expect(
-    page.locator("header").first().getByRole("link", { name: "Experience", exact: true }),
+    page.locator("header").first().getByRole("link", { name: "Expertise", exact: true }),
   ).toBeVisible();
   await expect(
     page.locator("header").first().getByRole("link", { name: "Contact" }),
   ).toHaveCount(0);
   await expect(page.locator("footer").getByRole("link", { name: "Contact" })).toBeVisible();
-  await expect(page.locator("section#approach").getByText("Experience", { exact: true })).toBeVisible();
+  await expect(page.locator("section#approach").getByText("Expertise", { exact: true })).toBeVisible();
 
   await expect(
     page.getByRole("heading", {

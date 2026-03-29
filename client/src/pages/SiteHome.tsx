@@ -204,8 +204,9 @@ const validationCards: ValidationCard[] = [
 const validationTags = ["Payments", "Crypto", "MSB", "Compliance"] as const;
 
 const headerLinks = [
+  { label: "Industries", href: siteConfig.links.useCases },
   { label: "Services", href: siteConfig.links.offerings },
-  { label: "Experience", href: siteConfig.links.approach },
+  { label: "Expertise", href: siteConfig.links.approach },
 ] as const;
 
 const workflowSteps = [
@@ -648,16 +649,15 @@ export default function SiteHome() {
             className="legal-home-panel-alt rounded-[20px] border px-6 py-14 md:px-8 md:py-16 lg:px-10"
           >
             <div className="mx-auto max-w-[1080px]">
-              <div className="max-w-[760px] space-y-4">
+              <div className="mx-auto max-w-[760px] space-y-4 text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9F8A55]">
-                  Use Cases
+                  Industries
                 </p>
                 <h2 className="text-[2.35rem] leading-[1.02] text-[#1B2118] md:text-[3rem]">
-                  Where FintechLawyer.ca Is Used
+                  Where FintechLawyer.ca Is Active
                 </h2>
-                <p className="max-w-[620px] text-base leading-7 text-[#5F675C]">
-                  Applied across regulated fintech workflows involving payments, crypto, AML
-                  programs, and financial infrastructure operating in Canada.
+                <p className="mx-auto max-w-[620px] text-base leading-7 text-[#5F675C]">
+                  FintechLawyer works across regulated fintech industries in Canada.
                 </p>
               </div>
 
@@ -695,14 +695,14 @@ export default function SiteHome() {
             className="legal-home-panel rounded-[20px] border px-6 py-14 md:px-8 md:py-16 lg:px-10"
           >
             <div className="mx-auto max-w-[1080px]">
-              <div className="max-w-[780px] space-y-4">
+              <div className="mx-auto max-w-[780px] space-y-4 text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9F8A55]">
                   Platform Overview
                 </p>
                 <h2 className="text-[2.35rem] leading-[1.02] text-[#1B2118] md:text-[3rem]">
                   What FintechLawyer.ca Provides
                 </h2>
-                <p className="max-w-[660px] text-base leading-7 text-[#5F675C]">
+                <p className="mx-auto max-w-[660px] text-base leading-7 text-[#5F675C]">
                   FintechLawyer.ca brings together legal information, compliance
                   infrastructure, and productized tools for regulated fintech operators in
                   Canada.
@@ -828,14 +828,14 @@ export default function SiteHome() {
             className="legal-home-panel-alt rounded-[20px] border px-6 py-14 md:px-8 md:py-16 lg:px-10"
           >
             <div className="mx-auto max-w-[1080px]">
-              <div className="max-w-[760px] space-y-4">
+              <div className="mx-auto max-w-[760px] space-y-4 text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9F8A55]">
-                  Experience
+                  Expertise
                 </p>
                 <h2 className="text-[2.35rem] leading-[1.02] text-[#1B2118] md:text-[3rem]">
                   Used across FinTech and Compliance Workflows
                 </h2>
-                <p className="max-w-[620px] text-base leading-7 text-[#5F675C]">
+                <p className="mx-auto max-w-[620px] text-base leading-7 text-[#5F675C]">
                   Applied across payments, crypto, and AML workflows in regulated environments.
                 </p>
               </div>
