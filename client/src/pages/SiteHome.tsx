@@ -211,35 +211,32 @@ const headerLinks = [
 const workflowSteps = [
   {
     number: "01",
-    title: "Case intake",
-    detail: "Entity, counterparties, and scenario captured.",
-    state: "Complete",
+    title: "Intake",
+    detail: "Transaction Reviewed",
   },
   {
     number: "02",
-    title: "Transaction review",
-    detail: "Analyst validation and exceptions review.",
-    state: "Review",
+    title: "Preparing",
+    detail: "Facts compiled. Suspicion Triggered",
   },
   {
     number: "03",
-    title: "Narrative assembly",
-    detail: "Structured facts and indicators compiled.",
-    state: "Ready",
+    title: "Drafting",
+    detail: "Report assembly. Narrative Preparation.",
   },
   {
     number: "04",
-    title: "Export package",
-    detail: "Awaiting internal sign-off and download.",
-    state: "Queued",
+    title: "Queued",
+    detail: "Export Package. Review Ready",
+    note: "Awaiting internal sign-off and download.",
   },
 ] as const;
 
 const workflowMetadata = [
   { label: "Case ID", value: "FL-2026-0148" },
   { label: "Entity", value: "Northline Pay" },
-  { label: "Jurisdiction", value: "Canada" },
-  { label: "Output", value: "STR Draft Ready" },
+  { label: "Jurisdiction", value: "Canada • MSB" },
+  { label: "Output", value: "Narrative Draft" },
 ] as const;
 
 const workflowRows = [
@@ -264,9 +261,27 @@ const workflowRows = [
 ] as const;
 
 const workflowFlags = [
-  "Structuring pattern",
-  "Third-party activity",
-  "Velocity spike",
+  {
+    label: "Structuring pattern",
+    detail: "Three related transfers posted inside a 28 minute window.",
+    level: "High",
+  },
+  {
+    label: "Third-party activity",
+    detail: "Counterparty details do not align with the stated business purpose.",
+    level: "Medium",
+  },
+  {
+    label: "Velocity spike",
+    detail: "Outbound movement accelerated immediately after inbound settlement.",
+    level: "Medium",
+  },
+] as const;
+
+const workflowReviewDetails = [
+  { label: "Owner", value: "AML Ops" },
+  { label: "Last updated", value: "13:42 ET" },
+  { label: "Queue", value: "Preparation" },
 ] as const;
 
 const approachSteps = [
@@ -292,11 +307,11 @@ const approachSteps = [
 
 function FinsureWorkspacePreview() {
   return (
-    <div className="mx-auto w-full max-w-[600px] lg:mx-0 lg:justify-self-end">
-      <div className="overflow-x-auto">
-        <div className="legal-home-workspace-frame min-w-[580px] rounded-[20px] border p-3">
-          <div className="legal-home-workspace-shell overflow-hidden rounded-[14px] border">
-            <div className="flex items-center justify-between border-b border-[rgba(60,72,65,0.14)] bg-[#ece9df] px-4 py-3">
+    <div className="mx-auto w-full max-w-[680px] lg:mx-0 lg:justify-self-end">
+      <div className="overflow-x-auto pb-1">
+        <div className="legal-home-workspace-frame min-w-[640px] rounded-[18px] border p-3">
+          <div className="legal-home-workspace-shell overflow-hidden rounded-[12px] border">
+            <div className="flex items-center justify-between border-b border-[rgba(60,72,65,0.12)] bg-[#ece8dd] px-4 py-3">
               <div className="space-y-1">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#627066]">
                   FinSure Workflow
@@ -305,40 +320,77 @@ function FinsureWorkspacePreview() {
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9F8A55]">
-                  Review Required
+                  Preparing
                 </p>
-                <p className="mt-1 text-[11px] text-[#667060]">Canada • PCMLTFA</p>
+                <p className="mt-1 text-[11px] text-[#667060]">Canada • MSB</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-[138px_minmax(0,1fr)_160px]">
-              <aside className="legal-home-workspace-sidebar p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#99A39C]">
-                  Workflow
-                </p>
-                <div className="mt-3 space-y-2.5">
+            <div className="grid grid-cols-[160px_minmax(0,1fr)]">
+              <aside className="legal-home-workspace-sidebar p-3.5">
+                <div className="border-b border-white/10 pb-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#99A39C]">
+                    Workspace
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-[#F3F1EA]">Northline Pay</p>
+                  <p className="mt-1 text-[11px] leading-5 text-[#AEB7B0]">
+                    Canada MSB review file
+                  </p>
+                </div>
+
+                <div className="mt-3 rounded-[10px] border border-white/10 bg-white/5 px-3 py-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#99A39C]">
+                    Active case
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-[#F3F1EA]">FL-2026-0148</p>
+                  <p className="mt-1 text-[11px] leading-5 text-[#AEB7B0]">
+                    Potential structuring across related wires.
+                  </p>
+                </div>
+
+                <div className="mt-4 space-y-1.5">
                   {workflowSteps.map((step) => (
                     <div
                       key={step.number}
-                      className="rounded-[10px] border border-white/10 bg-white/5 px-3 py-3"
+                      className="rounded-[10px] border border-white/8 px-3 py-2.5"
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-semibold tracking-[0.16em] text-[#99A39C]">
-                          {step.number}
-                        </span>
-                        <span className="text-[10px] uppercase tracking-[0.12em] text-[#D7DDD6]">
-                          {step.state}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-sm font-medium text-[#F3F1EA]">{step.title}</p>
-                      <p className="mt-1 text-[11px] leading-5 text-[#AEB7B0]">{step.detail}</p>
+                      <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#8FA08F]">
+                        {step.number}
+                      </p>
+                      <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#D7DDD6]">
+                        {step.title}
+                      </p>
+                      <p className="mt-1.5 text-[11px] leading-5 text-[#AEB7B0]">{step.detail}</p>
+                      {"note" in step ? (
+                        <p className="mt-1.5 text-[10px] leading-5 text-[#8FA08F]">{step.note}</p>
+                      ) : null}
                     </div>
                   ))}
                 </div>
               </aside>
 
               <div className="legal-home-workspace-main p-4">
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="flex items-start justify-between gap-4 border-b border-[rgba(42,54,49,0.08)] pb-4">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#667060]">
+                      Workflow state
+                    </p>
+                    <p className="mt-2 text-[1.05rem] font-semibold text-[#1F241D]">
+                      Narrative assembly
+                    </p>
+                    <p className="mt-1 text-[12px] leading-5 text-[#667060]">
+                      Facts, indicators, and supporting notes are being prepared for the draft.
+                    </p>
+                  </div>
+                  <div className="rounded-[10px] border border-[rgba(42,54,49,0.12)] bg-[#F6F4EE] px-3 py-2.5">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#667060]">
+                      Status
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-[#1F241D]">Preparing</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   {workflowMetadata.map((item) => (
                     <div
                       key={item.label}
@@ -352,8 +404,83 @@ function FinsureWorkspacePreview() {
                   ))}
                 </div>
 
+                <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1.14fr)_minmax(240px,0.86fr)]">
+                  <div className="rounded-[10px] border border-[rgba(42,54,49,0.12)] bg-white p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#667060]">
+                        Narrative summary
+                      </p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1F241D]">
+                        Preparing
+                      </p>
+                    </div>
+                    <div className="mt-3 space-y-2.5 text-[12px] leading-5 text-[#425048]">
+                      <p>Customer profile, counterparties, and transaction path compiled.</p>
+                      <p>Triggered indicators linked to facts, timestamps, and review notes.</p>
+                      <p>Draft language is being assembled before internal sign-off and export.</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="rounded-[10px] border border-[rgba(42,54,49,0.12)] bg-[#F7F5EE] p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#667060]">
+                          Risk flags
+                        </p>
+                        <p className="text-sm font-semibold text-[#1F241D]">03</p>
+                      </div>
+                      <div className="mt-3 space-y-2.5">
+                        {workflowFlags.map((flag) => (
+                          <div
+                            key={flag.label}
+                            className="rounded-[8px] border border-[rgba(42,54,49,0.08)] bg-white px-3 py-2.5"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-[11px] font-semibold text-[#1F241D]">
+                                {flag.label}
+                              </p>
+                              <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#9F8A55]">
+                                {flag.level}
+                              </span>
+                            </div>
+                            <p className="mt-1.5 text-[11px] leading-5 text-[#667060]">
+                              {flag.detail}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="rounded-[10px] border border-[rgba(42,54,49,0.12)] bg-[#F7F5EE] p-4">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#667060]">
+                        Output state
+                      </p>
+                      <p className="mt-2 text-sm font-semibold text-[#1F241D]">
+                        Draft packet in progress
+                      </p>
+                      <div className="mt-3 space-y-2">
+                        {workflowReviewDetails.map((item) => (
+                          <div
+                            key={item.label}
+                            className="flex items-center justify-between border-b border-[rgba(42,54,49,0.08)] pb-2 text-[11px] leading-5 text-[#425048] last:border-b-0 last:pb-0"
+                          >
+                            <span className="font-medium text-[#667060]">{item.label}</span>
+                            <span className="font-semibold text-[#1F241D]">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="mt-4 overflow-hidden rounded-[10px] border border-[rgba(42,54,49,0.12)]">
-                  <div className="grid grid-cols-[0.55fr_1.1fr_0.78fr_0.78fr] gap-2 bg-[#F1EFE8] px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.1em] text-[#667060]">
+                  <div className="flex items-center justify-between border-b border-[rgba(42,54,49,0.08)] bg-[#F1EFE8] px-3 py-2.5">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#667060]">
+                      Triggered activity
+                    </p>
+                    <p className="text-[11px] text-[#667060]">3 events linked to narrative</p>
+                  </div>
+                  <div className="grid grid-cols-[0.55fr_1.1fr_0.78fr_0.78fr] gap-2 bg-[#F7F5EE] px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.1em] text-[#667060]">
                     <span>Time</span>
                     <span>Activity</span>
                     <span>Amount</span>
@@ -371,83 +498,7 @@ function FinsureWorkspacePreview() {
                     </div>
                   ))}
                 </div>
-
-                <div className="mt-4 rounded-[10px] border border-[rgba(42,54,49,0.12)] bg-[#F7F5EE] p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#667060]">
-                      Draft Narrative State
-                    </p>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1F241D]">
-                      STR Draft Ready
-                    </p>
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-[#425048]">
-                    Narrative package assembled with linked facts, triggered indicators, and
-                    reviewer notes for internal sign-off.
-                  </p>
-
-                  <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                    <div className="rounded-[8px] border border-[rgba(42,54,49,0.12)] bg-white px-3 py-2.5">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#667060]">
-                        Flags
-                      </p>
-                      <p className="mt-1.5 text-sm font-semibold text-[#1F241D]">3 active</p>
-                    </div>
-                    <div className="rounded-[8px] border border-[rgba(42,54,49,0.12)] bg-white px-3 py-2.5">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#667060]">
-                        Reviewer
-                      </p>
-                      <p className="mt-1.5 text-sm font-semibold text-[#1F241D]">AML Ops</p>
-                    </div>
-                    <div className="rounded-[8px] border border-[rgba(42,54,49,0.12)] bg-white px-3 py-2.5">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#667060]">
-                        Queue
-                      </p>
-                      <p className="mt-1.5 text-sm font-semibold text-[#1F241D]">
-                        Ready to export
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </div>
-
-              <aside className="legal-home-workspace-aside p-4">
-                <div className="rounded-[10px] border border-[rgba(42,54,49,0.12)] bg-white/70 px-3 py-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#667060]">
-                    Risk Flags
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold text-[#1F241D]">03</p>
-                  <p className="text-[11px] leading-5 text-[#667060]">Review threshold met.</p>
-                </div>
-
-                <div className="mt-3 rounded-[10px] border border-[rgba(42,54,49,0.12)] bg-white/70 px-3 py-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#667060]">
-                    Indicators
-                  </p>
-                  <div className="mt-3 space-y-2">
-                    {workflowFlags.map((flag) => (
-                      <div
-                        key={flag}
-                        className="border-b border-[rgba(42,54,49,0.08)] pb-2 text-[11px] leading-5 text-[#425048] last:border-b-0 last:pb-0"
-                      >
-                        {flag}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-3 rounded-[10px] border border-[rgba(42,54,49,0.12)] bg-white/70 px-3 py-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#667060]">
-                    Output State
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-[#1F241D]">
-                    Draft package assembled
-                  </p>
-                  <p className="mt-2 text-[11px] leading-5 text-[#667060]">
-                    Ready for internal review and export approval.
-                  </p>
-                </div>
-              </aside>
             </div>
           </div>
         </div>
@@ -820,7 +871,7 @@ export default function SiteHome() {
 
           <section
             id="contact"
-            className="legal-home-panel rounded-[20px] border bg-[#F8F7F2] px-6 py-16 md:px-8 md:py-20 lg:px-10"
+            className="legal-home-panel rounded-[20px] border bg-[#F8F7F2] px-6 py-16 text-center md:px-8 md:py-20 lg:px-10"
           >
             <div className="mx-auto max-w-[720px]">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9F8A55]">
@@ -829,12 +880,12 @@ export default function SiteHome() {
               <h2 className="mt-4 text-[2.35rem] leading-[1.02] text-[#1B2118] md:text-[3rem]">
                 Start with FinSure
               </h2>
-              <p className="mt-5 max-w-[680px] text-base leading-7 text-[#5F675C]">
+              <p className="mx-auto mt-5 max-w-[680px] text-base leading-7 text-[#5F675C]">
                 Use structured workflows for suspicious transaction reporting and related AML
                 processes.
               </p>
 
-              <div className="mt-8">
+              <div className="mt-8 flex justify-center">
                 <Button
                   asChild
                   size="lg"
@@ -850,7 +901,7 @@ export default function SiteHome() {
               <p className="mt-6 text-sm text-[#5F675C]">
                 Structured intake, deterministic flags, and export-ready drafting.
               </p>
-              <p className="mt-10 border-t border-[rgba(35,49,38,0.08)] pt-6 text-xs text-[#7A8176]">
+              <p className="mx-auto mt-10 max-w-[680px] border-t border-[rgba(35,49,38,0.08)] pt-6 text-xs text-[#7A8176]">
                 Built by Levine Law for informational and workflow support purposes only.
               </p>
             </div>
