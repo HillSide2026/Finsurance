@@ -191,9 +191,8 @@ const validationCards: ValidationCard[] = [
 const validationTags = ["Payments", "Crypto", "MSB", "Compliance"] as const;
 
 const headerLinks = [
-  { label: "Offerings", href: siteConfig.links.offerings },
-  { label: "Approach", href: siteConfig.links.approach },
-  { label: "Contact", href: siteConfig.links.contact },
+  { label: "Services", href: siteConfig.links.offerings },
+  { label: "Experience", href: siteConfig.links.approach },
 ] as const;
 
 const approachSteps = [
@@ -281,19 +280,16 @@ export default function SiteHome() {
     <div className="legal-home-shell min-h-screen px-4 py-6 text-[#1F241D] sm:px-6 lg:px-10">
       <div className="mx-auto max-w-7xl space-y-8">
         <header className="legal-home-nav rounded-[32px] border px-6 py-5 md:px-8">
-          <div className="flex items-center justify-between gap-6">
-            <a
-              href={siteConfig.links.home}
-              className="shrink-0 flex items-center"
-            >
+          <div className="flex flex-wrap items-start justify-between gap-4 md:gap-6">
+            <a href={siteConfig.links.home} className="flex shrink-0 items-center">
               <img
-                src="/fintechlawyer-logo-white.png"
+                src="/fintechlawyer-logo-rectangle.png"
                 alt="FintechLawyer.ca"
-                className="h-11 w-auto md:h-12"
+                className="h-12 w-auto rounded-[18px] shadow-[0_14px_28px_rgba(16,24,19,0.16)] md:h-14"
               />
             </a>
 
-            <div className="flex shrink-0 items-center justify-end gap-3 md:gap-4 lg:gap-8">
+            <div className="ml-auto flex w-full items-center justify-end gap-3 sm:w-auto md:gap-4 lg:gap-8">
               <nav
                 aria-label="Primary"
                 className="hidden items-center gap-7 text-sm font-medium text-[#1A1A1A] lg:flex"
@@ -586,7 +582,7 @@ export default function SiteHome() {
             <div className="mx-auto max-w-6xl">
               <div className="mx-auto max-w-2xl space-y-4 text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E6C989]">
-                  Validation
+                  Experience
                 </p>
                 <h2 className="text-4xl text-[#1B2118] md:text-5xl">
                   Used across FinTech and Compliance Workflows

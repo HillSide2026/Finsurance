@@ -220,9 +220,9 @@ export default function LegalPage({ page }: LegalPageProps) {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <a href={siteConfig.links.home} className="flex items-center">
               <img
-                src="/fintechlawyer-logo-white.png"
+                src="/fintechlawyer-logo-rectangle.png"
                 alt="FintechLawyer.ca"
-                className="h-11 w-auto md:h-12"
+                className="h-12 w-auto rounded-[18px] shadow-[0_14px_28px_rgba(16,24,19,0.14)] md:h-14"
               />
             </a>
 

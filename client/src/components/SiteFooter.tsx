@@ -7,6 +7,7 @@ type SiteFooterProps = {
 };
 
 const footerLinks = [
+  { label: "Contact", href: siteConfig.links.contact },
   { label: "Privacy Policy", href: siteConfig.links.privacyPolicy },
   { label: "Terms of Service", href: siteConfig.links.termsOfService },
   { label: "Disclaimer", href: siteConfig.links.disclaimer },
