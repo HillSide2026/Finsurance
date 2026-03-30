@@ -25,12 +25,11 @@ export default function ComplianceChecklistLandingPage() {
             For fintech founders and crypto startups
           </p>
           <h1 className="max-w-3xl text-4xl leading-[0.94] text-white md:text-5xl">
-            Automate your FINTRAC and KYC compliance scoping before launch gets expensive.
+            Automate your FINTRAC and KYC compliance with confidence
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-[#D6D2C6]">
             Generate a structured compliance checklist built for Canadian fintech operators so you
-            can understand the requirements, see pricing, and decide whether self-serve or
-            human-led support is the right next move.
+            can understand and plan your next moves now
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <Button
@@ -157,6 +156,43 @@ export default function ComplianceChecklistLandingPage() {
               >
                 <span className="font-semibold text-[#1F241D]">{item}</span>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="capture-funnel-panel rounded-[24px] border px-6 py-8 md:px-8">
+        <div className="mx-auto max-w-3xl space-y-5">
+          <div className="space-y-2 text-center">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6F8B65]">
+              What happens next
+            </p>
+            <h2 className="text-3xl text-[#1B2118]">What the assessment is designed to do.</h2>
+          </div>
+
+          <div className="space-y-4">
+            {[
+              {
+                title: "Primary path",
+                body: "Reach pricing, test willingness to pay, and reserve checklist access if the self-serve route fits.",
+              },
+              {
+                title: "Secondary path",
+                body: "If your answers point toward human-led support, we can route you into CAMLO, Compliance as a Service, or Levine Law follow-up.",
+              },
+              {
+                title: "Strongest validation signal",
+                body: "Payment attempt after pricing.",
+              },
+            ].map((item) => (
+              <Card key={item.title} className="capture-funnel-card rounded-[18px]">
+                <CardContent className="flex flex-col gap-2 p-5">
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#6F8B65]">
+                    {item.title}
+                  </p>
+                  <p className="text-sm leading-7 text-[#596255]">{item.body}</p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>

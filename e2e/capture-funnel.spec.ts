@@ -6,7 +6,7 @@ test("capture funnel pages load and generate a gated recommendation", async ({ p
   await expect(page.getByRole("img", { name: "FintechLawyer.ca" }).first()).toBeVisible();
   await expect(
     page.getByRole("heading", {
-      name: "Automate your FINTRAC and KYC compliance scoping before launch gets expensive.",
+      name: "Automate your FINTRAC and KYC compliance with confidence",
     }),
   ).toBeVisible();
 

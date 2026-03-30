@@ -49,7 +49,7 @@ function ChoiceGrid<T extends string | boolean>({
   onSelect: (value: T) => void;
 }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2">
+    <div className="grid gap-3">
       {options.map((option) => {
         const isSelected = selected === option.value;
         return (
@@ -187,7 +187,7 @@ export default function ComplianceChecklistAssessmentPage() {
         </div>
       </section>
 
-      <section className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_0.8fr]">
+      <section className="mx-auto max-w-4xl">
         <Card className="capture-funnel-card rounded-[22px]">
           <CardHeader className="space-y-4">
             <CardTitle className="text-3xl text-[#1B2118]">Questions</CardTitle>
@@ -255,31 +255,6 @@ export default function ComplianceChecklistAssessmentPage() {
             </Button>
           </CardContent>
         </Card>
-
-        <Card className="capture-funnel-card rounded-[22px]">
-          <CardHeader className="space-y-4">
-            <CardTitle className="text-3xl text-[#1B2118]">What happens next</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm leading-7 text-[#596255]">
-            <div className="rounded-[16px] border border-[rgba(96,110,89,0.14)] bg-white/80 px-4 py-4">
-              <p className="font-semibold text-[#1F241D]">Primary path</p>
-              <p className="mt-2">
-                Reach pricing, test willingness to pay, and reserve checklist access if the
-                self-serve route fits.
-              </p>
-            </div>
-            <div className="rounded-[16px] border border-[rgba(96,110,89,0.14)] bg-white/80 px-4 py-4">
-              <p className="font-semibold text-[#1F241D]">Secondary path</p>
-              <p className="mt-2">
-                If your answers point toward human-led support, we can route you into CAMLO,
-                Compliance as a Service, or Levine Law follow-up.
-              </p>
-            </div>
-            <div className="rounded-[16px] border border-[rgba(230,201,137,0.32)] bg-[rgba(230,201,137,0.12)] px-4 py-4 text-[#3E443A]">
-              Strongest validation signal: <span className="font-semibold">payment attempt after pricing</span>
-            </div>
-          </CardContent>
-        </Card>
       </section>
 
       {recommendation ? (
@@ -302,50 +277,48 @@ export default function ComplianceChecklistAssessmentPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8 px-0 pb-0">
-              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-                <div className="space-y-4">
-                  {recommendation.requirements.map((item) => (
-                    <div
-                      key={item}
-                      className="flex items-start gap-3 rounded-[16px] border border-[rgba(42,53,46,0.12)] bg-white/90 px-4 py-4 text-sm leading-7 text-[#596255]"
-                    >
-                      <CheckCircle2 className="mt-1 h-4 w-4 text-[#6F8B65]" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="space-y-4">
-                  {recommendation.highlights.map((item) => (
-                    <div
-                      key={item}
-                      className="rounded-[16px] border border-[rgba(96,110,89,0.14)] bg-white/80 px-4 py-4 text-sm leading-7 text-[#596255]"
-                    >
-                      {item}
-                    </div>
-                  ))}
-                  <div className="rounded-[16px] border border-[rgba(230,201,137,0.32)] bg-[rgba(230,201,137,0.12)] px-4 py-4 text-sm leading-7 text-[#3E443A]">
-                    <p className="font-semibold">Next commercial step</p>
-                    <p className="mt-2">
-                      Pricing is the default path. Service follow-up is available if your need is
-                      better suited to CAMLO, managed compliance, or direct counsel.
-                    </p>
+              <div className="space-y-4">
+                {recommendation.requirements.map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-start gap-3 rounded-[16px] border border-[rgba(42,53,46,0.12)] bg-white/90 px-4 py-4 text-sm leading-7 text-[#596255]"
+                  >
+                    <CheckCircle2 className="mt-1 h-4 w-4 text-[#6F8B65]" />
+                    <span>{item}</span>
                   </div>
+                ))}
+              </div>
+              <div className="space-y-4">
+                {recommendation.highlights.map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-[16px] border border-[rgba(96,110,89,0.14)] bg-white/80 px-4 py-4 text-sm leading-7 text-[#596255]"
+                  >
+                    {item}
+                  </div>
+                ))}
+                <div className="rounded-[16px] border border-[rgba(230,201,137,0.32)] bg-[rgba(230,201,137,0.12)] px-4 py-4 text-sm leading-7 text-[#3E443A]">
+                  <p className="font-semibold">Next commercial step</p>
+                  <p className="mt-2">
+                    Pricing is the default path. Service follow-up is available if your need is
+                    better suited to CAMLO, managed compliance, or direct counsel.
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <section className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_0.95fr]">
+          <section className="space-y-5">
             <Card className="capture-funnel-dark-card rounded-[22px] border text-[#F7F1E4]">
               <CardHeader className="space-y-4">
                 <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#E6C989]">
                   <Sparkles className="h-4 w-4" />
                   Primary path
                 </div>
-                <CardTitle className="text-3xl text-white">Reserve checklist access</CardTitle>
+                <CardTitle className="text-3xl text-white">Reserve software access</CardTitle>
                 <CardDescription className="max-w-2xl text-base leading-8 text-[#DAD5C7]">
-                  The product path is the default. Use pricing exposure and a paid-intent CTA to
-                  validate whether founders will buy the self-serve checklist.
+                  The automation path looks promising. Connect with our team to learn more about
+                  software-based solutions.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -365,7 +338,7 @@ export default function ComplianceChecklistAssessmentPage() {
                     scrollToElement("capture-lead-form");
                   }}
                 >
-                  Reserve checklist access
+                  Reserve software access
                   <ArrowRight className="h-4 w-4" />
                 </Button>
                 <p className="text-sm text-[#DAD5C7]">{recommendation.pricingLabel}</p>
@@ -418,7 +391,7 @@ export default function ComplianceChecklistAssessmentPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form className="grid gap-5 md:grid-cols-2" onSubmit={submitInterest}>
+              <form className="space-y-5" onSubmit={submitInterest}>
                 <div className="grid gap-2">
                   <label className="text-sm font-medium text-[#1F241D]" htmlFor="capture-email">
                     Email
@@ -449,7 +422,7 @@ export default function ComplianceChecklistAssessmentPage() {
                     className="h-12 rounded-[14px] border-border/70 bg-white text-[#1F241D]"
                   />
                 </div>
-                <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                   <p className="text-sm text-[#596255]">
                     Selected route: <span className="font-semibold text-[#1F241D]">{captureRouteCopy[selectedRoute].label}</span>
                   </p>

@@ -310,7 +310,7 @@ export const captureRouteCopy: Record<
 > = {
   product: {
     label: "Self-serve checklist",
-    title: "Reserve checklist access",
+    title: "Reserve software access",
     description: "Primary path. Use pricing and early-access intent to validate willingness to pay.",
     successTitle: "Checklist request received",
     successDescription: "We saved your early-access request for the self-serve checklist.",
