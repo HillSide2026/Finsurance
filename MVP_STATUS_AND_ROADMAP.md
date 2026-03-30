@@ -2,21 +2,25 @@
 
 ## Current MVP Status
 
-Status: active MVP
+Status: active public MVP on the production domain, with Stage 1 close but not formally closed.
 
 Product shape:
 
 - single-function STR drafting assistant
-- structured intake only
-- deterministic rules only
-- no persistence
-- no filing integration
+- structured intake plus deterministic rules
+- readiness-gated narrative generation
+- editable narrative plus full draft package export
+- account access, saved drafts, and file-backed persistence
+- per-draft payment / export unlock flow
+- no FINTRAC filing integration
+- no broader AML case-management expansion
 
 Current repo center of gravity:
 
-- UI flow: [`client/src/pages/StrAssistant.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/StrAssistant.tsx)
+- public site + product flow: [`client/src/pages/SiteHome.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/SiteHome.tsx), [`client/src/pages/StrAssistant.tsx`](/Users/matthewlevine/Repos/Finsurance/client/src/pages/StrAssistant.tsx)
 - STR engine: [`shared/str.ts`](/Users/matthewlevine/Repos/Finsurance/shared/str.ts)
 - runtime host/API glue: [`server/index.ts`](/Users/matthewlevine/Repos/Finsurance/server/index.ts), [`server/routes.ts`](/Users/matthewlevine/Repos/Finsurance/server/routes.ts), [`server/http.ts`](/Users/matthewlevine/Repos/Finsurance/server/http.ts)
+- persistence/billing: [`server/persistence.ts`](/Users/matthewlevine/Repos/Finsurance/server/persistence.ts), [`server/billing.ts`](/Users/matthewlevine/Repos/Finsurance/server/billing.ts), [`server/stripe.ts`](/Users/matthewlevine/Repos/Finsurance/server/stripe.ts)
 
 ## Stage Boundary
 
@@ -50,9 +54,11 @@ Stage 1 can be marked complete only when all of the following are true:
 
 ## What Works Now
 
+- The public site is live at `https://fintechlawyer.ca`.
+- The homepage exposes `Start drafting` as the primary public path into the workflow.
 - Structured intake can start blank or from presets.
 - Intake is normalized before rule evaluation and drafting.
-- The engine now distinguishes:
+- The engine distinguishes:
   - insufficient information
   - guidance only
   - ready to draft
@@ -63,25 +69,23 @@ Stage 1 can be marked complete only when all of the following are true:
   - input-quality warnings
   - missing-information prompts
   - final narrative
-- Output can now be exported as either:
+- Output can be exported as either:
   - the narrative only
   - a full draft package with facts, flags, narrative, follow-up prompts, and checklist
 - Narrative generation is withheld until the intake is ready enough to draft.
 - Local and hosted runtime binding behavior is explicit and test-covered.
 - Unknown API routes return JSON 404 responses instead of SPA fallthrough.
-- One browser smoke path now covers:
-  - landing
-  - preset application
-  - risk review
-  - narrative build
-  - final output
-- A second browser smoke path now covers:
-  - landing
-  - low-information preset application
-  - guidance-only review
-  - blocked narrative generation
-- The dependency manifest and UI component inventory are now trimmed to the current Stage 1 app.
-- The landing page now exposes `Start drafting` as the primary public path into the workflow.
+- The browser suite covers:
+  - happy path to final output
+  - guidance-only / blocked drafting path
+  - guest-to-auth resume for export
+  - billing-success unlock return
+- Account registration, login, logout, and session-backed workspace access exist.
+- Saved drafts, draft resume, export access checks, and file-backed persistence exist.
+- Product funnel analytics capture and summary endpoints exist.
+- Stripe Checkout creation, webhook handling, billing success return, and draft-scoped export unlock exist.
+- Production acceptance can now be run with [`script/production-acceptance.mjs`](/Users/matthewlevine/Repos/Finsurance/script/production-acceptance.mjs).
+- Deployment notes now exist in [`DEPLOYMENT_NOTES.md`](/Users/matthewlevine/Repos/Finsurance/DEPLOYMENT_NOTES.md).
 
 ## Improvements Completed In This Pass
 
@@ -144,6 +148,10 @@ Status: completed
 ## Concrete Implementation Plan
 
 This is the next execution plan from the current repo state, not a broad product wish list.
+
+Historical note:
+- the track details below are preserved as the execution plan that produced the current build
+- current source-of-truth gaps and priorities now live in `Stage 1 Known Gaps` and `Stage 1 Prioritized Roadmap`
 
 ### Track 1: Lock the Current Core Flow
 
@@ -258,35 +266,30 @@ Acceptance:
 
 ### Deployment Status Snapshot
 
-As of March 20, 2026:
+As of March 29, 2026:
 
-- The Stage 1 app is deployed on Render at `https://finsure-w321.onrender.com`.
-- The Render deployment has been verified for:
-  - `/`
-  - `/api/health`
-  - `/api/not-found`
-  - happy-path browser flow to final output
-  - guidance-only browser flow with blocked narrative generation
-- Render custom domains have been configured for:
-  - `fintechlawyer.ca`
-  - `www.fintechlawyer.ca`
-- The remaining deployment blocker is DNS cutover in HostGator.
-- `fintechlawyer.ca` is still pointing at the existing WordPress site as of this snapshot.
-- Moving `fintechlawyer.ca` to Render will replace the current WordPress site on that root domain unless WordPress is moved to another host name first.
-
-Current DNS values expected by Render:
-
-- `www` CNAME -> `finsure-w321.onrender.com`
-- root domain `@` -> `216.24.57.1` if the DNS provider does not support `ALIAS` / `ANAME`
+- The Stage 1 app is live on the production domain at `https://fintechlawyer.ca`.
+- Render is serving the production site and the homepage/public-site redesign is live on that domain.
+- Browser coverage now exists for:
+  - authenticated happy path to final output
+  - authenticated guidance-only / blocked drafting flow
+  - guest-to-auth resume path for export
+  - billing-success unlock return
+- Render custom-domain bring-up and DNS cutover are no longer blockers.
+- Remaining launch work is now mostly release hygiene and documentation:
+  - record deployment notes per production release
+  - keep production-domain acceptance checks current and written down
+  - close remaining public-site metadata / copy inconsistencies
+- The March 29, 2026 release `17e16e5` has a recorded deployment note and a live-domain acceptance run in [`DEPLOYMENT_NOTES.md`](/Users/matthewlevine/Repos/Finsurance/DEPLOYMENT_NOTES.md).
 
 ### Track 5: Payment Processing
 
-Goal: add payment capability without pretending the current MVP already has account entitlements.
+Goal: keep payment and export unlock real without pretending the product is already a full entitlement platform.
 
-Important scope decision:
-- do not gate product access with payments yet
-- this repo currently has no auth, no user accounts, and no entitlement storage
-- charging for access before that exists creates operational confusion
+Current state:
+- the repo now has auth, session-backed workspace access, saved drafts, and file-backed persistence
+- Stripe Checkout session creation, billing reconciliation, webhook handling, and billing-success return are implemented
+- export unlock is currently draft-scoped rather than a broader subscription or seat-based entitlement layer
 
 Concrete payment path for this repo:
 
@@ -311,11 +314,10 @@ Work:
 - `STRIPE_PRICE_ID`
 - `APP_BASE_URL`
 
-Required follow-up before true gating:
-- minimal auth
-- minimal entitlement record
-- post-payment success state
-- webhook-based fulfillment
+Required follow-up before broader commercialization:
+- an explicit entitlement model beyond draft-scoped export unlock
+- clearer admin visibility into paid sessions / failed sessions
+- subscription or plan handling if pricing expands beyond the current model
 
 Acceptance for Phase B:
 - customer clicks pay from `https://fintechlawyer.ca`
@@ -326,22 +328,25 @@ Acceptance for Phase B:
 
 ## Next Product/App Steps
 
-These are the next two product-facing steps after the work completed in this pass.
+These are the next product-facing steps from the current repo state.
 
-1. Add one more browser smoke test for the blocked / guidance-only path
+1. Decide how live-domain copy/download verification should work
 Necessary work:
-- start from the landing page
-- enter the workflow
-- apply the low-information preset
-- assert that the user can review risk signals but cannot build a narrative
-- assert that required-gap guidance is visible
+- choose whether production verification will use a paid smoke checkout, a pre-unlocked smoke-test draft, or a non-billable verification path
+- make the release checklist explicit about that decision
 
-2. Tighten the landing-to-workflow product path without bloating the homepage
+2. Keep the deployment-note and production-acceptance record current for each new release
 Necessary work:
-- keep the marketing hierarchy intact
-- make the workflow entry point obvious enough for real users
-- avoid reintroducing dashboard clutter or internal-product copy
-- validate that the flow remains easy to find on desktop
+- record commit SHA
+- record domain tested
+- record smoke result
+- record known limitations
+
+3. Pick the next small product-hardening or QA item
+Options:
+- add a tiny sample-scenario library for QA and demos
+- add another small conflict / weak-signal rule pass if new patterns emerge
+- add optional PDF export if document-grade output becomes the next most important need
 
 ### Track 6: Production Readiness Checklist
 
@@ -368,68 +373,57 @@ Before sending real users to the domain:
 
 ## Stage 1 Known Gaps
 
-- The app has been verified on the Render host, but not yet on `https://fintechlawyer.ca`.
-- HostGator DNS still needs to be cut over from the current WordPress target to Render.
-- Production-domain acceptance checks still need to be completed and recorded on the final custom domain.
-- The product is still client-first; there is no server-side STR draft API.
-- Narrative export is plain text only.
+- Deployment notes and acceptance records now exist, but they need to remain part of the release routine rather than one-off cleanup.
+- Production acceptance still has one known limitation: copy/download actions were not fully exercised on the live domain because they require payment confirmation or an already-unlocked draft.
+- If Stage 1 closure requires a full live-domain pass on those controls, the product still needs a safe verification path for unlocked export actions.
+- Narrative export is still text-first. PDF output remains optional rather than required for Stage 1.
 
 ## Stage 1 Prioritized Roadmap
 
 ### Do Now
 
-1. Complete HostGator DNS cutover from WordPress to Render for `fintechlawyer.ca`
+1. Establish a safe repeatable live-domain verification path for unlocked copy/download actions
 Impact: high
 Complexity: low
-Why: the app is already deployed on Render, and Stage 1 is not complete until the public domain points at it.
+Why: this is the main remaining gap between the current production acceptance record and a fully unqualified Stage 1 sign-off.
 
-2. Verify `fintechlawyer.ca` and `www.fintechlawyer.ca` in Render after DNS propagation
+2. Keep recording one deployment note and acceptance result per production release
 Impact: medium
 Complexity: low
-Why: custom-domain verification and TLS issuance must complete before public launch.
-
-3. Run and record the production-domain acceptance checklist
-Impact: medium
-Complexity: low
-Why: Render-host success is not enough; Stage 1 requires real-domain validation.
-
-4. Add a few stronger conflict and weak-signal rules
-Impact: medium
-Complexity: low
-Why: improves operator guidance without changing the product shape.
+Why: the release-note gap is now solved structurally, but it remains an ongoing launch discipline rather than a one-time task.
 
 ### Next
 
-4. Add a tiny sample-scenario library for QA and demo scripts
+3. Add a tiny sample-scenario library for QA and demo scripts
 Impact: medium
 Complexity: low
 Why: makes regression checking faster and more realistic.
 
-5. Add lightweight analytics hooks for local/product testing only
+4. Add lightweight internal visibility on top of the existing analytics hooks
 Impact: low
 Complexity: low
-Why: helps understand drop-off without turning the app into a platform.
+Why: event capture already exists, but there is not yet a polished internal reporting layer.
 
 ### Later
 
-6. Optional PDF export
+5. Optional PDF export
 Impact: medium
 Complexity: medium
 Why: useful, but plain text and copy/download already cover MVP output.
 
-7. Optional persistence for saved local sessions
+6. Broader entitlement model beyond draft-scoped export unlock
 Impact: medium
 Complexity: medium
-Why: may help operator workflow later, but it is not required for the single-function MVP.
+Why: useful if pricing expands beyond the current per-draft export model, but it is not required for the current Stage 1 MVP.
 
-8. Optional server-side draft endpoint for shared deployment contracts
+7. Optional server-side draft endpoint for shared deployment contracts
 Impact: low to medium
 Complexity: medium
 Why: useful only if the hosting/runtime model changes or client-only logic becomes limiting.
 
 ### Not Worth It Right Now
 
-9. Filing workflow, case queues, role-based approvals, or AML dashboard expansion
+8. Filing workflow, case queues, role-based approvals, or AML dashboard expansion
 Impact: misaligned
 Complexity: high
 Why: pulls the product away from its disciplined scope.
@@ -438,12 +432,17 @@ Why: pulls the product away from its disciplined scope.
 
 Everything in this section is explicitly out of scope for Stage 1 / the current MVP.
 
+Note:
+- some capabilities originally described here are now partially implemented in the current repo
+- auth, saved drafts, billing hooks, and analytics capture already exist
+- Stage 2 should now be read as the next fuller versions of those capabilities, not as net-new starts
+
 1. Self-serve billing and entitlement checks
 Why it matters:
 - converts pilot access into a real commercial flow
 - prevents manual post-payment fulfillment from becoming operational drag
 
-2. Saved sessions and return-to-draft workflow
+2. Richer saved-session management and return-to-draft workflow
 Why it matters:
 - supports multi-step review across longer internal compliance processes
 - allows operators to resume work without rebuilding the fact pattern from scratch
@@ -468,7 +467,7 @@ Why it matters:
 - turns interest capture into a real follow-up pipeline
 - reduces manual handling of inbound requests
 
-7. Organization-level access and account management
+7. Organization-level roles and account management beyond the current single-owner model
 Why it matters:
 - supports teams rather than one-off users
 - creates the foundation for billing, saved work, and controlled access
