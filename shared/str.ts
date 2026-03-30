@@ -386,6 +386,17 @@ const rules: Rule[] = [
     matches: (input) => input.triggerTypes.includes("third_party_involvement"),
   },
   {
+    id: "third-party-cross-border-layering",
+    label: "Third-party cross-border activity further reduced transparency",
+    sentence:
+      "Cross-border activity involving a third party further reduced transparency regarding the origin, destination, or beneficial control of the funds.",
+    weight: 2,
+    matches: (input) =>
+      input.triggerTypes.includes("third_party_involvement") &&
+      usesElectronicChannels(input) &&
+      hasCrossBorderExposure(input),
+  },
+  {
     id: "new-client-large-value",
     label: "Large-value activity occurred shortly after onboarding",
     sentence:
@@ -1353,6 +1364,34 @@ function buildQualityWarnings(input: StrIntake): string[] {
   ) {
     warnings.push(
       "Add a short note describing the third party's role or why the third-party involvement reduced transparency.",
+    );
+  }
+
+  if (
+    input.triggerTypes.includes("third_party_involvement") &&
+    input.freeTextNotes.length > 0 &&
+    !notesContainAny(input, [
+      "third party",
+      "beneficiary",
+      "sender",
+      "recipient",
+      "intermediary",
+      "relative",
+      "associate",
+      "on behalf",
+    ])
+  ) {
+    warnings.push(
+      "Name the third party or describe the stated relationship to the customer so the draft does not rely only on the trigger selection.",
+    );
+  }
+
+  if (
+    input.jurisdictions.includes("high_risk_or_sanctioned") &&
+    input.jurisdictions.length === 1
+  ) {
+    warnings.push(
+      "Name the specific high-risk or sanctioned jurisdiction involved rather than relying only on the generic selection.",
     );
   }
 

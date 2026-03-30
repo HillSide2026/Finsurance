@@ -283,3 +283,46 @@ test("unusual activity scenarios ask for the stated transaction purpose when not
     "expected a warning when the transaction purpose is not captured in the notes",
   );
 });
+
+test("third-party cross-border scenarios trigger stronger transparency signals and generic-input warnings", () => {
+  const draft = buildStrDraft({
+    ...createEmptyStrIntake(),
+    triggerTypes: ["third_party_involvement", "rapid_movement"],
+    amountBand: "50k_to_100k",
+    currency: "CAD",
+    transactionCount: "2_to_3",
+    timeframe: "2_to_7_days",
+    transactionChannels: ["wire_transfer"],
+    clientRelationship: "existing",
+    customerType: "individual",
+    jurisdictions: ["high_risk_or_sanctioned"],
+    suspicionIndicators: ["source_of_funds_unclear"],
+    customerData: {
+      name: "Jordan Example",
+      referenceId: "TP-7701",
+      dateOfBirthOrIncorporation: "",
+      occupationOrBusiness: "Independent consultant",
+      expectedActivity: "Domestic consulting invoices and ordinary operating expenses",
+    },
+    freeTextNotes:
+      "Staff observed outgoing wire activity and could not obtain a satisfactory explanation for the source of funds.",
+  });
+
+  assert.equal(draft.readiness.status, "ready_to_draft");
+  assert.ok(
+    draft.redFlags.some((flag) => flag.id === "third-party-cross-border-layering"),
+    "expected the combined third-party cross-border rule to trigger",
+  );
+  assert.ok(
+    draft.qualityWarnings.some((warning) =>
+      warning.includes("specific high-risk or sanctioned jurisdiction"),
+    ),
+    "expected a warning for generic high-risk jurisdiction selection",
+  );
+  assert.ok(
+    draft.qualityWarnings.some((warning) =>
+      warning.includes("Name the third party or describe the stated relationship"),
+    ),
+    "expected a warning when the third party is not actually described in the notes",
+  );
+});
