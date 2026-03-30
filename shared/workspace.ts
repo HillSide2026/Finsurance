@@ -125,9 +125,10 @@ export type RecordDraftExportRequest = {
 };
 
 export type ProductEnquiryRequest = {
-  name: string;
+  name?: string;
   email: string;
-  company: string;
+  phone?: string;
+  company?: string;
   sourcePath: string;
 };
 

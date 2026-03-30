@@ -302,6 +302,7 @@ test("persistent store records public enquiries", async (t) => {
     {
       name: "Jordan Lee",
       email: "jordan@example.com",
+      phone: "+1 416 555 0148",
       company: "North River Pay",
       sourcePath: "/finsure",
     },

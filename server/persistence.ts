@@ -920,9 +920,10 @@ export class PersistentAppStore {
     return this.update((data) => {
       const enquiry: InternalProductEnquiryRecord = {
         id: makeId("enquiry"),
-        name: normalizeText(input.name),
+        name: normalizeText(input.name ?? ""),
         email: normalizeEmail(input.email),
-        company: normalizeText(input.company),
+        phone: normalizeText(input.phone ?? ""),
+        company: normalizeText(input.company ?? ""),
         sourcePath: normalizeText(input.sourcePath),
         createdAt: new Date().toISOString(),
         status: "new",
@@ -939,6 +940,7 @@ export class PersistentAppStore {
         metadata: {
           sourcePath: enquiry.sourcePath,
           email: enquiry.email,
+          ...(enquiry.phone ? { phone: enquiry.phone } : {}),
         },
       });
 

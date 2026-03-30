@@ -10,7 +10,7 @@ test("capture funnel pages load and generate a gated recommendation", async ({ p
     }),
   ).toBeVisible();
 
-  await page.getByRole("link", { name: "Generate your compliance checklist" }).first().click();
+  await page.getByRole("link", { name: "Complete your compliance checklist" }).first().click();
   await expect(page).toHaveURL(/\/compliance-checklist\/start$/);
 
   await page.getByRole("button", { name: "Crypto app" }).click();

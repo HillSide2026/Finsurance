@@ -451,17 +451,24 @@ export async function registerRoutes(
     const body = (req.body ?? {}) as Partial<ProductEnquiryRequest>;
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const email = typeof body.email === "string" ? body.email.trim() : "";
+    const phone = typeof body.phone === "string" ? body.phone.trim() : "";
     const company = typeof body.company === "string" ? body.company.trim() : "";
     const sourcePath = typeof body.sourcePath === "string" ? body.sourcePath.trim() : "";
 
-    if (name.length === 0 || !isValidEmail(email)) {
-      return sendApiError(res, 400, "Name and a valid email are required.", "invalid_enquiry");
+    if (!isValidEmail(email) || (name.length === 0 && phone.length === 0)) {
+      return sendApiError(
+        res,
+        400,
+        "A valid email and either a name or phone number are required.",
+        "invalid_enquiry",
+      );
     }
 
     const enquiryId = await store.createProductEnquiry(
       {
         name,
         email,
+        phone,
         company,
         sourcePath: sourcePath || "/finsure",
       },

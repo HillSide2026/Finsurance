@@ -31,10 +31,13 @@ import { ApiError, apiRequest } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 type LeadFormState = {
-  name: string;
   email: string;
-  company: string;
+  phone: string;
 };
+
+function hasPhoneDigits(value: string): boolean {
+  return value.replace(/\D/g, "").length >= 7;
+}
 
 function ChoiceGrid<T extends string | boolean>({
   options,
@@ -55,7 +58,7 @@ function ChoiceGrid<T extends string | boolean>({
             type="button"
             onClick={() => onSelect(option.value)}
             className={cn(
-              "rounded-[20px] border px-4 py-4 text-left transition-colors",
+              "rounded-[16px] border px-4 py-4 text-left transition-colors",
               isSelected
                 ? "border-[#6F8B65] bg-[rgba(111,139,101,0.10)]"
                 : "border-[rgba(42,53,46,0.12)] bg-white/90 hover:border-[rgba(111,139,101,0.38)]",
@@ -78,9 +81,8 @@ export default function ComplianceChecklistAssessmentPage() {
   const { toast } = useToast();
   const [answers, setAnswers] = useState<CaptureQuestionnaire>(() => emptyCaptureQuestionnaire());
   const [leadForm, setLeadForm] = useState<LeadFormState>({
-    name: "",
     email: "",
-    company: "",
+    phone: "",
   });
   const [isGenerated, setIsGenerated] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState<CaptureRoute>("product");
@@ -116,15 +118,14 @@ export default function ComplianceChecklistAssessmentPage() {
     event.preventDefault();
 
     const normalized = {
-      name: leadForm.name.trim(),
       email: leadForm.email.trim(),
-      company: leadForm.company.trim(),
+      phone: leadForm.phone.trim(),
     };
 
-    if (normalized.name.length === 0 || !normalized.email.includes("@")) {
+    if (!normalized.email.includes("@") || !hasPhoneDigits(normalized.phone)) {
       toast({
-        title: "Add your name and a valid email",
-        description: "We only need a valid contact so we can follow up on the route you selected.",
+        title: "Add your email and phone number",
+        description: "We need a valid email and phone number so we can follow up on your request.",
         variant: "destructive",
       });
       return;
@@ -141,9 +142,8 @@ export default function ComplianceChecklistAssessmentPage() {
       });
       const routeCopy = captureRouteCopy[selectedRoute];
       setLeadForm({
-        name: "",
         email: "",
-        company: "",
+        phone: "",
       });
       toast({
         title: routeCopy.successTitle,
@@ -166,17 +166,17 @@ export default function ComplianceChecklistAssessmentPage() {
   return (
     <CapturePageShell
       action={
-        <Button asChild variant="outline" className="rounded-2xl px-6">
+        <Button asChild variant="outline" className="rounded-xl px-6">
           <a href={siteConfig.links.complianceChecklist}>Back to overview</a>
         </Button>
       }
     >
-      <section className="legal-home-panel rounded-[32px] border px-6 py-12 md:px-10 md:py-14">
+      <section className="capture-funnel-panel rounded-[24px] border px-6 py-8 md:px-8 md:py-9">
         <div className="max-w-3xl space-y-5">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#6F8B65]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6F8B65]">
             Pseudo product validation layer
           </p>
-          <h1 className="text-4xl leading-[0.96] text-[#1B2118] md:text-5xl">
+          <h1 className="text-4xl leading-[0.96] text-[#1B2118] md:text-[2.9rem]">
             Generate your compliance checklist
           </h1>
           <p className="text-lg leading-8 text-[#596255]">
@@ -188,12 +188,11 @@ export default function ComplianceChecklistAssessmentPage() {
       </section>
 
       <section className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_0.8fr]">
-        <Card className="legal-home-card rounded-[28px]">
+        <Card className="capture-funnel-card rounded-[22px]">
           <CardHeader className="space-y-4">
             <CardTitle className="text-3xl text-[#1B2118]">Questions</CardTitle>
             <CardDescription className="text-base leading-7 text-[#596255]">
-              This page is intentionally short so we can capture real demand and get to a pricing or
-              routing decision quickly.
+              This page is intentionally short so we can help you quickly.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
@@ -248,7 +247,7 @@ export default function ComplianceChecklistAssessmentPage() {
 
             <Button
               size="lg"
-              className="rounded-2xl bg-[#E6C989] px-8 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
+              className="rounded-xl bg-[#E6C989] px-8 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.18)] hover:bg-[#dcbc6f]"
               onClick={generateChecklist}
             >
               Generate your compliance requirements
@@ -257,26 +256,26 @@ export default function ComplianceChecklistAssessmentPage() {
           </CardContent>
         </Card>
 
-        <Card className="legal-home-card rounded-[28px]">
+        <Card className="capture-funnel-card rounded-[22px]">
           <CardHeader className="space-y-4">
             <CardTitle className="text-3xl text-[#1B2118]">What happens next</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm leading-7 text-[#596255]">
-            <div className="rounded-2xl border border-[rgba(96,110,89,0.14)] bg-white/80 px-4 py-4">
+            <div className="rounded-[16px] border border-[rgba(96,110,89,0.14)] bg-white/80 px-4 py-4">
               <p className="font-semibold text-[#1F241D]">Primary path</p>
               <p className="mt-2">
                 Reach pricing, test willingness to pay, and reserve checklist access if the
                 self-serve route fits.
               </p>
             </div>
-            <div className="rounded-2xl border border-[rgba(96,110,89,0.14)] bg-white/80 px-4 py-4">
+            <div className="rounded-[16px] border border-[rgba(96,110,89,0.14)] bg-white/80 px-4 py-4">
               <p className="font-semibold text-[#1F241D]">Secondary path</p>
               <p className="mt-2">
                 If your answers point toward human-led support, we can route you into CAMLO,
                 Compliance as a Service, or Levine Law follow-up.
               </p>
             </div>
-            <div className="rounded-2xl border border-[rgba(230,201,137,0.32)] bg-[rgba(230,201,137,0.12)] px-4 py-4 text-[#3E443A]">
+            <div className="rounded-[16px] border border-[rgba(230,201,137,0.32)] bg-[rgba(230,201,137,0.12)] px-4 py-4 text-[#3E443A]">
               Strongest validation signal: <span className="font-semibold">payment attempt after pricing</span>
             </div>
           </CardContent>
@@ -285,13 +284,13 @@ export default function ComplianceChecklistAssessmentPage() {
 
       {recommendation ? (
         <section id="checklist-results" className="space-y-8">
-          <Card className="legal-home-panel rounded-[32px] border px-6 py-10 md:px-10 md:py-12">
+          <Card className="capture-funnel-panel rounded-[24px] border px-6 py-8 md:px-8 md:py-9">
             <CardHeader className="space-y-4 px-0 pt-0">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-[rgba(111,139,101,0.24)] bg-[rgba(111,139,101,0.10)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#6F8B65]">
+                <span className="rounded-full border border-[rgba(111,139,101,0.24)] bg-[rgba(111,139,101,0.10)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F8B65]">
                   {recommendation.readinessLabel}
                 </span>
-                <span className="rounded-full border border-[rgba(230,201,137,0.32)] bg-[rgba(230,201,137,0.12)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#5A5140]">
+                <span className="rounded-full border border-[rgba(230,201,137,0.32)] bg-[rgba(230,201,137,0.12)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#5A5140]">
                   Your compliance requirements
                 </span>
               </div>
@@ -308,7 +307,7 @@ export default function ComplianceChecklistAssessmentPage() {
                   {recommendation.requirements.map((item) => (
                     <div
                       key={item}
-                      className="flex items-start gap-3 rounded-2xl border border-[rgba(42,53,46,0.12)] bg-white/90 px-4 py-4 text-sm leading-7 text-[#596255]"
+                      className="flex items-start gap-3 rounded-[16px] border border-[rgba(42,53,46,0.12)] bg-white/90 px-4 py-4 text-sm leading-7 text-[#596255]"
                     >
                       <CheckCircle2 className="mt-1 h-4 w-4 text-[#6F8B65]" />
                       <span>{item}</span>
@@ -319,12 +318,12 @@ export default function ComplianceChecklistAssessmentPage() {
                   {recommendation.highlights.map((item) => (
                     <div
                       key={item}
-                      className="rounded-2xl border border-[rgba(96,110,89,0.14)] bg-white/80 px-4 py-4 text-sm leading-7 text-[#596255]"
+                      className="rounded-[16px] border border-[rgba(96,110,89,0.14)] bg-white/80 px-4 py-4 text-sm leading-7 text-[#596255]"
                     >
                       {item}
                     </div>
                   ))}
-                  <div className="rounded-2xl border border-[rgba(230,201,137,0.32)] bg-[rgba(230,201,137,0.12)] px-4 py-4 text-sm leading-7 text-[#3E443A]">
+                  <div className="rounded-[16px] border border-[rgba(230,201,137,0.32)] bg-[rgba(230,201,137,0.12)] px-4 py-4 text-sm leading-7 text-[#3E443A]">
                     <p className="font-semibold">Next commercial step</p>
                     <p className="mt-2">
                       Pricing is the default path. Service follow-up is available if your need is
@@ -337,7 +336,7 @@ export default function ComplianceChecklistAssessmentPage() {
           </Card>
 
           <section className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_0.95fr]">
-            <Card className="legal-home-feature-panel rounded-[28px] border text-[#F7F1E4]">
+            <Card className="capture-funnel-dark-card rounded-[22px] border text-[#F7F1E4]">
               <CardHeader className="space-y-4">
                 <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#E6C989]">
                   <Sparkles className="h-4 w-4" />
@@ -350,7 +349,7 @@ export default function ComplianceChecklistAssessmentPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-5">
+                <div className="rounded-[16px] border border-white/10 bg-white/5 px-5 py-5">
                   <p className="text-sm uppercase tracking-[0.18em] text-[#CDBA8A]">Early access pricing</p>
                   <p className="mt-3 text-4xl font-semibold text-white">$99</p>
                   <p className="mt-2 text-sm leading-7 text-[#DAD5C7]">
@@ -360,7 +359,7 @@ export default function ComplianceChecklistAssessmentPage() {
                 </div>
                 <Button
                   size="lg"
-                  className="rounded-2xl bg-[#E6C989] px-8 text-[#1F241D] hover:bg-[#dcbc6f]"
+                  className="rounded-xl bg-[#E6C989] px-8 text-[#1F241D] hover:bg-[#dcbc6f]"
                   onClick={() => {
                     setSelectedRoute("product");
                     scrollToElement("capture-lead-form");
@@ -381,7 +380,7 @@ export default function ComplianceChecklistAssessmentPage() {
                   <Card
                     key={route}
                     className={cn(
-                      "legal-home-card rounded-[24px] border transition-colors",
+                      "capture-funnel-card rounded-[18px] border transition-colors",
                       isActive ? "border-[#6F8B65]" : "",
                     )}
                   >
@@ -394,7 +393,7 @@ export default function ComplianceChecklistAssessmentPage() {
                     <CardContent>
                       <Button
                         variant="outline"
-                        className="rounded-2xl px-6"
+                        className="rounded-xl px-6"
                         onClick={() => {
                           setSelectedRoute(route);
                           scrollToElement("capture-lead-form");
@@ -409,31 +408,17 @@ export default function ComplianceChecklistAssessmentPage() {
             </div>
           </section>
 
-          <Card id="capture-lead-form" className="legal-home-card rounded-[28px]">
+          <Card id="capture-lead-form" className="capture-funnel-card rounded-[22px]">
             <CardHeader className="space-y-3">
               <CardTitle className="text-3xl text-[#1B2118]">
                 {captureRouteCopy[selectedRoute].title}
               </CardTitle>
               <CardDescription className="max-w-2xl text-base leading-8 text-[#596255]">
-                {captureRouteCopy[selectedRoute].description}
+                Enter your email and phone number so we can follow up on the route you selected.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form className="grid gap-5 md:grid-cols-2" onSubmit={submitInterest}>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#1F241D]" htmlFor="capture-name">
-                    Name
-                  </label>
-                  <Input
-                    id="capture-name"
-                    value={leadForm.name}
-                    onChange={(event) =>
-                      setLeadForm((current) => ({ ...current, name: event.target.value }))
-                    }
-                    placeholder="Your name"
-                    className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D]"
-                  />
-                </div>
                 <div className="grid gap-2">
                   <label className="text-sm font-medium text-[#1F241D]" htmlFor="capture-email">
                     Email
@@ -446,21 +431,22 @@ export default function ComplianceChecklistAssessmentPage() {
                       setLeadForm((current) => ({ ...current, email: event.target.value }))
                     }
                     placeholder="you@company.com"
-                    className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D]"
+                    className="h-12 rounded-[14px] border-border/70 bg-white text-[#1F241D]"
                   />
                 </div>
-                <div className="grid gap-2 md:col-span-2">
-                  <label className="text-sm font-medium text-[#1F241D]" htmlFor="capture-company">
-                    Company
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-[#1F241D]" htmlFor="capture-phone">
+                    Phone number
                   </label>
                   <Input
-                    id="capture-company"
-                    value={leadForm.company}
+                    id="capture-phone"
+                    type="tel"
+                    value={leadForm.phone}
                     onChange={(event) =>
-                      setLeadForm((current) => ({ ...current, company: event.target.value }))
+                      setLeadForm((current) => ({ ...current, phone: event.target.value }))
                     }
-                    placeholder="Optional"
-                    className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D]"
+                    placeholder="+1 416 555 0148"
+                    className="h-12 rounded-[14px] border-border/70 bg-white text-[#1F241D]"
                   />
                 </div>
                 <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-4">
@@ -470,7 +456,7 @@ export default function ComplianceChecklistAssessmentPage() {
                   <Button
                     type="submit"
                     size="lg"
-                    className="rounded-2xl bg-[#E6C989] px-8 text-[#1F241D] hover:bg-[#dcbc6f]"
+                    className="rounded-xl bg-[#E6C989] px-8 text-[#1F241D] hover:bg-[#dcbc6f]"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
