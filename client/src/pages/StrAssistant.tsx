@@ -2,13 +2,11 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  ArrowUpRight,
   CheckCircle2,
   Clock3,
   Copy,
   Download,
   FileStack,
-  FileText,
   FolderOpen,
   Hash,
   Loader2,
@@ -16,7 +14,6 @@ import {
   RefreshCcw,
   ScanSearch,
   Save,
-  ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
 import type {
@@ -29,6 +26,7 @@ import type {
   RecordProductFunnelEventRequest,
 } from "@shared/analytics";
 import { siteConfig } from "@shared/site";
+import { SiteFooter } from "@/components/SiteFooter";
 import {
   draftStatusValues,
   type AuthSessionResponse,
@@ -46,7 +44,6 @@ import {
   type WorkflowStepView,
   type WorkspaceSessionMeta,
 } from "@shared/workspace";
-import { SiteFooter } from "@/components/SiteFooter";
 import {
   amountBandLabels,
   amountBandValues,
@@ -98,6 +95,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { StrAssistantLanding } from "@/features/str/marketing/StrAssistantLanding";
+import { WorkspaceCard } from "@/features/str/shared/WorkspaceAccessCards";
 import { useToast } from "@/hooks/use-toast";
 import { ApiError, apiRequest } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -179,55 +178,6 @@ const readinessCopy: Record<
     reviewButtonLabel: "Review Risk Signals",
   },
 };
-
-const homepagePainPoints = [
-  "Manual reporting slows response times",
-  "Unclear requirements create legal exposure",
-  "Inconsistent documentation fails audits",
-] as const;
-
-const homepageBenefits = [
-  "Build an STR draft in under 60 seconds",
-  "Structured inputs reduce omissions and errors",
-  "Deterministic signals keep the draft grounded in the facts you provide",
-  "Move from fact pattern to editable output faster",
-] as const;
-
-const homepageWorkflow = [
-  {
-    icon: ScanSearch,
-    title: "Input transaction details through guided fields",
-    body: "Start with structured intake instead of drafting from scratch.",
-  },
-  {
-    icon: FileText,
-    title: "FinSure assembles a structured STR draft",
-    body: "The workflow turns the fact pattern you provide into editable report language.",
-  },
-  {
-    icon: ShieldAlert,
-    title: "Review the draft before you act",
-    body: "Check the signals, narrative, and missing details before deciding what to do next.",
-  },
-  {
-    icon: ArrowRight,
-    title: "Export and continue your workflow",
-    body: "Move from structured intake to a usable draft package without extra friction.",
-  },
-] as const;
-
-const homepageAuthorityPoints = [
-  "Developed by Levine Law",
-  "Years of financial regulatory experience",
-  "Built by legal experts behind fintech compliance",
-] as const;
-
-const homepageOutputItems = [
-  "Structured intake",
-  "Risk signals",
-  "Draft narrative",
-  "Export package",
-] as const;
 
 function createSessionMeta(): SessionMeta {
   return {
@@ -434,277 +384,6 @@ function SummaryList({
             </div>
           ))
         )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function AuthCard({
-  mode,
-  form,
-  onModeChange,
-  onFieldChange,
-  onSubmit,
-  isSubmitting,
-}: {
-  mode: AuthMode;
-  form: AuthFormState;
-  onModeChange: (mode: AuthMode) => void;
-  onFieldChange: <K extends keyof AuthFormState>(
-    key: K,
-    value: AuthFormState[K],
-  ) => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  isSubmitting: boolean;
-}) {
-  return (
-    <Card
-      id="auth-access"
-      className="legal-home-card shadow-[0_18px_40px_rgba(31,51,37,0.06)]"
-    >
-      <CardHeader className="space-y-4">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <CardTitle className="text-2xl text-[#1B2118]">
-              {mode === "register" ? "Create your account" : "Sign in"}
-            </CardTitle>
-            <CardDescription className="mt-2 max-w-xl text-sm leading-7 text-[#596255]">
-              Create an account only when you want to save drafts, reopen them later, or export
-              the finished STR.
-            </CardDescription>
-          </div>
-          <div className="flex w-full items-center gap-2 rounded-full border border-[rgba(96,110,89,0.14)] bg-white/70 p-1 md:w-auto">
-            <button
-              type="button"
-              onClick={() => onModeChange("register")}
-              className={cn(
-                "flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors md:flex-none",
-                mode === "register" ? "bg-[#6F8B65] text-[#F7F1E4]" : "text-[#596255]",
-              )}
-            >
-              Create account
-            </button>
-            <button
-              type="button"
-              onClick={() => onModeChange("login")}
-              className={cn(
-                "flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors md:flex-none",
-                mode === "login" ? "bg-[#6F8B65] text-[#F7F1E4]" : "text-[#596255]",
-              )}
-            >
-              Sign in
-            </button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <form className="grid gap-5 md:grid-cols-2" onSubmit={onSubmit}>
-          {mode === "register" ? (
-            <div className="grid gap-2 md:col-span-2">
-              <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-team-name">
-                Organization
-              </label>
-              <Input
-                id="auth-team-name"
-                value={form.teamName}
-                onChange={(event) => onFieldChange("teamName", event.target.value)}
-                placeholder="Your company or practice"
-                className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
-              />
-            </div>
-          ) : null}
-          {mode === "register" ? (
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-name">
-                Full name
-              </label>
-              <Input
-                id="auth-name"
-                value={form.name}
-                onChange={(event) => onFieldChange("name", event.target.value)}
-                placeholder="Your name"
-                className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
-              />
-            </div>
-          ) : null}
-          {mode === "register" ? (
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-email">
-                Email
-              </label>
-              <Input
-                id="auth-email"
-                type="email"
-                value={form.email}
-                onChange={(event) => onFieldChange("email", event.target.value)}
-                placeholder="you@company.com"
-                className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
-              />
-            </div>
-          ) : null}
-          <div className="grid gap-2">
-            <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-password">
-              Password
-            </label>
-            <Input
-              id="auth-password"
-              type="password"
-              value={form.password}
-              onChange={(event) => onFieldChange("password", event.target.value)}
-              placeholder="Minimum 8 characters"
-              className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
-            />
-          </div>
-          {mode === "login" ? (
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#1F241D]" htmlFor="auth-email-login">
-                Email
-              </label>
-              <Input
-                id="auth-email-login"
-                type="email"
-                value={form.email}
-                onChange={(event) => onFieldChange("email", event.target.value)}
-                placeholder="you@company.com"
-                className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
-              />
-            </div>
-          ) : null}
-          <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
-            <p className="text-xs text-[#7A8176]">
-              {mode === "register"
-                ? "You can draft first. Create an account only when you are ready to save or export."
-                : "Use the email and password you registered with."}
-            </p>
-            <Button type="submit" size="lg" className="rounded-2xl px-8" disabled={isSubmitting}>
-              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {mode === "register" ? "Create account" : "Sign in"}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
-}
-
-function WorkspaceCard({
-  session,
-  drafts,
-  reviewers,
-  onStartNewDraft,
-  onOpenDraft,
-  onSignOut,
-  isLoading,
-  showActions = true,
-}: {
-  session: AuthSessionSummary;
-  drafts: DraftSummary[];
-  reviewers: UserSummary[];
-  onStartNewDraft: () => void;
-  onOpenDraft: (draftId: string) => void;
-  onSignOut: () => void;
-  isLoading: boolean;
-  showActions?: boolean;
-}) {
-  return (
-    <Card className="border-border/70 bg-white/92 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-      <CardHeader className="space-y-4">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Saved drafts
-            </p>
-            <h2 className="text-3xl font-semibold tracking-tight text-primary">
-              Your STR drafts
-            </h2>
-            <CardDescription className="max-w-2xl text-base leading-7">
-              Signed in as {session.user.name}. Save drafts, reopen them, and continue where you
-              left off.
-            </CardDescription>
-          </div>
-          {showActions ? (
-            <div className="flex flex-wrap gap-3">
-              <Button className="rounded-2xl px-6" onClick={onStartNewDraft}>
-                <ShieldCheck className="h-4 w-4" />
-                New draft
-              </Button>
-              <Button variant="outline" className="rounded-2xl px-6" onClick={onSignOut}>
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </Button>
-            </div>
-          ) : null}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-[24px] border border-border/70 bg-secondary/35 p-5">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Saved drafts</p>
-            <p className="mt-3 text-3xl font-semibold text-foreground">{drafts.length}</p>
-          </div>
-          <div className="rounded-[24px] border border-border/70 bg-secondary/35 p-5">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              In progress
-            </p>
-            <p className="mt-3 text-3xl font-semibold text-foreground">
-              {drafts.filter((draft) => draft.status === "draft" || draft.status === "in_review").length}
-            </p>
-          </div>
-          <div className="rounded-[24px] border border-border/70 bg-secondary/35 p-5">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              Ready for filing
-            </p>
-            <p className="mt-3 text-3xl font-semibold text-foreground">
-              {drafts.filter((draft) => draft.status === "ready_for_filing").length}
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="flex items-center gap-3 rounded-[24px] border border-border/70 bg-white p-5 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading saved drafts...
-            </div>
-          ) : drafts.length === 0 ? (
-            <div className="rounded-[24px] border border-dashed border-border/70 bg-white p-6">
-              <p className="text-lg font-semibold text-foreground">No drafts saved yet.</p>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Start a draft, save it once, and it will appear here with status and last-updated
-                context.
-              </p>
-            </div>
-          ) : (
-            drafts.map((draft) => (
-              <button
-                key={draft.id}
-                type="button"
-                onClick={() => onOpenDraft(draft.id)}
-                className="flex w-full items-start justify-between gap-4 rounded-[24px] border border-border/70 bg-white p-5 text-left transition-colors hover:border-primary/20 hover:bg-secondary/35"
-              >
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-lg font-semibold text-foreground">{draft.title}</p>
-                    <Badge className="border-primary/15 bg-primary/10 text-primary">
-                      {draftStatusLabels[draft.status]}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Updated {formatTimestamp(draft.updatedAt)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Readiness: {draft.readinessStatus.replace(/_/g, " ")}. Suspicion level:{" "}
-                    {draft.suspicionLevel}.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 rounded-full border border-border/70 bg-secondary/35 px-4 py-2 text-sm font-medium text-foreground">
-                  <FolderOpen className="h-4 w-4 text-primary" />
-                  Open
-                </div>
-              </button>
-            ))
-          )}
-        </div>
       </CardContent>
     </Card>
   );
@@ -1069,6 +748,11 @@ export default function StrAssistant() {
 
   const openWorkflow = () => {
     beginNewDraft();
+  };
+
+  const openSignIn = () => {
+    setAuthMode("login");
+    scrollToElement("auth-access");
   };
 
   const applyPreset = (presetId: string) => {
@@ -1722,459 +1406,28 @@ export default function StrAssistant() {
 
   if (view === "landing") {
     return (
-      <div className="legal-home-shell min-h-screen px-4 py-6 text-[#1F241D] sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-7xl space-y-8">
-          <header className="legal-home-panel rounded-[32px] border px-8 py-5 md:px-10">
-            <div className="flex items-center justify-between gap-6">
-              <a href={siteConfig.links.home} className="shrink-0 flex items-center">
-                <img
-                  src="/fintechlawyer-logo-rectangle.png"
-                  alt="FintechLawyer.ca"
-                  className="h-12 w-auto rounded-[18px] shadow-[0_14px_28px_rgba(16,24,19,0.14)] md:h-14"
-                />
-              </a>
-
-              <div className="flex items-center gap-6">
-                <nav className="hidden items-center gap-6 text-sm font-medium text-[#525B50] lg:flex">
-                  <a href={siteConfig.links.product} className="transition-colors hover:text-[#E6C989]">
-                    Product
-                  </a>
-                  <a
-                    href={siteConfig.links.howItWorks}
-                    className="transition-colors hover:text-[#E6C989]"
-                  >
-                    How It Works
-                  </a>
-                  <a
-                    href={siteConfig.links.socialProof}
-                    className="transition-colors hover:text-[#E6C989]"
-                  >
-                    Social Proof
-                  </a>
-                  <a
-                    href={siteConfig.links.expertise}
-                    className="transition-colors hover:text-[#E6C989]"
-                  >
-                    Expertise
-                  </a>
-                </nav>
-                {authSession ? (
-                  <div className="flex items-center gap-3">
-                    <Button
-                      className="rounded-2xl bg-[#E6C989] px-6 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
-                      onClick={() => setView("workspace")}
-                    >
-                      Open saved drafts
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" className="rounded-2xl px-6" onClick={handleSignOut}>
-                      <LogOut className="h-4 w-4" />
-                      Sign out
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    className="rounded-2xl bg-[#E6C989] px-6 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
-                    onClick={() => {
-                      setAuthMode("login");
-                      scrollToElement("auth-access");
-                    }}
-                  >
-                    Sign in
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </header>
-
-          <main id="start" className="space-y-8">
-            <section className="grid gap-8 py-16 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-center">
-              <div className="space-y-6">
-                <h1 className="text-5xl leading-[0.95] text-[#1B2118] md:text-7xl">
-                  Generate an STR draft faster
-                </h1>
-                <p className="max-w-3xl text-lg leading-8 text-[#596255] md:text-xl">
-                  FinSure guides you through structured inputs to build a Suspicious Transaction
-                  Report draft you can review, edit, save, and export.
-                </p>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button
-                    size="lg"
-                    className="rounded-2xl bg-[#E6C989] px-8 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
-                    onClick={openWorkflow}
-                  >
-                    {authSession ? "Start drafting" : "Start drafting now"}
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    asChild
-                    size="lg"
-                    variant="outline"
-                    className="rounded-2xl border-[rgba(230,201,137,0.5)] bg-[rgba(230,201,137,0.08)] px-8 text-[#E6C989] hover:bg-[rgba(230,201,137,0.14)] hover:text-[#F4F2EC]"
-                  >
-                    <a href={siteConfig.links.howItWorks}>See how it works</a>
-                  </Button>
-                  <Button
-                    asChild
-                    size="lg"
-                    variant="outline"
-                    className="rounded-2xl border-[rgba(230,201,137,0.5)] bg-[rgba(230,201,137,0.08)] px-8 text-[#E6C989] hover:bg-[rgba(230,201,137,0.14)] hover:text-[#F4F2EC]"
-                  >
-                    <a href={siteConfig.links.levineLaw} target="_blank" rel="noreferrer">
-                      Visit Levine Law
-                      <ArrowUpRight className="h-4 w-4" />
-                    </a>
-                  </Button>
-                </div>
-                {!authSession ? (
-                  <p className="text-sm text-[#687164]">
-                    No login required until you want to save or export.
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="hidden lg:block">
-                <div className="relative h-[540px]">
-                  <div className="brand-workflow-screen absolute left-0 top-10 w-[260px] rounded-[28px] p-5 text-white">
-                    <div className="brand-workflow-topbar">
-                      <div className="brand-workflow-dots">
-                        <span />
-                        <span />
-                        <span />
-                      </div>
-                      <span className="brand-workflow-label">Intake</span>
-                    </div>
-                    <div className="mt-5 space-y-3">
-                      <div className="brand-workflow-field" />
-                      <div className="brand-workflow-field" />
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="brand-workflow-field" />
-                        <div className="brand-workflow-field" />
-                      </div>
-                      <div className="flex gap-2 pt-1">
-                        <span className="brand-workflow-chip">Trigger</span>
-                        <span className="brand-workflow-chip">Amount</span>
-                      </div>
-                    </div>
-                    <div className="mt-4 brand-workflow-button flex items-center justify-center">
-                      Continue
-                    </div>
-                  </div>
-
-                  <div className="brand-workflow-screen absolute right-8 top-0 w-[250px] rounded-[28px] p-5 text-white">
-                    <div className="brand-workflow-topbar">
-                      <div className="brand-workflow-dots">
-                        <span />
-                        <span />
-                        <span />
-                      </div>
-                      <span className="brand-workflow-label">Risk Signals</span>
-                    </div>
-                    <div className="mt-5 space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        <span className="brand-workflow-chip">Structuring</span>
-                        <span className="brand-workflow-chip">Third party</span>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                        <div className="brand-workflow-line w-[88%]" />
-                        <div className="brand-workflow-line mt-3 w-[72%]" />
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                        <div className="brand-workflow-line w-[82%]" />
-                        <div className="brand-workflow-line mt-3 w-[66%]" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="brand-workflow-screen absolute bottom-0 left-12 w-[280px] rounded-[28px] p-5 text-white">
-                    <div className="brand-workflow-topbar">
-                      <div className="brand-workflow-dots">
-                        <span />
-                        <span />
-                        <span />
-                      </div>
-                      <span className="brand-workflow-label">Narrative</span>
-                    </div>
-                    <div className="mt-5 space-y-3">
-                      <div className="brand-workflow-line w-[96%]" />
-                      <div className="brand-workflow-line w-[92%]" />
-                      <div className="brand-workflow-line w-[88%]" />
-                      <div className="brand-workflow-line w-[80%]" />
-                      <div className="brand-workflow-line w-[90%]" />
-                    </div>
-                  </div>
-
-                  <div className="brand-workflow-screen absolute bottom-14 right-0 w-[240px] rounded-[28px] p-5 text-white">
-                    <div className="brand-workflow-topbar">
-                      <div className="brand-workflow-dots">
-                        <span />
-                        <span />
-                        <span />
-                      </div>
-                      <span className="brand-workflow-label">Output</span>
-                    </div>
-                    <div className="mt-5 space-y-3">
-                      {homepageOutputItems.map((item) => (
-                        <div key={item} className="flex items-center gap-2 text-xs text-[#F7F1E4]/86">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-[#6F8B65]" />
-                          {item}
-                        </div>
-                      ))}
-                      <div className="grid grid-cols-2 gap-2 pt-2">
-                        <div className="brand-workflow-button flex items-center justify-center">
-                          Copy
-                        </div>
-                        <div className="brand-workflow-field" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section className="py-10">
-              {isAuthLoading ? (
-                <Card className="legal-home-card">
-                  <CardContent className="flex items-center gap-3 p-6 text-sm text-[#596255]">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Loading account access...
-                  </CardContent>
-                </Card>
-              ) : authSession ? (
-                <WorkspaceCard
-                  session={authSession}
-                  drafts={drafts}
-                  reviewers={reviewers}
-                  onStartNewDraft={beginNewDraft}
-                  onOpenDraft={openSavedDraft}
-                  onSignOut={handleSignOut}
-                  isLoading={workspaceLoading}
-                />
-              ) : (
-                <AuthCard
-                  mode={authMode}
-                  form={authForm}
-                  onModeChange={setAuthMode}
-                  onFieldChange={updateAuthForm}
-                  onSubmit={handleAuthSubmit}
-                  isSubmitting={isAuthSubmitting}
-                />
-              )}
-            </section>
-
-            <section id="problem" className="py-16">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h2 className="text-3xl text-[#1B2118] md:text-4xl">
-                    The Hidden Risk in Every Suspicious Transaction Report
-                  </h2>
-                </div>
-                <div className="grid gap-5 md:grid-cols-3">
-                  {homepagePainPoints.map((point) => (
-                    <Card key={point} className="legal-home-card">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-2xl leading-tight text-[#1F241D]">{point}</CardTitle>
-                      </CardHeader>
-                    </Card>
-                  ))}
-                </div>
-                <p className="text-lg font-semibold text-[#6F8B65]">FinSure changes that.</p>
-              </div>
-            </section>
-
-            <section id="product" className="py-16">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h2 className="text-3xl text-[#1B2118] md:text-4xl">
-                    Meet FinSure — Guided STR Drafting
-                  </h2>
-                </div>
-                <div className="grid gap-5 md:grid-cols-2">
-                  {homepageBenefits.map((benefit) => (
-                    <Card key={benefit} className="legal-home-card">
-                      <CardContent className="p-6 text-lg leading-8 text-[#596255]">
-                        {benefit}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-                <div>
-                  <Button
-                    size="lg"
-                    className="rounded-2xl bg-[#E6C989] px-8 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.2)] hover:bg-[#dcbc6f]"
-                    onClick={openWorkflow}
-                  >
-                    Start drafting
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </section>
-
-            <section id="how-it-works" className="py-16">
-              <div className="space-y-6">
-                <h2 className="text-3xl text-[#1B2118] md:text-4xl">How It Works</h2>
-                <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-                  {homepageWorkflow.map((item) => (
-                    <Card key={item.title} className="legal-home-card">
-                      <CardHeader className="pb-3">
-                        <item.icon className="h-7 w-7 text-primary" />
-                        <CardTitle className="mt-4 text-2xl leading-tight text-[#1F241D]">{item.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-sm leading-6 text-[#596255]">
-                        {item.body}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            <section id="social-proof" className="py-16">
-              <div className="space-y-6">
-                <h2 className="text-3xl text-[#1B2118] md:text-4xl">
-                  Built by Legal Experts Behind Fintech Compliance
-                </h2>
-                <div className="grid gap-5 md:grid-cols-3">
-                  {homepageAuthorityPoints.map((item) => (
-                    <Card key={item} className="legal-home-card">
-                      <CardContent className="p-6 text-lg leading-8 text-[#596255]">
-                        {item}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            <section id="levine-law" className="py-16">
-              <Card className="legal-home-card">
-                <CardHeader className="space-y-3">
-                  <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">
-                    Powered by Real Legal Expertise
-                  </CardTitle>
-                  <CardDescription className="max-w-3xl text-base leading-8 text-[#596255]">
-                    FinSure is built and backed by Levine Law — a firm specializing in fintech,
-                    financial regulation, and compliance.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    asChild
-                    size="lg"
-                    variant="outline"
-                    className="rounded-2xl border-[rgba(230,201,137,0.5)] bg-[rgba(230,201,137,0.08)] px-8 text-[#E6C989] hover:bg-[rgba(230,201,137,0.14)] hover:text-[#F4F2EC]"
-                  >
-                    <a href={siteConfig.links.levineLaw} target="_blank" rel="noreferrer">
-                      Visit Levine Law
-                      <ArrowUpRight className="h-4 w-4" />
-                    </a>
-                  </Button>
-                </CardContent>
-              </Card>
-            </section>
-
-            <section id="pricing" className="py-16">
-              <Card className="legal-home-card">
-                <CardHeader className="space-y-3">
-                  <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#6F8B65]">
-                    Export first
-                  </div>
-                  <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">
-                    Preview the full STR before payment
-                  </CardTitle>
-                  <CardDescription className="max-w-3xl text-base leading-8 text-[#596255]">
-                    FinSure shows the full draft before any payment prompt. Stripe Checkout only
-                    appears when you decide to export the STR.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-5">
-                  <div className="rounded-3xl border border-[rgba(96,110,89,0.14)] bg-white/70 p-6 text-sm leading-7 text-[#596255]">
-                    <p>
-                      Generate the draft, review it in full, and only then choose whether to pay
-                      for export.
-                    </p>
-                    <p className="mt-3">
-                      Questions about the product or the payment flow can go through the form
-                      below.
-                    </p>
-                  </div>
-                  <Button asChild size="lg" variant="outline" className="rounded-2xl px-8">
-                    <a href={siteConfig.links.earlyAccess}>Have a question first?</a>
-                  </Button>
-                </CardContent>
-              </Card>
-            </section>
-
-            <section id="early-access" className="py-16">
-              <Card className="legal-home-card">
-                <CardHeader className="space-y-3">
-                  <CardTitle className="text-3xl text-[#1B2118] md:text-4xl">
-                    Want product updates or a demo?
-                  </CardTitle>
-                  <CardDescription className="max-w-3xl text-base leading-8 text-[#596255]">
-                    FinSure is live. If you want product updates, a demo, or help deciding whether
-                    it fits your workflow, leave your details and we will follow up.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form className="grid gap-5 md:grid-cols-2" onSubmit={requestEarlyAccess}>
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#1F241D]" htmlFor="lead-name">
-                        Name
-                      </label>
-                      <Input
-                        id="lead-name"
-                        value={leadForm.name}
-                        onChange={(event) => updateLeadForm("name", event.target.value)}
-                        placeholder="Your name"
-                        className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#1F241D]" htmlFor="lead-email">
-                        Email
-                      </label>
-                      <Input
-                        id="lead-email"
-                        type="email"
-                        value={leadForm.email}
-                        onChange={(event) => updateLeadForm("email", event.target.value)}
-                        placeholder="you@company.com"
-                        className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
-                      />
-                    </div>
-                    <div className="grid gap-2 md:col-span-2">
-                      <label
-                        className="text-sm font-medium text-[#1F241D]"
-                        htmlFor="lead-company"
-                      >
-                        Company
-                      </label>
-                      <Input
-                        id="lead-company"
-                        value={leadForm.company}
-                        onChange={(event) => updateLeadForm("company", event.target.value)}
-                        placeholder="Optional"
-                        className="h-12 rounded-xl border-border/70 bg-white text-[#1F241D] placeholder:text-[#7A8176]"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <Button type="submit" size="lg" className="rounded-2xl px-8">
-                        Request updates
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </section>
-          </main>
-
-          <SiteFooter />
-        </div>
-      </div>
+      <StrAssistantLanding
+        authSession={authSession}
+        isAuthLoading={isAuthLoading}
+        authMode={authMode}
+        authForm={authForm}
+        leadForm={leadForm}
+        drafts={drafts}
+        reviewers={reviewers}
+        workspaceLoading={workspaceLoading}
+        isAuthSubmitting={isAuthSubmitting}
+        onOpenWorkflow={openWorkflow}
+        onRequestSignIn={openSignIn}
+        onOpenWorkspace={() => setView("workspace")}
+        onAuthModeChange={setAuthMode}
+        onAuthFieldChange={updateAuthForm}
+        onAuthSubmit={handleAuthSubmit}
+        onLeadFieldChange={updateLeadForm}
+        onLeadSubmit={requestEarlyAccess}
+        onBeginNewDraft={beginNewDraft}
+        onOpenSavedDraft={openSavedDraft}
+        onSignOut={handleSignOut}
+      />
     );
   }
 
