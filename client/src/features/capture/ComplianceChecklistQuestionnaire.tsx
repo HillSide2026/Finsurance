@@ -4,7 +4,6 @@ import type {
   ProductEnquiryRequest,
   ProductEnquiryResponse,
 } from "@shared/workspace";
-import { siteConfig } from "@shared/site";
 import {
   buildCaptureEnquirySourcePath,
   buildCaptureRecommendation,
@@ -16,7 +15,6 @@ import {
   type CaptureQuestionnaire,
   type CaptureRoute,
 } from "@/features/capture/captureFunnel";
-import { CapturePageShell } from "@/features/capture/CapturePageShell";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -77,7 +75,7 @@ function scrollToElement(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-export default function ComplianceChecklistAssessmentPage() {
+export function ComplianceChecklistQuestionnaire() {
   const { toast } = useToast();
   const [answers, setAnswers] = useState<CaptureQuestionnaire>(() => emptyCaptureQuestionnaire());
   const [leadForm, setLeadForm] = useState<LeadFormState>({
@@ -164,25 +162,17 @@ export default function ComplianceChecklistAssessmentPage() {
   };
 
   return (
-    <CapturePageShell
-      action={
-        <Button asChild variant="outline" className="rounded-xl px-6">
-          <a href={siteConfig.links.complianceChecklist}>Back to overview</a>
-        </Button>
-      }
-    >
+    <div id="compliance-checklist-questionnaire" className="scroll-mt-24 space-y-8">
       <section className="capture-funnel-panel rounded-[24px] border px-6 py-8 md:px-8 md:py-9">
         <div className="max-w-3xl space-y-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6F8B65]">
-            Pseudo product validation layer
+            Questions
           </p>
-          <h1 className="text-4xl leading-[0.96] text-[#1B2118] md:text-[2.9rem]">
-            Generate your compliance checklist
-          </h1>
-          <p className="text-lg leading-8 text-[#596255]">
-            Answer four structured questions, review the indicative requirements, then choose the
-            next step. Product pricing is the primary path. Human-led support stays available when
-            the checklist is not the best fit.
+          <h2 className="text-4xl leading-[0.96] text-[#1B2118] md:text-[2.9rem]">
+            Complete your Checklist
+          </h2>
+          <p className="text-base leading-8 text-[#596255]">
+            This page is intentionally short so we can help you quickly.
           </p>
         </div>
       </section>
@@ -197,7 +187,7 @@ export default function ComplianceChecklistAssessmentPage() {
           </CardHeader>
           <CardContent className="space-y-8">
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-[#1F241D]">1. What kind of fintech are you building?</h2>
+              <h3 className="text-lg font-semibold text-[#1F241D]">1. What kind of fintech are you building?</h3>
               <ChoiceGrid
                 options={captureBusinessTypeOptions}
                 selected={answers.businessType}
@@ -206,7 +196,7 @@ export default function ComplianceChecklistAssessmentPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-[#1F241D]">2. What stage are you in?</h2>
+              <h3 className="text-lg font-semibold text-[#1F241D]">2. What stage are you in?</h3>
               <ChoiceGrid
                 options={captureStageOptions}
                 selected={answers.stage}
@@ -215,20 +205,22 @@ export default function ComplianceChecklistAssessmentPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-[#1F241D]">
+              <h3 className="text-lg font-semibold text-[#1F241D]">
                 3. Will this product touch Canada directly?
-              </h2>
+              </h3>
               <ChoiceGrid
                 options={[
                   {
                     value: true,
                     label: "Yes, Canada is in scope",
-                    description: "Canadian users, flows, counterparties, or launch plans are already in view.",
+                    description:
+                      "Canadian users, flows, counterparties, or launch plans are already in view.",
                   },
                   {
                     value: false,
                     label: "Not directly, but maybe later",
-                    description: "Canada is not the immediate market, but exposure still needs to be tested.",
+                    description:
+                      "Canada is not the immediate market, but exposure still needs to be tested.",
                   },
                 ]}
                 selected={answers.servesCanada}
@@ -237,7 +229,7 @@ export default function ComplianceChecklistAssessmentPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-[#1F241D]">4. What do you need right now?</h2>
+              <h3 className="text-lg font-semibold text-[#1F241D]">4. What do you need right now?</h3>
               <ChoiceGrid
                 options={captureNeedOptions}
                 selected={answers.primaryNeed}
@@ -424,7 +416,10 @@ export default function ComplianceChecklistAssessmentPage() {
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <p className="text-sm text-[#596255]">
-                    Selected route: <span className="font-semibold text-[#1F241D]">{captureRouteCopy[selectedRoute].label}</span>
+                    Selected route:{" "}
+                    <span className="font-semibold text-[#1F241D]">
+                      {captureRouteCopy[selectedRoute].label}
+                    </span>
                   </p>
                   <Button
                     type="submit"
@@ -441,6 +436,6 @@ export default function ComplianceChecklistAssessmentPage() {
           </Card>
         </section>
       ) : null}
-    </CapturePageShell>
+    </div>
   );
 }

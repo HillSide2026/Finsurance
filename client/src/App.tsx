@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { buildSitePageMetadata, resolveSitePage } from "@shared/site";
 import BillingSuccessPage from "@/pages/BillingSuccessPage";
-import ComplianceChecklistAssessmentPage from "@/pages/ComplianceChecklistAssessmentPage";
 import ComplianceChecklistLandingPage from "@/pages/ComplianceChecklistLandingPage";
 import LegalPage from "@/pages/LegalPage";
 import SiteHome from "@/pages/SiteHome";
@@ -44,7 +43,7 @@ function App() {
       ) : page === "complianceChecklist" ? (
         <ComplianceChecklistLandingPage />
       ) : page === "complianceChecklistStart" ? (
-        <ComplianceChecklistAssessmentPage />
+        <ComplianceChecklistLandingPage autoScrollToQuestionnaire />
       ) : page === "billingSuccess" ? (
         <BillingSuccessPage />
       ) : page === "home" ? (

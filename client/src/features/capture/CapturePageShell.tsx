@@ -34,25 +34,7 @@ export function CapturePageShell({
             </div>
 
             <div className="flex flex-wrap items-center gap-4">
-              <a
-                href={siteConfig.links.complianceChecklist}
-                className="text-sm font-medium text-[#596255] transition-colors hover:text-[#E6C989]"
-              >
-                Overview
-              </a>
-              <a
-                href={siteConfig.links.complianceChecklistStart}
-                className="text-sm font-medium text-[#596255] transition-colors hover:text-[#E6C989]"
-              >
-                Assessment
-              </a>
-              <a
-                href={siteConfig.links.home}
-                className="text-sm font-medium text-[#596255] transition-colors hover:text-[#E6C989]"
-              >
-                Main site
-              </a>
-              {action ?? (
+              {action !== undefined ? action : (
                 <Button
                   asChild
                   className="rounded-xl bg-[#E6C989] px-5 text-[#1F241D] shadow-[0_12px_24px_rgba(230,201,137,0.18)] hover:bg-[#dcbc6f]"

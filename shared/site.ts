@@ -79,20 +79,6 @@ const complianceChecklistPageMetadata: SitePageMetadata = {
     "Scope your Canadian fintech compliance checklist before you overspend on legal or compliance rework.",
 };
 
-const complianceChecklistStartPageMetadata: SitePageMetadata = {
-  title: "Compliance Checklist Assessment | FintechLawyer.ca",
-  description:
-    "Answer a few structured questions, see indicative compliance requirements, and reach the pricing or support decision point.",
-  canonicalUrl: complianceChecklistStartUrl,
-  openGraphTitle: "Compliance Checklist Assessment | FintechLawyer.ca",
-  openGraphDescription:
-    "A pseudo-product validation page that tests product willingness to pay before scale.",
-  openGraphUrl: complianceChecklistStartUrl,
-  twitterTitle: "Compliance Checklist Assessment | FintechLawyer.ca",
-  twitterDescription:
-    "A pseudo-product validation page that tests product willingness to pay before scale.",
-};
-
 const privacyPolicyPageMetadata: SitePageMetadata = {
   title: "Privacy Policy | FintechLawyer.ca",
   description:
@@ -182,7 +168,7 @@ export function buildSitePageMetadata(page: SitePage): SitePageMetadata {
     case "complianceChecklist":
       return complianceChecklistPageMetadata;
     case "complianceChecklistStart":
-      return complianceChecklistStartPageMetadata;
+      return complianceChecklistPageMetadata;
     case "billingSuccess":
       return billingSuccessPageMetadata;
     case "privacyPolicy":

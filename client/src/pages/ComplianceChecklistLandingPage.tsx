@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { siteConfig } from "@shared/site";
+import { ComplianceChecklistQuestionnaire } from "@/features/capture/ComplianceChecklistQuestionnaire";
 import { CapturePageShell } from "@/features/capture/CapturePageShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,25 @@ const outcomes = [
   "A cleaner path into pricing or the right human-led support option",
 ] as const;
 
-export default function ComplianceChecklistLandingPage() {
+function scrollToQuestionnaire() {
+  document
+    .getElementById("compliance-checklist-questionnaire")
+    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+export default function ComplianceChecklistLandingPage({
+  autoScrollToQuestionnaire = false,
+}: {
+  autoScrollToQuestionnaire?: boolean;
+}) {
+  useEffect(() => {
+    if (autoScrollToQuestionnaire) {
+      window.requestAnimationFrame(() => {
+        scrollToQuestionnaire();
+      });
+    }
+  }, [autoScrollToQuestionnaire]);
+
   return (
     <CapturePageShell>
       <section className="capture-funnel-hero rounded-[28px] border px-6 py-10 text-white md:px-9 md:py-12">
@@ -28,27 +47,16 @@ export default function ComplianceChecklistLandingPage() {
             Automate your FINTRAC and KYC compliance with confidence
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-[#D6D2C6]">
-            Generate a structured compliance checklist built for Canadian fintech operators so you
-            can understand and plan your next moves now
+            Complete your Checklist Now
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <Button
-              asChild
               size="lg"
               className="rounded-xl bg-[#E6C989] px-7 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.18)] hover:bg-[#dcbc6f]"
+              onClick={scrollToQuestionnaire}
             >
-              <a href={siteConfig.links.complianceChecklistStart}>
-                Complete your compliance checklist
-                <ArrowRight className="h-4 w-4" />
-              </a>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="rounded-xl border-white/18 bg-white/5 px-7 text-white hover:bg-white/10 hover:text-white"
-            >
-              <a href={siteConfig.links.home}>Back to main site</a>
+              Complete your Checklist
+              <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -76,8 +84,7 @@ export default function ComplianceChecklistLandingPage() {
               </div>
             ))}
             <div className="rounded-[16px] border border-[rgba(230,201,137,0.32)] bg-[rgba(230,201,137,0.12)] px-4 py-4 text-[#3E443A]">
-              Primary CTA:{" "}
-              <span className="font-semibold">Complete your compliance checklist</span>
+              Primary CTA: <span className="font-semibold">Complete your Checklist</span>
             </div>
           </CardContent>
         </Card>
@@ -209,18 +216,18 @@ export default function ComplianceChecklistLandingPage() {
           </p>
           <div className="flex justify-center">
             <Button
-              asChild
               size="lg"
               className="rounded-xl bg-[#E6C989] px-7 text-[#1F241D] shadow-[0_14px_28px_rgba(230,201,137,0.18)] hover:bg-[#dcbc6f]"
+              onClick={scrollToQuestionnaire}
             >
-              <a href={siteConfig.links.complianceChecklistStart}>
-                Complete your compliance checklist
-                <ArrowRight className="h-4 w-4" />
-              </a>
+              Complete your Checklist
+              <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </section>
+
+      <ComplianceChecklistQuestionnaire />
     </CapturePageShell>
   );
 }
