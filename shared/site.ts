@@ -3,6 +3,10 @@ const homePath = "/";
 const homeUrl = `${canonicalOrigin}${homePath}`;
 const productPath = "/finsure";
 const productUrl = `${canonicalOrigin}${productPath}`;
+const complianceChecklistPath = "/compliance-checklist";
+const complianceChecklistUrl = `${canonicalOrigin}${complianceChecklistPath}`;
+const complianceChecklistStartPath = "/compliance-checklist/start";
+const complianceChecklistStartUrl = `${canonicalOrigin}${complianceChecklistStartPath}`;
 const billingSuccessPath = "/billing/success";
 const billingSuccessUrl = `${canonicalOrigin}${billingSuccessPath}`;
 const privacyPolicyPath = "/privacy-policy";
@@ -15,6 +19,8 @@ const disclaimerUrl = `${canonicalOrigin}${disclaimerPath}`;
 export type SitePage =
   | "home"
   | "product"
+  | "complianceChecklist"
+  | "complianceChecklistStart"
   | "billingSuccess"
   | "privacyPolicy"
   | "termsOfService"
@@ -57,6 +63,34 @@ const productPageMetadata: SitePageMetadata = {
   twitterTitle: "FinSure | Suspicious transaction drafting",
   twitterDescription:
     "FinSure helps you generate Suspicious Transaction Report drafts faster.",
+};
+
+const complianceChecklistPageMetadata: SitePageMetadata = {
+  title: "Generate Your Compliance Checklist | FintechLawyer.ca",
+  description:
+    "A product validation funnel for fintech founders to scope FINTRAC, MSB, and AML checklist needs before launch.",
+  canonicalUrl: complianceChecklistUrl,
+  openGraphTitle: "Generate Your Compliance Checklist | FintechLawyer.ca",
+  openGraphDescription:
+    "Scope your Canadian fintech compliance checklist before you overspend on legal or compliance rework.",
+  openGraphUrl: complianceChecklistUrl,
+  twitterTitle: "Generate Your Compliance Checklist | FintechLawyer.ca",
+  twitterDescription:
+    "Scope your Canadian fintech compliance checklist before you overspend on legal or compliance rework.",
+};
+
+const complianceChecklistStartPageMetadata: SitePageMetadata = {
+  title: "Compliance Checklist Assessment | FintechLawyer.ca",
+  description:
+    "Answer a few structured questions, see indicative compliance requirements, and reach the pricing or support decision point.",
+  canonicalUrl: complianceChecklistStartUrl,
+  openGraphTitle: "Compliance Checklist Assessment | FintechLawyer.ca",
+  openGraphDescription:
+    "A pseudo-product validation page that tests product willingness to pay before scale.",
+  openGraphUrl: complianceChecklistStartUrl,
+  twitterTitle: "Compliance Checklist Assessment | FintechLawyer.ca",
+  twitterDescription:
+    "A pseudo-product validation page that tests product willingness to pay before scale.",
 };
 
 const privacyPolicyPageMetadata: SitePageMetadata = {
@@ -124,6 +158,10 @@ export function resolveSitePage(pathname: string): SitePage {
   switch (normalizeSitePath(pathname)) {
     case productPath:
       return "product";
+    case complianceChecklistPath:
+      return "complianceChecklist";
+    case complianceChecklistStartPath:
+      return "complianceChecklistStart";
     case billingSuccessPath:
       return "billingSuccess";
     case privacyPolicyPath:
@@ -141,6 +179,10 @@ export function buildSitePageMetadata(page: SitePage): SitePageMetadata {
   switch (page) {
     case "product":
       return productPageMetadata;
+    case "complianceChecklist":
+      return complianceChecklistPageMetadata;
+    case "complianceChecklistStart":
+      return complianceChecklistStartPageMetadata;
     case "billingSuccess":
       return billingSuccessPageMetadata;
     case "privacyPolicy":
@@ -162,6 +204,10 @@ export const siteConfig = {
   homeUrl,
   productPath,
   productUrl,
+  complianceChecklistPath,
+  complianceChecklistUrl,
+  complianceChecklistStartPath,
+  complianceChecklistStartUrl,
   billingSuccessPath,
   billingSuccessUrl,
   wwwUrl: "https://www.fintechlawyer.ca",
@@ -176,6 +222,8 @@ export const siteConfig = {
     termsOfService: termsOfServicePath,
     disclaimer: disclaimerPath,
     finsure: productPath,
+    complianceChecklist: complianceChecklistPath,
+    complianceChecklistStart: complianceChecklistStartPath,
     start: `${productPath}#start`,
     product: `${productPath}#product`,
     howItWorks: `${productPath}#how-it-works`,
