@@ -17,10 +17,12 @@ test("capture funnel pages load and generate a gated recommendation", async ({ p
   await page.getByRole("button", { name: "Launching" }).click();
   await page.getByRole("button", { name: "Yes, Canada is in scope" }).click();
   await page.getByRole("button", { name: "Self-serve checklist" }).click();
-  await page.getByRole("button", { name: "Generate your compliance requirements" }).click();
+  await page.getByLabel("Email").fill("operator@example.com");
+  await page.getByRole("button", { name: "Explore Results" }).click();
 
+  await expect(page).toHaveURL(/\/compliance-checklist\/start$/);
   await expect(page.getByText("Your indicative compliance requirements", { exact: true })).toBeVisible();
   await expect(page.getByText("Early access pricing")).toBeVisible();
   await expect(page.getByText("$99", { exact: true })).toBeVisible();
-  await expect(page.getByText("Selected route:")).toContainText("Self-serve checklist");
+  await expect(page.getByText("Selected route:")).toContainText("Existing product");
 });

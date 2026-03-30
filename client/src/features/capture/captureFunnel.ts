@@ -15,7 +15,7 @@ export type CapturePrimaryNeed =
   | "legal"
   | "not_sure";
 
-export type CaptureRoute = "product" | "camlo" | "compliance_service" | "legal";
+export type CaptureRoute = "product" | "consultation";
 
 export type CaptureQuestionnaire = {
   businessType: CaptureBusinessType | null;
@@ -32,6 +32,11 @@ export type CaptureRecommendation = {
   requirements: string[];
   highlights: string[];
   pricingLabel: string;
+};
+
+export type CaptureResultsSession = {
+  answers: CaptureQuestionnaire;
+  email: string;
 };
 
 export const captureBusinessTypeOptions: Array<{
@@ -238,8 +243,8 @@ export function buildCaptureRecommendation(input: CaptureQuestionnaire): Capture
   if (input.primaryNeed === "camlo") {
     return {
       summary,
-      readinessLabel: "Managed support recommended",
-      recommendedRoute: "camlo",
+      readinessLabel: "Consultation recommended",
+      recommendedRoute: "consultation",
       productFit: "service_led",
       requirements,
       highlights,
@@ -250,8 +255,8 @@ export function buildCaptureRecommendation(input: CaptureQuestionnaire): Capture
   if (input.primaryNeed === "compliance_service") {
     return {
       summary,
-      readinessLabel: "Service path recommended",
-      recommendedRoute: "compliance_service",
+      readinessLabel: "Consultation recommended",
+      recommendedRoute: "consultation",
       productFit: "service_led",
       requirements,
       highlights,
@@ -262,8 +267,8 @@ export function buildCaptureRecommendation(input: CaptureQuestionnaire): Capture
   if (input.primaryNeed === "legal") {
     return {
       summary,
-      readinessLabel: "Counsel path recommended",
-      recommendedRoute: "legal",
+      readinessLabel: "Consultation recommended",
+      recommendedRoute: "consultation",
       productFit: "service_led",
       requirements,
       highlights,
@@ -298,6 +303,57 @@ export function buildCaptureEnquirySourcePath(route: CaptureRoute): string {
   return `/compliance-checklist/start?intent=${route}`;
 }
 
+const captureResultsSessionStorageKey = "compliance-checklist-results-v1";
+
+export function saveCaptureResultsSession(session: CaptureResultsSession): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  window.sessionStorage.setItem(captureResultsSessionStorageKey, JSON.stringify(session));
+  return true;
+}
+
+export function loadCaptureResultsSession(): CaptureResultsSession | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.sessionStorage.getItem(captureResultsSessionStorageKey);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<CaptureResultsSession>;
+    const answers = parsed.answers;
+    const email = typeof parsed.email === "string" ? parsed.email.trim() : "";
+
+    if (
+      !answers ||
+      !captureBusinessTypeOptions.some((option) => option.value === answers.businessType) ||
+      !captureStageOptions.some((option) => option.value === answers.stage) ||
+      typeof answers.servesCanada !== "boolean" ||
+      !captureNeedOptions.some((option) => option.value === answers.primaryNeed) ||
+      !email.includes("@")
+    ) {
+      return null;
+    }
+
+    return {
+      answers: {
+        businessType: answers.businessType,
+        stage: answers.stage,
+        servesCanada: answers.servesCanada,
+        primaryNeed: answers.primaryNeed,
+      },
+      email,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export const captureRouteCopy: Record<
   CaptureRoute,
   {
@@ -309,31 +365,17 @@ export const captureRouteCopy: Record<
   }
 > = {
   product: {
-    label: "Self-serve checklist",
+    label: "Existing product",
     title: "Reserve software access",
-    description: "Primary path. Use pricing and early-access intent to validate willingness to pay.",
-    successTitle: "Checklist request received",
-    successDescription: "We saved your early-access request for the self-serve checklist.",
+    description: "Primary path for teams that look like a fit for the existing product.",
+    successTitle: "Software request received",
+    successDescription: "We saved your request to learn more about software access.",
   },
-  camlo: {
-    label: "CAMLO as a Service",
-    title: "Request CAMLO follow-up",
-    description: "Secondary path for teams that need designated officer or managed CAMLO support.",
-    successTitle: "CAMLO request received",
-    successDescription: "We saved your CAMLO as a Service follow-up request.",
-  },
-  compliance_service: {
-    label: "Compliance as a Service",
-    title: "Request compliance follow-up",
-    description: "Secondary path for teams that need ongoing human-led compliance support.",
-    successTitle: "Compliance request received",
-    successDescription: "We saved your Compliance as a Service follow-up request.",
-  },
-  legal: {
-    label: "Levine Law",
-    title: "Request legal follow-up",
-    description: "Secondary path for teams that need direct legal support.",
-    successTitle: "Legal request received",
-    successDescription: "We saved your Levine Law follow-up request.",
+  consultation: {
+    label: "Sales consultation",
+    title: "Request sales consultation",
+    description: "Consultation path for teams that want guided support from our sales team.",
+    successTitle: "Consultation request received",
+    successDescription: "We saved your request to speak with our sales team.",
   },
 };

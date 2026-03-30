@@ -1,9 +1,8 @@
-import { useEffect } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { ComplianceChecklistQuestionnaire } from "@/features/capture/ComplianceChecklistQuestionnaire";
 import { CapturePageShell } from "@/features/capture/CapturePageShell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 const painPoints = [
   "Founders spend weeks guessing whether FINTRAC, MSB, or AML obligations apply.",
@@ -23,21 +22,18 @@ function scrollToQuestionnaire() {
     ?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-export default function ComplianceChecklistLandingPage({
-  autoScrollToQuestionnaire = false,
-}: {
-  autoScrollToQuestionnaire?: boolean;
-}) {
-  useEffect(() => {
-    if (autoScrollToQuestionnaire) {
-      window.requestAnimationFrame(() => {
-        scrollToQuestionnaire();
-      });
-    }
-  }, [autoScrollToQuestionnaire]);
-
+export default function ComplianceChecklistLandingPage() {
   return (
-    <CapturePageShell>
+    <CapturePageShell
+      action={
+        <Button
+          className="rounded-xl bg-[#E6C989] px-5 text-[#1F241D] shadow-[0_12px_24px_rgba(230,201,137,0.18)] hover:bg-[#dcbc6f]"
+          onClick={scrollToQuestionnaire}
+        >
+          Complete your Checklist
+        </Button>
+      }
+    >
       <section className="capture-funnel-hero rounded-[28px] border px-6 py-10 text-white md:px-9 md:py-12">
         <div className="max-w-3xl space-y-6">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#E6C989]">

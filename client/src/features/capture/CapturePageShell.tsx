@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { siteConfig } from "@shared/site";
 import { SiteFooter } from "@/components/SiteFooter";
-import { Button } from "@/components/ui/button";
 
 export function CapturePageShell({
   action,
@@ -33,16 +32,9 @@ export function CapturePageShell({
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4">
-              {action !== undefined ? action : (
-                <Button
-                  asChild
-                  className="rounded-xl bg-[#E6C989] px-5 text-[#1F241D] shadow-[0_12px_24px_rgba(230,201,137,0.18)] hover:bg-[#dcbc6f]"
-                >
-                  <a href={siteConfig.links.complianceChecklistStart}>Start the checklist</a>
-                </Button>
-              )}
-            </div>
+            {action !== undefined && action !== null ? (
+              <div className="flex flex-wrap items-center gap-4">{action}</div>
+            ) : null}
           </div>
         </header>
 
